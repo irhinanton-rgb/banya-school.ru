@@ -34,7 +34,18 @@ export default function App() {
   const [progress, setProgress] = useState<UserProgress>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            ...INITIAL_PROGRESS,
+            ...parsed,
+            completedLevels: Array.isArray(parsed.completedLevels) ? parsed.completedLevels : [],
+            unlockedBadges: Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : [],
+            quizScores: parsed.quizScores && typeof parsed.quizScores === 'object' ? parsed.quizScores : INITIAL_PROGRESS.quizScores,
+          };
+        }
+      }
     } catch {
       // Fallback
     }
@@ -42,7 +53,7 @@ export default function App() {
   });
 
   const [activeTab, setActiveTab] = useState<'quest' | 'simulators' | 'handbook'>('quest');
-  const [showHero, setShowHero] = useState<boolean>(progress.completedLevels.length === 0);
+  const [showHero, setShowHero] = useState<boolean>(() => (progress?.completedLevels?.length ?? 0) === 0);
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
   const [showExamModal, setShowExamModal] = useState<boolean>(false);
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);

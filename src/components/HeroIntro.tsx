@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, Award, ArrowRight, ShieldCheck, Flame, Compass } from 'lucide-react';
 import { UserProgress, LevelId } from '../types/banya';
+import heroImg from '../assets/images/hero_banya_master_1791055049693.jpg';
 
 interface HeroIntroProps {
   progress: UserProgress;
@@ -18,7 +19,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
       {/* Background Image Scrim */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/src/assets/images/hero_banya_master_1791055049693.jpg"
+          src={heroImg}
           alt="Пармастер в аутентичной парной"
           referrerPolicy="no-referrer"
           className="h-full w-full object-cover object-center opacity-30 mix-blend-luminosity filter brightness-75"

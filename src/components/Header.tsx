@@ -22,7 +22,9 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
 }) => {
-  const hasCertificate = progress.completedLevels.includes(7) || progress.unlockedBadges.includes('master_crown');
+  const completed = progress?.completedLevels ?? [];
+  const badges = progress?.unlockedBadges ?? [];
+  const hasCertificate = completed.includes(7) || badges.includes('master_crown');
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-stone-800 bg-stone-950/90 backdrop-blur-md">

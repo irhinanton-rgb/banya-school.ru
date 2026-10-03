@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Award, Printer, Check, X, Sparkles, Download } from 'lucide-react';
+import sealImg from '../assets/images/banya_master_seal_1791055082387.jpg';
 
 interface CertificateModalProps {
   isOpen: boolean;
@@ -159,7 +160,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             {/* Seal Graphic */}
             <div className="relative flex items-center justify-center">
               <img
-                src="/src/assets/images/banya_master_seal_1791055082387.jpg"
+                src={sealImg}
                 alt="Золотая печать Гильдии Пармастеров"
                 referrerPolicy="no-referrer"
                 className="h-20 w-20 rounded-full border-2 border-amber-500/60 shadow-lg object-cover"
