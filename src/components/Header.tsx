@@ -11,6 +11,7 @@ interface HeaderProps {
   onNavigateToLevel: (levelId: LevelId) => void;
   onOpenEmergency: () => void;
   onOpenAuth: () => void;
+  onOpenPricing: () => void;
   activeTab: 'quest' | 'simulators' | 'handbook';
   setActiveTab: (tab: 'quest' | 'simulators' | 'handbook') => void;
 }
@@ -22,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCertificate,
   onOpenEmergency,
   onOpenAuth,
+  onOpenPricing,
   activeTab,
   setActiveTab,
 }) => {
@@ -29,6 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
   const completed = progress?.completedLevels ?? [];
   const badges = progress?.unlockedBadges ?? [];
   const hasCertificate = completed.includes(7) || badges.includes('master_crown');
+  const isMasterPro = progress.isPaid || progress.tariff === 'master_pro';
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-stone-800 bg-stone-950/90 backdrop-blur-md">
@@ -118,10 +121,23 @@ export const Header: React.FC<HeaderProps> = ({
             <Trophy className="h-4 w-4" />
           </button>
 
+          {/* Tariffs / Access Button */}
+          <button
+            onClick={onOpenPricing}
+            title={isMasterPro ? 'Полный доступ активен' : 'Открыть полный курс'}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shadow-sm cursor-pointer ${
+              isMasterPro
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold'
+            }`}
+          >
+            <span>{isMasterPro ? '👑 VIP' : '⭐ Тарифы'}</span>
+          </button>
+
           {/* Certificate or Quick Action */}
           <button
             onClick={onOpenCertificate}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shadow-sm ${
+            className={`hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shadow-sm ${
               hasCertificate
                 ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold'
                 : 'bg-stone-800 hover:bg-stone-700 text-amber-200 border border-amber-500/30'

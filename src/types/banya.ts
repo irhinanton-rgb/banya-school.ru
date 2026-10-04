@@ -103,6 +103,8 @@ export interface RandomEmergencyEvent {
   safetyRule: string;
 }
 
+export type UserTariff = 'free' | 'master_pro';
+
 export interface UserProgress {
   name: string;
   xp: number;
@@ -113,4 +115,8 @@ export interface UserProgress {
   examScore?: number;
   certifiedDate?: string;
   soundEnabled: boolean;
+  tariff?: UserTariff;
+  isPaid?: boolean;
+  paidAt?: string;
+  orderId?: string;
 }

@@ -26,6 +26,7 @@ interface LevelViewerProps {
   onStartExam: () => void;
   soundEnabled: boolean;
   onGrantXp: (amount: number) => void;
+  onOpenPricing?: () => void;
 }
 
 export const LevelViewer: React.FC<LevelViewerProps> = ({
@@ -35,6 +36,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
   onStartExam,
   soundEnabled,
   onGrantXp,
+  onOpenPricing,
 }) => {
   const isCompleted = (progress?.completedLevels ?? []).includes(level.id);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
@@ -139,6 +141,33 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
             <strong>Совет наставника:</strong> {level.proTip}
           </div>
         </div>
+
+        {/* Pro Level Access Banner */}
+        {level.id > 2 && !progress.isPaid && progress.tariff !== 'master_pro' && (
+          <div className="rounded-2xl bg-gradient-to-r from-amber-950/60 via-stone-900 to-amber-950/60 border border-amber-500/50 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-lg shrink-0">
+                👑
+              </div>
+              <div>
+                <div className="text-xs font-bold text-amber-100">
+                  Уровень курса «Мастер Пара PRO»
+                </div>
+                <div className="text-[11px] text-stone-300">
+                  Вы можете бесплатно изучать теорию. Для сдачи аттестации и получения именного сертификата активируйте полный доступ.
+                </div>
+              </div>
+            </div>
+            {onOpenPricing && (
+              <button
+                onClick={onOpenPricing}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs shrink-0 cursor-pointer shadow-md transition-all whitespace-nowrap"
+              >
+                Открыть тарифы (от 2 990 ₽)
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Core Learning Cards (Burger King Microlearning Station Format) */}

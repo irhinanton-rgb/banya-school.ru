@@ -16,6 +16,8 @@ import { FinalExamModal } from './components/FinalExamModal';
 import { CertificateModal } from './components/CertificateModal';
 import { LeaderboardModal } from './components/LeaderboardModal';
 import { AuthModal } from './components/AuthModal';
+import { PricingModal } from './components/PricingModal';
+import { LegalModal } from './components/LegalModal';
 import { COURSE_LEVELS, BADGES } from './data/courseData';
 import { UserProgress, LevelId, BadgeId } from './types/banya';
 import { useAuth } from './firebase/AuthContext';
@@ -71,6 +73,31 @@ export default function App() {
   const [showExamModal, setShowExamModal] = useState<boolean>(false);
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState<boolean>(false);
+  const [showPricingModal, setShowPricingModal] = useState<boolean>(false);
+  const [showLegalModal, setShowLegalModal] = useState<boolean>(false);
+  const [legalInitialTab, setLegalInitialTab] = useState<'offer' | 'privacy' | 'requisites'>('offer');
+
+  const handleOpenLegal = (tab: 'offer' | 'privacy' | 'requisites' = 'offer') => {
+    setLegalInitialTab(tab);
+    setShowLegalModal(true);
+  };
+
+  const handleActivatePaidTier = async (orderId?: string) => {
+    const updated: UserProgress = {
+      ...progress,
+      tariff: 'master_pro',
+      isPaid: true,
+      paidAt: new Date().toISOString(),
+      orderId: orderId || `ORDER-${Date.now()}`,
+    };
+    setProgress(updated);
+    if (user) {
+      await syncProgressToCloud(user, updated);
+      setLastSyncedTime(
+        new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+      );
+    }
+  };
 
   // Sync to localStorage
   useEffect(() => {
@@ -253,6 +280,7 @@ export default function App() {
         onNavigateToLevel={handleSelectLevel}
         onOpenEmergency={() => setShowEmergencyModal(true)}
         onOpenAuth={() => setShowAuthModal(true)}
+        onOpenPricing={() => setShowPricingModal(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
@@ -282,6 +310,7 @@ export default function App() {
               onStartExam={() => setShowExamModal(true)}
               soundEnabled={progress.soundEnabled}
               onGrantXp={handleGrantXp}
+              onOpenPricing={() => setShowPricingModal(true)}
             />
 
             {/* Quest Roadmap Map */}
@@ -344,39 +373,62 @@ export default function App() {
         onManualSync={handleManualSync}
         isSyncing={isCloudSyncing}
         lastSyncedTime={lastSyncedTime}
+        onOpenPricing={() => setShowPricingModal(true)}
+        onOpenLegal={handleOpenLegal}
       />
 
-      {/* Quiet Footer */}
+      <PricingModal
+        isOpen={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
+        progress={progress}
+        onActivatePaidTier={handleActivatePaidTier}
+        onOpenLegal={handleOpenLegal}
+      />
+
+      <LegalModal
+        isOpen={showLegalModal}
+        onClose={() => setShowLegalModal(false)}
+        initialTab={legalInitialTab}
+      />
+
+      {/* Footer */}
       <footer className="w-full border-t border-stone-800/80 bg-stone-950 py-6 print:hidden">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div>
-            © {new Date().getFullYear()} Квест Пармастера: Путь к Мастерству · Академия Банного Искусства
+            © {new Date().getFullYear()} Квест Пармастера: Путь к Мастерству · banya-school.ru
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <button
-              onClick={() => setActiveTab('quest')}
-              className="hover:text-stone-300 transition-colors"
+              onClick={() => setShowPricingModal(true)}
+              className="text-amber-400 hover:text-amber-300 font-semibold transition-colors cursor-pointer"
             >
-              Карта Квеста
+              ⭐ Тарифы и оплата
             </button>
             <span aria-hidden="true">·</span>
             <button
-              onClick={() => setActiveTab('simulators')}
-              className="hover:text-stone-300 transition-colors"
+              onClick={() => handleOpenLegal('offer')}
+              className="hover:text-stone-300 transition-colors cursor-pointer"
             >
-              Тренажеры
+              Публичная оферта
             </button>
             <span aria-hidden="true">·</span>
             <button
-              onClick={() => setActiveTab('handbook')}
-              className="hover:text-stone-300 transition-colors"
+              onClick={() => handleOpenLegal('privacy')}
+              className="hover:text-stone-300 transition-colors cursor-pointer"
             >
-              Справочник
+              Политика 152-ФЗ
+            </button>
+            <span aria-hidden="true">·</span>
+            <button
+              onClick={() => handleOpenLegal('requisites')}
+              className="hover:text-stone-300 transition-colors cursor-pointer"
+            >
+              Реквизиты самозанятого
             </button>
             <span aria-hidden="true">·</span>
             <button
               onClick={() => setShowEmergencyModal(true)}
-              className="hover:text-amber-400 transition-colors"
+              className="hover:text-amber-400 transition-colors cursor-pointer"
             >
               ЧП в парной
             </button>

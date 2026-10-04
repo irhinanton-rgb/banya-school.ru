@@ -28,6 +28,7 @@ service cloud.firestore {
       return data.uid is string && data.uid.size() <= 128 && data.uid == request.auth.uid
         && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100
         && (!('email' in data) || (data.email is string && data.email.size() <= 150))
+        && (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() <= 32))
         && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500));
     }
 
@@ -37,9 +38,13 @@ service cloud.firestore {
         && data.xp is number && data.xp >= 0 && data.xp <= 1000000
         && data.completedLevels is list && data.completedLevels.size() <= 50
         && data.unlockedBadges is list && data.unlockedBadges.size() <= 50
-        && (!('activeLevelId' in data) || (data.activeLevelId is string && data.activeLevelId.size() <= 64))
+        && (!('activeLevelId' in data) || (data.activeLevelId is number) || (data.activeLevelId is string && data.activeLevelId.size() <= 64))
         && (!('examScore' in data) || (data.examScore is number))
-        && (!('certifiedDate' in data) || (data.certifiedDate is string && data.certifiedDate.size() <= 64));
+        && (!('certifiedDate' in data) || (data.certifiedDate is string && data.certifiedDate.size() <= 64))
+        && (!('tariff' in data) || (data.tariff is string && data.tariff.size() <= 32))
+        && (!('isPaid' in data) || (data.isPaid is bool))
+        && (!('paidAt' in data) || (data.paidAt is string && data.paidAt.size() <= 64))
+        && (!('orderId' in data) || (data.orderId is string && data.orderId.size() <= 64));
     }
 
     // User profile document

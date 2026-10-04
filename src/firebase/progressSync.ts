@@ -75,6 +75,10 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
       activeLevelId: Math.max(1, Math.min(7, Number(progress.activeLevelId) || 1)),
       examScore: progress.examScore !== undefined ? Math.max(0, Math.min(100, Number(progress.examScore))) : 0,
       certifiedDate: String(progress.certifiedDate || '').slice(0, 64),
+      tariff: progress.tariff === 'master_pro' ? 'master_pro' : 'free',
+      isPaid: Boolean(progress.isPaid),
+      paidAt: String(progress.paidAt || '').slice(0, 64),
+      orderId: String(progress.orderId || '').slice(0, 64),
       updatedAt: new Date().toISOString(),
     };
 
@@ -105,6 +109,10 @@ export async function fetchProgressFromCloud(user: User): Promise<Partial<UserPr
         : 1,
       examScore: typeof data.examScore === 'number' ? data.examScore : undefined,
       certifiedDate: typeof data.certifiedDate === 'string' && data.certifiedDate ? data.certifiedDate : undefined,
+      tariff: data.tariff === 'master_pro' ? 'master_pro' : 'free',
+      isPaid: Boolean(data.isPaid),
+      paidAt: typeof data.paidAt === 'string' ? data.paidAt : undefined,
+      orderId: typeof data.orderId === 'string' ? data.orderId : undefined,
     };
   } catch (error) {
     handleFirestoreError(error, OperationType.GET, progressPath);
@@ -124,6 +132,8 @@ export function mergeUserProgress(local: UserProgress, remote: Partial<UserProgr
 
   const mergedXp = Math.max(local.xp || 0, remote.xp || 0);
   const highestLevel = Math.max(local.activeLevelId || 1, remote.activeLevelId || 1) as LevelId;
+  const isPaid = local.isPaid || remote.isPaid || false;
+  const tariff = isPaid || local.tariff === 'master_pro' || remote.tariff === 'master_pro' ? 'master_pro' : 'free';
 
   return {
     ...local,
@@ -134,5 +144,9 @@ export function mergeUserProgress(local: UserProgress, remote: Partial<UserProgr
     activeLevelId: highestLevel,
     examScore: remote.examScore !== undefined ? Math.max(local.examScore || 0, remote.examScore) : local.examScore,
     certifiedDate: remote.certifiedDate || local.certifiedDate,
+    tariff,
+    isPaid,
+    paidAt: remote.paidAt || local.paidAt,
+    orderId: remote.orderId || local.orderId,
   };
 }

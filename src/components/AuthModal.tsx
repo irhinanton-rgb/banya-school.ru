@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Sparkles,
@@ -10,14 +10,22 @@ import {
   Smartphone,
   RefreshCw,
   AlertCircle,
-  ExternalLink,
-  Copy,
-  Check,
-  Globe,
+  Mail,
   Lock,
+  User,
+  ArrowRight,
+  KeyRound,
+  Check,
+  Copy,
+  Globe,
+  ExternalLink,
+  Flame,
+  Crown,
+  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '../firebase/AuthContext';
 import { UserProgress } from '../types/banya';
+import { ConfirmationResult, RecaptchaVerifier } from 'firebase/auth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -26,7 +34,12 @@ interface AuthModalProps {
   onManualSync?: () => Promise<void>;
   isSyncing?: boolean;
   lastSyncedTime?: string | null;
+  onOpenPricing?: () => void;
+  onOpenLegal?: (tab: 'offer' | 'privacy' | 'requisites') => void;
 }
+
+type AuthTab = 'email' | 'phone' | 'google';
+type EmailMode = 'signin' | 'signup' | 'forgot';
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
@@ -35,10 +48,57 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onManualSync,
   isSyncing = false,
   lastSyncedTime,
+  onOpenPricing,
+  onOpenLegal,
 }) => {
-  const { user, signInWithGoogle, signOutUser, authError, clearAuthError } = useAuth();
-  const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
+  const {
+    user,
+    authMethod,
+    authError,
+    authSuccessMsg,
+    clearAuthError,
+    clearAuthSuccess,
+    signInWithGoogle,
+    signUpWithEmail,
+    signInWithEmail,
+    resetPassword,
+    initPhoneRecaptcha,
+    sendPhoneCode,
+    confirmPhoneCode,
+    signOutUser,
+  } = useAuth();
+
+  const [activeTab, setActiveTab] = useState<AuthTab>('email');
+  const [emailMode, setEmailMode] = useState<EmailMode>('signup');
+  const [loading, setLoading] = useState<boolean>(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Email form state
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [displayName, setDisplayName] = useState<string>(progress.name || '');
+
+  // Phone form state
+  const [phone, setPhone] = useState<string>('+7');
+  const [phoneCode, setPhoneCode] = useState<string>('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [smsTimer, setSmsTimer] = useState<number>(0);
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+
+  // Agreement checkbox
+  const [agreedToTerms, setAgreedToTerms] = useState<boolean>(true);
+
+  // Countdown timer for SMS
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (smsTimer > 0) {
+      interval = setInterval(() => {
+        setSmsTimer((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [smsTimer]);
 
   if (!isOpen) return null;
 
@@ -49,6 +109,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       authError.includes('auth/unauthorized-domain') ||
       authError.toLowerCase().includes('authorized domain'));
 
+  const isOperationNotAllowed =
+    authError &&
+    (authError.includes('operation-not-allowed') ||
+      authError.toLowerCase().includes('еще не активирован в консоли'));
+
   const handleCopy = (text: string, key: string) => {
     if (navigator?.clipboard) {
       navigator.clipboard.writeText(text);
@@ -57,19 +122,112 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+  // Google Login
   const handleGoogleLogin = async () => {
-    setIsSigningIn(true);
+    setLoading(true);
     clearAuthError();
+    clearAuthSuccess();
     try {
       await signInWithGoogle();
     } finally {
-      setIsSigningIn(false);
+      setLoading(false);
+    }
+  };
+
+  // Email Submit
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearAuthError();
+    clearAuthSuccess();
+
+    if (!email.trim() || !password) return;
+
+    if (emailMode === 'signup') {
+      if (password.length < 6) {
+        return;
+      }
+      if (password !== confirmPassword) {
+        alert('Пароли не совпадают');
+        return;
+      }
+      if (!agreedToTerms) {
+        alert('Для регистрации необходимо принять условия оферты и политики конфиденциальности');
+        return;
+      }
+      setLoading(true);
+      try {
+        await signUpWithEmail(email, password, displayName || progress.name);
+      } finally {
+        setLoading(false);
+      }
+    } else if (emailMode === 'signin') {
+      setLoading(true);
+      try {
+        await signInWithEmail(email, password);
+      } finally {
+        setLoading(false);
+      }
+    } else if (emailMode === 'forgot') {
+      setLoading(true);
+      try {
+        await resetPassword(email);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Phone: Send SMS
+  const handleSendPhoneSms = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearAuthError();
+    clearAuthSuccess();
+
+    if (!phone || phone.length < 10) return;
+
+    if (!agreedToTerms) {
+      alert('Необходимо согласие с условиями оферты и обработки данных');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Initialize recaptcha if needed
+      const verifier = initPhoneRecaptcha('recaptcha-container');
+      recaptchaVerifierRef.current = verifier;
+
+      const result = await sendPhoneCode(phone, verifier);
+      if (result) {
+        setConfirmationResult(result);
+        setSmsTimer(60);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Phone: Verify Code
+  const handleVerifyPhoneCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearAuthError();
+    clearAuthSuccess();
+
+    if (!confirmationResult || !phoneCode.trim()) return;
+
+    setLoading(true);
+    try {
+      await confirmPhoneCode(confirmationResult, phoneCode, displayName || progress.name);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLogout = async () => {
     await signOutUser();
+    setConfirmationResult(null);
   };
+
+  const isMasterPro = progress.isPaid || progress.tariff === 'master_pro';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
@@ -94,7 +252,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <span>Облачный профиль пармастера</span>
               </div>
               <h2 className="text-xl font-serif font-bold text-amber-100">
-                {user ? 'Личный кабинет и Синхронизация' : 'Регистрация и Сохранение Прогресса'}
+                {user ? 'Личный кабинет и Синхронизация' : 'Вход и Регистрация в Академии'}
               </h2>
             </div>
           </div>
@@ -103,8 +261,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Content Body */}
         <div className="p-5 sm:p-6 space-y-5 overflow-y-auto">
           
-          {/* Specific Domain Whitelist Guidance */}
-          {isDomainError ? (
+          {/* Error Message */}
+          {authError && (
+            <div className="p-4 rounded-2xl bg-red-950/40 border border-red-500/50 space-y-2 text-xs text-red-200 animate-fade-in shadow-lg">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <div className="font-semibold text-red-300">Ошибка авторизации:</div>
+                  <p className="mt-0.5 text-stone-300 leading-relaxed">{authError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {authSuccessMsg && (
+            <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/50 text-xs text-emerald-200 flex items-center gap-2.5 shadow-md">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{authSuccessMsg}</span>
+            </div>
+          )}
+
+          {/* Domain Whitelist Guidance */}
+          {isDomainError && (
             <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/50 space-y-3.5 text-xs text-stone-200 animate-fade-in shadow-lg">
               <div className="flex items-start gap-2.5">
                 <Globe className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
@@ -113,58 +292,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     Домен не добавлен в доверенные домены Firebase
                   </h4>
                   <p className="text-xs text-stone-300 mt-1 leading-relaxed">
-                    Для защиты аккаунтов от фишинга Google блокирует вход на новых или тестовых доменах, пока они не внесены в белый список в вашей консоли Firebase.
+                    Для защиты аккаунтов Google блокирует вход на новых доменах, пока они не внесены в список разрешенных в консоли Firebase (раздел Authentication → Settings → Authorized domains).
                   </p>
                 </div>
               </div>
 
-              {/* Domains to Copy */}
-              <div className="space-y-2 pt-1">
-                <div className="text-[11px] font-mono text-stone-400 uppercase tracking-wide">
-                  Скопируйте и добавьте эти домены в Firebase:
-                </div>
-
-                {/* Current environment hostname */}
-                {currentHostname && (
-                  <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-stone-900 border border-stone-800">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-stone-400 font-mono text-[10px]">Текущий домен:</span>
-                      <code className="text-amber-300 font-mono text-xs truncate select-all font-semibold">
-                        {currentHostname}
-                      </code>
-                    </div>
-                    <button
-                      onClick={() => handleCopy(currentHostname, 'current')}
-                      className="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-[11px] font-medium transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
-                    >
-                      {copiedKey === 'current' ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-400" />
-                          <span className="text-emerald-400">Скопировано</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3 text-stone-400" />
-                          <span>Копировать</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                {/* Primary project domain */}
+              {currentHostname && (
                 <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-stone-900 border border-stone-800">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-stone-400 font-mono text-[10px]">Боевой домен:</span>
-                    <code className="text-emerald-300 font-mono text-xs truncate select-all font-semibold">
-                      banya-school.ru
+                    <span className="text-stone-400 font-mono text-[10px]">Текущий домен:</span>
+                    <code className="text-amber-300 font-mono text-xs truncate select-all font-semibold">
+                      {currentHostname}
                     </code>
                   </div>
                   <button
-                    onClick={() => handleCopy('banya-school.ru', 'prod')}
+                    type="button"
+                    onClick={() => handleCopy(currentHostname, 'current')}
                     className="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-[11px] font-medium transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
                   >
-                    {copiedKey === 'prod' ? (
+                    {copiedKey === 'current' ? (
                       <>
                         <Check className="w-3 h-3 text-emerald-400" />
                         <span className="text-emerald-400">Скопировано</span>
@@ -177,220 +323,602 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     )}
                   </button>
                 </div>
-              </div>
+              )}
+            </div>
+          )}
 
-              {/* 3 Step Instruction */}
-              <div className="p-3 rounded-xl bg-stone-950/70 border border-stone-800 space-y-1.5 text-[11px] text-stone-300 leading-relaxed">
-                <span className="font-semibold text-amber-300 block">Инструкция (занимает 30 секунд):</span>
-                <ol className="list-decimal list-inside space-y-1 text-stone-400">
-                  <li>Перейдите в консоль Firebase в раздел <strong className="text-stone-200">Authentication → Settings → Authorized domains</strong>.</li>
-                  <li>Нажмите <strong className="text-stone-200">Add domain</strong> и вставьте скопированный домен.</li>
-                  <li>Нажмите <strong className="text-stone-200">Save</strong>. После этого вход сразу заработает!</li>
-                </ol>
+          {/* Provider Activation Guidance if operation not allowed */}
+          {isOperationNotAllowed && (
+            <div className="p-4 rounded-2xl bg-amber-950/50 border border-amber-500/60 text-xs text-amber-200 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-amber-300">
+                <KeyRound className="w-4 h-4 text-amber-400" />
+                <span>Как включить вход по Почте или Телефону в Firebase Console:</span>
               </div>
+              <ol className="list-decimal pl-5 space-y-1 text-stone-300 leading-relaxed">
+                <li>Откройте консоль Firebase: <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-amber-400 underline inline-flex items-center gap-0.5">console.firebase.google.com <ExternalLink className="w-3 h-3" /></a></li>
+                <li>Перейдите в проект <strong>gen-lang-client-0150076326</strong> → <strong>Authentication</strong> → вкладка <strong>Sign-in method</strong>.</li>
+                <li>Нажмите <strong>Email/Password</strong> и переключите тумблер в положение <strong>Enable</strong>.</li>
+                <li>(Для входа по SMS) Нажмите <strong>Phone</strong> и также включите его.</li>
+              </ol>
+            </div>
+          )}
 
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <a
-                  href="https://console.firebase.google.com/project/gen-lang-client-0150076326/authentication/settings"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-all shadow-md cursor-pointer"
-                >
-                  <span>Открыть Firebase Console</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+          {/* State 1: User is Logged In */}
+          {user ? (
+            <div className="space-y-5 animate-fade-in">
+              {/* User Identity Card */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-stone-900 border border-stone-800 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt={user.displayName || 'Профиль'}
+                      className="h-12 w-12 rounded-2xl object-cover border-2 border-emerald-500/60 shrink-0"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 text-emerald-300 font-bold flex items-center justify-center text-lg border border-emerald-500/40 shrink-0">
+                      {user.displayName ? user.displayName.slice(0, 1).toUpperCase() : (user.phoneNumber ? '📱' : 'П')}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-serif font-bold text-stone-100 truncate text-base">
+                        {user.displayName || progress.name || 'Пармастер'}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-medium shrink-0 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>В сети</span>
+                      </span>
+                    </div>
+                    <div className="text-xs text-stone-400 truncate mt-0.5 font-mono">
+                      {user.email || user.phoneNumber || 'Авторизованный ученик'}
+                    </div>
+                    <div className="text-[11px] text-stone-500 mt-1 flex items-center gap-1.5">
+                      <span>Способ входа:</span>
+                      <span className="text-amber-400 font-medium">
+                        {authMethod === 'google' && 'Google'}
+                        {authMethod === 'password' && 'Email и Пароль'}
+                        {authMethod === 'phone' && 'Номер Телефона'}
+                        {authMethod === 'unknown' && 'Облачный аккаунт'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
                 <button
-                  onClick={onClose}
-                  className="px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 text-xs transition-colors border border-stone-800"
+                  onClick={handleLogout}
+                  className="p-2.5 rounded-xl bg-stone-800/80 hover:bg-stone-700 border border-stone-700 text-stone-300 hover:text-red-400 transition-colors shrink-0 flex items-center gap-1.5 text-xs cursor-pointer"
+                  title="Выйти из аккаунта"
                 >
-                  Продолжить без облака (в браузере)
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Выйти</span>
                 </button>
               </div>
-            </div>
-          ) : authError ? (
-            <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/50 text-xs text-rose-200 flex items-start gap-2.5 animate-fade-in">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <span className="font-semibold block">Ошибка входа:</span>
-                <span>{authError}</span>
-              </div>
-            </div>
-          ) : null}
 
-          {user ? (
-            /* Logged in state */
-            <div className="space-y-5">
-              {/* User Identity Card */}
-              <div className="p-4 rounded-2xl bg-stone-900/90 border border-stone-800 flex items-center gap-4">
-                {user.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.displayName || 'Пользователь'}
-                    className="h-14 w-14 rounded-2xl border-2 border-amber-500/60 object-cover shadow-md"
-                  />
-                ) : (
-                  <div className="h-14 w-14 rounded-2xl bg-amber-500/20 border-2 border-amber-500/60 flex items-center justify-center text-xl font-bold text-amber-300">
-                    {user.displayName ? user.displayName.slice(0, 2).toUpperCase() : 'ПМ'}
+              {/* Course Access / Tariff Card */}
+              <div className={`p-4 rounded-2xl border transition-all ${
+                isMasterPro
+                  ? 'bg-gradient-to-r from-amber-950/40 to-stone-900 border-amber-500/50'
+                  : 'bg-stone-900/70 border-stone-800'
+              }`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-xl shrink-0 ${
+                      isMasterPro ? 'bg-amber-500/20 text-amber-300' : 'bg-stone-800 text-stone-400'
+                    }`}>
+                      {isMasterPro ? <Crown className="w-5 h-5 text-amber-400" /> : <BookOpen className="w-5 h-5" />}
+                    </div>
+                    <div>
+                      <div className="text-xs text-stone-400 font-mono uppercase tracking-wider">
+                        Текущий тариф
+                      </div>
+                      <div className="font-serif font-bold text-sm text-stone-100 flex items-center gap-2">
+                        <span>{isMasterPro ? 'Мастер Пара PRO (Полный доступ)' : 'Вольный Слушатель (Базовый)'}</span>
+                      </div>
+                    </div>
                   </div>
-                )}
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-serif font-bold text-base text-stone-100 truncate">
-                      {user.displayName || progress.name || 'Пармастер'}
-                    </h3>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-mono">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Онлайн
-                    </span>
-                  </div>
-                  <p className="text-xs text-stone-400 truncate mt-0.5">{user.email}</p>
-                  <p className="text-[11px] font-mono text-amber-400/90 mt-1">
-                    ID: {user.uid.slice(0, 8)}...
-                  </p>
+                  {onOpenPricing && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onOpenPricing();
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        isMasterPro
+                          ? 'bg-stone-800 hover:bg-stone-700 text-amber-300 border border-amber-500/30'
+                          : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 shadow-md'
+                      }`}
+                    >
+                      {isMasterPro ? 'Детали тарифа' : 'Купить курс'}
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {/* Progress Summary in Cloud */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 rounded-xl bg-stone-900 border border-stone-800 text-center">
-                  <span className="text-[10px] text-stone-400 uppercase font-mono block">Опыт (XP)</span>
-                  <span className="text-lg font-bold font-mono text-amber-400 tabular-nums">
-                    {progress.xp}
-                  </span>
+              {/* Sync Statistics */}
+              <div className="grid grid-cols-3 gap-2.5">
+                <div className="p-3 rounded-xl bg-stone-900/60 border border-stone-800 text-center">
+                  <div className="text-amber-400 font-bold font-mono text-base">{progress.xp}</div>
+                  <div className="text-[10px] text-stone-400 uppercase tracking-wide mt-0.5">Очки XP</div>
                 </div>
-
-                <div className="p-3 rounded-xl bg-stone-900 border border-stone-800 text-center">
-                  <span className="text-[10px] text-stone-400 uppercase font-mono block">Уровни</span>
-                  <span className="text-lg font-bold font-mono text-emerald-400 tabular-nums">
+                <div className="p-3 rounded-xl bg-stone-900/60 border border-stone-800 text-center">
+                  <div className="text-emerald-400 font-bold font-mono text-base">
                     {progress.completedLevels.length} / 7
-                  </span>
+                  </div>
+                  <div className="text-[10px] text-stone-400 uppercase tracking-wide mt-0.5">Станций</div>
                 </div>
-
-                <div className="p-3 rounded-xl bg-stone-900 border border-stone-800 text-center">
-                  <span className="text-[10px] text-stone-400 uppercase font-mono block">Значки</span>
-                  <span className="text-lg font-bold font-mono text-cyan-400 tabular-nums">
+                <div className="p-3 rounded-xl bg-stone-900/60 border border-stone-800 text-center">
+                  <div className="text-amber-300 font-bold font-mono text-base">
                     {progress.unlockedBadges.length}
-                  </span>
+                  </div>
+                  <div className="text-[10px] text-stone-400 uppercase tracking-wide mt-0.5">Трофеев</div>
                 </div>
               </div>
 
-              {/* Sync Status Banner */}
-              <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs text-emerald-200/90 flex items-center justify-between">
+              {/* Manual Cloud Sync Action */}
+              <div className="p-3.5 rounded-2xl bg-stone-900/60 border border-stone-800 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <div>
-                    <span className="font-semibold block text-emerald-300">
-                      Облачное сохранение активно
-                    </span>
-                    <span className="text-[11px] text-stone-400">
-                      {lastSyncedTime
-                        ? `Последняя синхронизация: ${lastSyncedTime}`
-                        : 'Данные автоматически сохраняются в Firestore'}
-                    </span>
-                  </div>
+                  <Cloud className="w-4 h-4 text-emerald-400" />
+                  <span className="text-stone-300">
+                    {lastSyncedTime ? `Синхронизировано в ${lastSyncedTime}` : 'Облачное сохранение активно'}
+                  </span>
                 </div>
-
                 {onManualSync && (
                   <button
                     onClick={onManualSync}
                     disabled={isSyncing}
-                    className="p-2 rounded-lg bg-emerald-900/50 hover:bg-emerald-800/60 text-emerald-200 transition-colors cursor-pointer border border-emerald-700/50"
-                    title="Синхронизировать сейчас"
+                    className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-amber-300 border border-amber-500/20 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
-                    <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                    <span>Синхронизировать</span>
                   </button>
                 )}
               </div>
-
-              {/* Actions */}
-              <div className="pt-2 flex items-center justify-between gap-3">
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-rose-300 hover:text-rose-200 text-xs font-semibold transition-all border border-stone-800 cursor-pointer"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Выйти из аккаунта</span>
-                </button>
-
-                <button
-                  onClick={onClose}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wide transition-all shadow-md cursor-pointer"
-                >
-                  <span>Продолжить обучение</span>
-                </button>
-              </div>
             </div>
           ) : (
-            /* Unauthenticated / Registration view */
-            <div className="space-y-5">
-              <div className="space-y-2.5">
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                  Зарегистрируйтесь или войдите в аккаунт, чтобы навсегда привязать свой прогресс к профилю и не потерять достижения.
-                </p>
-
-                {/* Key Benefits */}
-                <div className="space-y-2 pt-1 text-xs">
-                  <div className="flex items-center gap-2.5 text-stone-300">
-                    <Cloud className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Синхронизация прогресса между телефоном, планшетом и ПК</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-stone-300">
-                    <Award className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Сохранение именного Сертификата пармастера с печатью</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-stone-300">
-                    <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>Участие в рейтинге и таблице лидеров банной школы</span>
-                  </div>
-                </div>
+            /* State 2: User is NOT Logged In - Multiple Login Tabs */
+            <div className="space-y-5 animate-fade-in">
+              {/* Tab Selector */}
+              <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-stone-900 border border-stone-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('email');
+                    clearAuthError();
+                    clearAuthSuccess();
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    activeTab === 'email'
+                      ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
+                      : 'text-stone-400 hover:text-stone-200'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>По почте</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('phone');
+                    clearAuthError();
+                    clearAuthSuccess();
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    activeTab === 'phone'
+                      ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
+                      : 'text-stone-400 hover:text-stone-200'
+                  }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>По телефону</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('google');
+                    clearAuthError();
+                    clearAuthSuccess();
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    activeTab === 'google'
+                      ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
+                      : 'text-stone-400 hover:text-stone-200'
+                  }`}
+                >
+                  <span>Google</span>
+                </button>
               </div>
 
-              {/* One-Click Google Login Button */}
-              <div className="pt-2 space-y-3">
-                <button
-                  onClick={handleGoogleLogin}
-                  disabled={isSigningIn}
-                  className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-2xl bg-white hover:bg-stone-100 active:scale-95 text-stone-900 font-bold text-sm transition-all shadow-xl cursor-pointer disabled:opacity-50 select-none border border-stone-200"
-                >
-                  {/* Google SVG Icon */}
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                    />
-                  </svg>
-                  <span>{isSigningIn ? 'Авторизация...' : 'Войти через Google (в 1 клик)'}</span>
-                </button>
+              {/* TAB 1: EMAIL & PASSWORD */}
+              {activeTab === 'email' && (
+                <div className="space-y-4">
+                  {/* Mode Selector for Email (Sign in / Sign up) */}
+                  {emailMode !== 'forgot' && (
+                    <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+                      <div className="flex gap-4 text-xs font-medium">
+                        <button
+                          type="button"
+                          onClick={() => setEmailMode('signup')}
+                          className={`transition-colors cursor-pointer ${
+                            emailMode === 'signup'
+                              ? 'text-amber-400 font-bold border-b-2 border-amber-500 pb-1'
+                              : 'text-stone-400 hover:text-stone-200'
+                          }`}
+                        >
+                          Регистрация
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEmailMode('signin')}
+                          className={`transition-colors cursor-pointer ${
+                            emailMode === 'signin'
+                              ? 'text-amber-400 font-bold border-b-2 border-amber-500 pb-1'
+                              : 'text-stone-400 hover:text-stone-200'
+                          }`}
+                        >
+                          Вход в аккаунт
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
-                <div className="flex items-center justify-between text-[11px] text-stone-500 pt-1">
-                  <span>Гостевой режим сохраняет прогресс в этом браузере</span>
+                  {emailMode === 'forgot' ? (
+                    <form onSubmit={handleEmailSubmit} className="space-y-4">
+                      <div className="text-xs text-stone-300">
+                        Введите ваш e-mail, и мы отправим ссылку для восстановления пароля:
+                      </div>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-stone-500 absolute left-3.5 top-3.5" />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="name@example.com"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-100 placeholder-stone-600 text-xs focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          {loading ? 'Отправка...' : 'Сбросить пароль'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEmailMode('signin')}
+                          className="py-2.5 px-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs transition-colors cursor-pointer"
+                        >
+                          Назад
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleEmailSubmit} className="space-y-3.5">
+                      {emailMode === 'signup' && (
+                        <div>
+                          <label className="text-[11px] font-mono text-stone-400 block mb-1">
+                            Ваше имя (для сертификата):
+                          </label>
+                          <div className="relative">
+                            <User className="w-4 h-4 text-stone-500 absolute left-3.5 top-3.5" />
+                            <input
+                              type="text"
+                              required
+                              value={displayName}
+                              onChange={(e) => setDisplayName(e.target.value)}
+                              placeholder="Иван Мастеров"
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-100 placeholder-stone-600 text-xs focus:outline-none focus:border-amber-500"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="text-[11px] font-mono text-stone-400 block mb-1">
+                          Электронная почта:
+                        </label>
+                        <div className="relative">
+                          <Mail className="w-4 h-4 text-stone-500 absolute left-3.5 top-3.5" />
+                          <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="master@banya.ru"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-100 placeholder-stone-600 text-xs focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-mono text-stone-400">
+                            Пароль (от 6 символов):
+                          </label>
+                          {emailMode === 'signin' && (
+                            <button
+                              type="button"
+                              onClick={() => setEmailMode('forgot')}
+                              className="text-[11px] text-amber-400 hover:underline cursor-pointer"
+                            >
+                              Забыли пароль?
+                            </button>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 text-stone-500 absolute left-3.5 top-3.5" />
+                          <input
+                            type="password"
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            minLength={6}
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-100 placeholder-stone-600 text-xs focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+
+                      {emailMode === 'signup' && (
+                        <div>
+                          <label className="text-[11px] font-mono text-stone-400 block mb-1">
+                            Подтвердите пароль:
+                          </label>
+                          <div className="relative">
+                            <Lock className="w-4 h-4 text-stone-500 absolute left-3.5 top-3.5" />
+                            <input
+                              type="password"
+                              required
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="••••••••"
+                              minLength={6}
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-100 placeholder-stone-600 text-xs focus:outline-none focus:border-amber-500"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Agreement Checkbox */}
+                      {emailMode === 'signup' && (
+                        <label className="flex items-start gap-2.5 pt-1 text-[11px] text-stone-400 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={agreedToTerms}
+                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                            className="mt-0.5 rounded border-stone-700 bg-stone-900 text-amber-500 focus:ring-0"
+                          />
+                          <span>
+                            Я согласен с{' '}
+                            <button
+                              type="button"
+                              onClick={() => onOpenLegal && onOpenLegal('offer')}
+                              className="text-amber-400 underline cursor-pointer"
+                            >
+                              Публичной офертой
+                            </button>{' '}
+                            и{' '}
+                            <button
+                              type="button"
+                              onClick={() => onOpenLegal && onOpenLegal('privacy')}
+                              className="text-amber-400 underline cursor-pointer"
+                            >
+                              Политикой конфиденциальности (152-ФЗ)
+                            </button>
+                          </span>
+                        </label>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                      >
+                        {loading ? (
+                          <span>Обработка...</span>
+                        ) : emailMode === 'signup' ? (
+                          <>
+                            <span>Зарегистрироваться в Академии</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        ) : (
+                          <>
+                            <span>Войти в личный кабинет</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 2: PHONE AUTHENTICATION */}
+              {activeTab === 'phone' && (
+                <div className="space-y-4">
+                  {/* Invisible Recaptcha Container */}
+                  <div id="recaptcha-container"></div>
+
+                  {!confirmationResult ? (
+                    <form onSubmit={handleSendPhoneSms} className="space-y-3.5">
+                      <div className="p-3 rounded-xl bg-stone-900/80 border border-stone-800 text-xs text-stone-300">
+                        📱 Введите номер телефона. Мы отправим бесплатный проверочный 6-значный SMS-код для входа.
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-mono text-stone-400 block mb-1">
+                          Ваше имя:
+                        </label>
+                        <div className="relative">
+                          <User className="w-4 h-4 text-stone-500 absolute left-3.5 top-3.5" />
+                          <input
+                            type="text"
+                            value={displayName}
+                            onChange={(e) => setDisplayName(e.target.value)}
+                            placeholder="Александр"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-100 placeholder-stone-600 text-xs focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-mono text-stone-400 block mb-1">
+                          Номер мобильного телефона:
+                        </label>
+                        <div className="relative">
+                          <Smartphone className="w-4 h-4 text-stone-500 absolute left-3.5 top-3.5" />
+                          <input
+                            type="tel"
+                            required
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="+7 999 123-45-67"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-100 placeholder-stone-600 text-xs font-mono focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+
+                      <label className="flex items-start gap-2.5 pt-1 text-[11px] text-stone-400 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={agreedToTerms}
+                          onChange={(e) => setAgreedToTerms(e.target.checked)}
+                          className="mt-0.5 rounded border-stone-700 bg-stone-900 text-amber-500 focus:ring-0"
+                        />
+                        <span>
+                          Согласен с получением SMS и условиями{' '}
+                          <button
+                            type="button"
+                            onClick={() => onOpenLegal && onOpenLegal('offer')}
+                            className="text-amber-400 underline cursor-pointer"
+                          >
+                            оферты
+                          </button>
+                        </span>
+                      </label>
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                      >
+                        {loading ? 'Отправка SMS...' : 'Получить SMS с кодом'}
+                      </button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleVerifyPhoneCode} className="space-y-4">
+                      <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200">
+                        Код отправлен на <strong className="font-mono">{phone}</strong>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-mono text-stone-400 block mb-1">
+                          Введите 6-значный код из SMS:
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="w-4 h-4 text-stone-500 absolute left-3.5 top-3.5" />
+                          <input
+                            type="text"
+                            required
+                            maxLength={6}
+                            value={phoneCode}
+                            onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, ''))}
+                            placeholder="123456"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-100 placeholder-stone-600 text-center font-mono text-lg tracking-widest focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs text-stone-400">
+                        {smsTimer > 0 ? (
+                          <span>Повторный запрос через {smsTimer} сек</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleSendPhoneSms}
+                            className="text-amber-400 hover:underline cursor-pointer"
+                          >
+                            Отправить код повторно
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setConfirmationResult(null)}
+                          className="text-stone-400 hover:text-stone-200 cursor-pointer"
+                        >
+                          Изменить номер
+                        </button>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading || phoneCode.length < 6}
+                        className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {loading ? 'Проверка...' : 'Подтвердить и войти'}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 3: GOOGLE AUTH */}
+              {activeTab === 'google' && (
+                <div className="space-y-4">
+                  <p className="text-xs text-stone-300 leading-relaxed">
+                    Быстрый вход в один клик без ввода паролей. Прогресс и сертификат привязываются к вашему аккаунту Google.
+                  </p>
+
                   <button
-                    onClick={onClose}
-                    className="text-amber-400 hover:text-amber-300 underline cursor-pointer"
+                    onClick={handleGoogleLogin}
+                    disabled={loading}
+                    className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-stone-100 text-stone-900 font-semibold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-3 cursor-pointer active:scale-[0.99] disabled:opacity-50"
                   >
-                    Продолжить как гость
+                    <svg className="w-4 h-4" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                      />
+                    </svg>
+                    <span>{loading ? 'Подключение к Google...' : 'Войти через Google'}</span>
                   </button>
                 </div>
+              )}
+
+              {/* Bottom Guarantee Banner */}
+              <div className="pt-2 border-t border-stone-800/80 flex items-center justify-between text-[11px] text-stone-500">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Шифрование данных и безопасность</span>
+                </div>
+                {onOpenLegal && (
+                  <button
+                    onClick={() => onOpenLegal('privacy')}
+                    className="text-stone-400 hover:text-amber-400 transition-colors cursor-pointer"
+                  >
+                    Политика 152-ФЗ
+                  </button>
+                )}
               </div>
             </div>
           )}
-
         </div>
-
       </div>
     </div>
   );

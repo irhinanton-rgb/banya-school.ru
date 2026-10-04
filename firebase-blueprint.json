@@ -8,6 +8,7 @@
         "uid": { "type": "string", "maxLength": 128 },
         "displayName": { "type": "string", "maxLength": 100 },
         "email": { "type": "string", "maxLength": 150 },
+        "phoneNumber": { "type": "string", "maxLength": 32 },
         "photoURL": { "type": "string", "maxLength": 500 },
         "createdAt": { "type": "string" }
       },
@@ -23,9 +24,13 @@
         "xp": { "type": "number" },
         "completedLevels": { "type": "array" },
         "unlockedBadges": { "type": "array" },
-        "activeLevelId": { "type": "string", "maxLength": 64 },
+        "activeLevelId": { "type": "number" },
         "examScore": { "type": "number" },
         "certifiedDate": { "type": "string", "maxLength": 64 },
+        "tariff": { "type": "string", "maxLength": 32 },
+        "isPaid": { "type": "boolean" },
+        "paidAt": { "type": "string", "maxLength": 64 },
+        "orderId": { "type": "string", "maxLength": 64 },
         "updatedAt": { "type": "string" }
       },
       "required": ["userId", "name", "xp"]
