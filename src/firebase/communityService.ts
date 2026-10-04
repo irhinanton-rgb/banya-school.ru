@@ -1,13 +1,4 @@
-import {
-  collection,
-  query,
-  orderBy,
-  limit,
-  onSnapshot,
-  setDoc,
-  doc,
-} from 'firebase/firestore';
-import { db } from './config';
+import mqtt, { MqttClient } from 'mqtt';
 
 export interface CommunityMessage {
   id: string;
@@ -36,6 +27,11 @@ export interface HomeworkSubmission {
 
 const STORAGE_CHAT_KEY = 'banya_community_chat_v1';
 const STORAGE_HOMEWORK_KEY = 'banya_homework_submissions_v1';
+
+// MQTT Topics for universal cross-device synchronization (PC <-> Phone <-> Tablet)
+const MQTT_BROKER_URL = 'wss://broker.emqx.io:8084/mqtt';
+const TOPIC_HISTORY = 'banya-school-ru/community/history-v1';
+const TOPIC_STREAM = 'banya-school-ru/community/stream-v1';
 
 export const INITIAL_MESSAGES: CommunityMessage[] = [
   {
@@ -117,7 +113,7 @@ export const INITIAL_HOMEWORKS: HomeworkSubmission[] = [
   },
 ];
 
-// Active listeners for instantaneous live chat updates across components and tabs
+// In-memory active listeners
 const activeChatListeners = new Set<(messages: CommunityMessage[]) => void>();
 
 function notifyAllListeners(msgs: CommunityMessage[]) {
@@ -130,6 +126,77 @@ function notifyAllListeners(msgs: CommunityMessage[]) {
   });
 }
 
+// Global singleton MQTT client
+let globalMqttClient: MqttClient | null = null;
+let isMqttConnecting = false;
+
+function getOrCreateMqttClient(): MqttClient | null {
+  if (typeof window === 'undefined') return null;
+
+  if (!globalMqttClient && !isMqttConnecting) {
+    isMqttConnecting = true;
+    try {
+      const clientId = `banya_client_${Math.random().toString(36).substring(2, 9)}`;
+      const client = mqtt.connect(MQTT_BROKER_URL, {
+        clientId,
+        clean: false,
+        reconnectPeriod: 3000,
+        connectTimeout: 5000,
+      });
+
+      client.on('connect', () => {
+        isMqttConnecting = false;
+        // Subscribe to live stream and retained history
+        client.subscribe([TOPIC_HISTORY, TOPIC_STREAM], { qos: 0 });
+      });
+
+      client.on('message', (topic, payload) => {
+        try {
+          const raw = payload.toString();
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+
+          if (topic === TOPIC_HISTORY && Array.isArray(parsed)) {
+            // Received cloud retained history from another device (PC or Phone)
+            const local = getCachedMessages();
+            const mergedMap = new Map<string, CommunityMessage>();
+            INITIAL_MESSAGES.forEach((m) => mergedMap.set(m.id, m));
+            local.forEach((m) => mergedMap.set(m.id, m));
+            parsed.forEach((m) => mergedMap.set(m.id, m));
+            const merged = Array.from(mergedMap.values());
+            saveCachedMessages(merged);
+            notifyAllListeners(merged);
+          } else if (topic === TOPIC_STREAM && parsed && typeof parsed === 'object' && parsed.id) {
+            // Received live single message from another device
+            const current = getCachedMessages();
+            if (!current.some((m) => m.id === parsed.id)) {
+              const updated = [...current, parsed as CommunityMessage];
+              saveCachedMessages(updated);
+              notifyAllListeners(updated);
+            }
+          }
+        } catch {
+          // ignore malformed packets
+        }
+      });
+
+      client.on('error', () => {
+        isMqttConnecting = false;
+      });
+
+      client.on('close', () => {
+        isMqttConnecting = false;
+      });
+
+      globalMqttClient = client;
+    } catch {
+      isMqttConnecting = false;
+    }
+  }
+
+  return globalMqttClient;
+}
+
 // Subscribe to real-time chat messages
 export function subscribeToCommunityMessages(
   onMessages: (messages: CommunityMessage[]) => void
@@ -140,48 +207,11 @@ export function subscribeToCommunityMessages(
   const current = getCachedMessages();
   onMessages(current);
 
-  // If Firestore is available, try to subscribe in background
-  let unsubscribeFirestore = () => {};
-
-  if (db) {
-    try {
-      const q = query(
-        collection(db, 'community_messages'),
-        limit(50)
-      );
-
-      unsubscribeFirestore = onSnapshot(
-        q,
-        (snapshot) => {
-          if (!snapshot.empty) {
-            const cloudMsgs: CommunityMessage[] = [];
-            snapshot.forEach((docSnap) => {
-              cloudMsgs.push(docSnap.data() as CommunityMessage);
-            });
-            // Merge with local messages to ensure nothing is lost
-            const local = getCachedMessages();
-            const mergedMap = new Map<string, CommunityMessage>();
-            INITIAL_MESSAGES.forEach((m) => mergedMap.set(m.id, m));
-            local.forEach((m) => mergedMap.set(m.id, m));
-            cloudMsgs.forEach((m) => mergedMap.set(m.id, m));
-            const merged = Array.from(mergedMap.values());
-            saveCachedMessages(merged);
-            notifyAllListeners(merged);
-          }
-        },
-        () => {
-          // Cloud permission or network fallback
-          onMessages(getCachedMessages());
-        }
-      );
-    } catch {
-      onMessages(getCachedMessages());
-    }
-  }
+  // Initialize and connect MQTT in background for cross-device sync
+  getOrCreateMqttClient();
 
   return () => {
     activeChatListeners.delete(onMessages);
-    unsubscribeFirestore();
   };
 }
 
@@ -208,7 +238,7 @@ function saveCachedMessages(msgs: CommunityMessage[]) {
   }
 }
 
-// Send a new message with 0ms optimistic delivery
+// Send a new message: updates local state + broadcasts instantly to PC / Phone via MQTT
 export async function sendCommunityMessage(
   msg: Omit<CommunityMessage, 'id' | 'createdAt'>
 ): Promise<CommunityMessage> {
@@ -221,20 +251,25 @@ export async function sendCommunityMessage(
     }),
   };
 
-  // 1. Instant local persistence & in-memory broadcast (0ms delay)
+  // 1. Instant local persistence & in-memory notification (0ms response)
   const current = getCachedMessages();
   const updated = [...current, newMsg];
   saveCachedMessages(updated);
   notifyAllListeners(updated);
 
-  // 2. Background push to Firestore (if authenticated & online)
-  if (db) {
-    try {
-      await setDoc(doc(db, 'community_messages', newMsg.id), newMsg);
-    } catch (err) {
-      // Gracefully continue using local sync if Firestore rules require auth
-      console.info('Message stored locally in Community Chat');
+  // 2. Real-time cross-device broadcast via MQTT (PC <-> Mobile)
+  try {
+    const client = getOrCreateMqttClient();
+    if (client) {
+      // Broadcast live to all connected devices
+      client.publish(TOPIC_STREAM, JSON.stringify(newMsg), { qos: 0 });
+
+      // Retain the updated history so any device connecting later gets all messages
+      const historyToRetain = updated.slice(-50);
+      client.publish(TOPIC_HISTORY, JSON.stringify(historyToRetain), { qos: 0, retain: true });
     }
+  } catch (err) {
+    console.warn('MQTT sync warning', err);
   }
 
   return newMsg;
