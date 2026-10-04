@@ -19,38 +19,118 @@ interface BroomTechniquesSimulatorProps {
   onGrantXp?: (amount: number) => void;
 }
 
-// Convert and strictly validate YouTube links into secure embed URLs
-function getYouTubeEmbedUrl(urlOrId?: string): string | null {
+export interface VideoSource {
+  type: 'html5' | 'vk' | 'rutube' | 'kinescope' | 'youtube';
+  embedUrl: string;
+  directUrl?: string;
+  serviceLabel: string;
+}
+
+// Convert and strictly validate Russian and international video links into secure embed URLs
+function parseVideoSource(urlOrId?: string): VideoSource | null {
   if (!urlOrId || !urlOrId.trim()) return null;
-  const trimmed = urlOrId.trim();
+  const raw = urlOrId.trim();
 
-  // If already an embed URL, verify safe domain and exact 11-char ID
-  const embedMatch = trimmed.match(/^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com)\/embed\/([a-zA-Z0-9_-]{11})/);
-  if (embedMatch) {
-    return `https://www.youtube-nocookie.com/embed/${embedMatch[3]}`;
+  // 1. Direct HTML5 video file (.mp4, .webm, .ogg, or local /videos/ path)
+  if (
+    raw.match(/\.(mp4|webm|ogg|m4v)(\?.*)?$/i) ||
+    raw.startsWith('/videos/') ||
+    raw.startsWith('./videos/')
+  ) {
+    return {
+      type: 'html5',
+      embedUrl: raw,
+      directUrl: raw,
+      serviceLabel: 'Видеофайл (MP4/WebM)',
+    };
   }
 
-  const watchMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-  if (watchMatch) {
-    return `https://www.youtube-nocookie.com/embed/${watchMatch[1]}`;
+  // 2. VK Video (ВКонтакте) — works reliably without VPN across Russia
+  if (raw.includes('vk.com/video_ext.php') || raw.includes('vkvideo.ru/video_ext.php')) {
+    return {
+      type: 'vk',
+      embedUrl: raw,
+      serviceLabel: 'VK Видео',
+    };
+  }
+  const vkMatch = raw.match(/(?:vk\.com|vkvideo\.ru)\/video(-?\d+)_(\d+)/i);
+  if (vkMatch) {
+    return {
+      type: 'vk',
+      embedUrl: `https://vk.com/video_ext.php?oid=${vkMatch[1]}&id=${vkMatch[2]}`,
+      serviceLabel: 'VK Видео',
+    };
   }
 
-  const shortMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-  if (shortMatch) {
-    return `https://www.youtube-nocookie.com/embed/${shortMatch[1]}`;
+  // 3. Rutube (Рутуб) — Russian national video platform
+  const rutubeEmbedMatch = raw.match(/rutube\.ru\/play\/embed\/([a-zA-Z0-9]+)/i);
+  if (rutubeEmbedMatch) {
+    return {
+      type: 'rutube',
+      embedUrl: `https://rutube.ru/play/embed/${rutubeEmbedMatch[1]}/`,
+      serviceLabel: 'Rutube',
+    };
+  }
+  const rutubeWatchMatch = raw.match(/rutube\.ru\/video\/([a-zA-Z0-9]+)/i);
+  if (rutubeWatchMatch) {
+    return {
+      type: 'rutube',
+      embedUrl: `https://rutube.ru/play/embed/${rutubeWatchMatch[1]}/`,
+      serviceLabel: 'Rutube',
+    };
   }
 
-  const shortsMatch = trimmed.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/);
-  if (shortsMatch) {
-    return `https://www.youtube-nocookie.com/embed/${shortsMatch[1]}`;
+  // 4. Kinescope (Кинескоп) — specialized video platform for online schools
+  const kinescopeMatch = raw.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9_-]+)/i);
+  if (kinescopeMatch) {
+    return {
+      type: 'kinescope',
+      embedUrl: `https://kinescope.io/embed/${kinescopeMatch[1]}`,
+      serviceLabel: 'Kinescope',
+    };
   }
 
-  // Exactly 11 characters alphanumeric/dash/underscore
-  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-    return `https://www.youtube-nocookie.com/embed/${trimmed}`;
+  // 5. YouTube (preserved as fallback)
+  const ytEmbed = raw.match(/^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com)\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (ytEmbed) {
+    return {
+      type: 'youtube',
+      embedUrl: `https://www.youtube-nocookie.com/embed/${ytEmbed[3]}`,
+      serviceLabel: 'YouTube',
+    };
+  }
+  const ytWatch = raw.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (ytWatch) {
+    return {
+      type: 'youtube',
+      embedUrl: `https://www.youtube-nocookie.com/embed/${ytWatch[1]}`,
+      serviceLabel: 'YouTube',
+    };
+  }
+  const ytShort = raw.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (ytShort) {
+    return {
+      type: 'youtube',
+      embedUrl: `https://www.youtube-nocookie.com/embed/${ytShort[1]}`,
+      serviceLabel: 'YouTube',
+    };
+  }
+  const ytShorts = raw.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/);
+  if (ytShorts) {
+    return {
+      type: 'youtube',
+      embedUrl: `https://www.youtube-nocookie.com/embed/${ytShorts[1]}`,
+      serviceLabel: 'YouTube',
+    };
+  }
+  if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) {
+    return {
+      type: 'youtube',
+      embedUrl: `https://www.youtube-nocookie.com/embed/${raw}`,
+      serviceLabel: 'YouTube',
+    };
   }
 
-  // Reject all other unsafe URLs or script injections
   return null;
 }
 
@@ -76,7 +156,7 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
 
   // Active video URL for current technique
   const activeVideoUrl = customVideos[selectedTech.id] || selectedTech.videoUrl || '';
-  const embedUrl = getYouTubeEmbedUrl(activeVideoUrl);
+  const parsedVideo = parseVideoSource(activeVideoUrl);
 
   const handleSelectTech = (tech: BroomTechnique) => {
     setSelectedTech(tech);
@@ -197,67 +277,81 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
 
           {/* Video Container (16:9 Aspect Ratio) */}
           <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-900 border border-stone-800/80 shadow-2xl flex flex-col items-center justify-center">
-            {embedUrl ? (
-              <iframe
-                src={embedUrl}
-                title={`Видео приёма: ${selectedTech.name}`}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+            {parsedVideo ? (
+              parsedVideo.type === 'html5' ? (
+                <video
+                  key={parsedVideo.directUrl}
+                  src={parsedVideo.directUrl}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-contain bg-black"
+                >
+                  Ваш браузер не поддерживает встроенное воспроизведение видео.
+                </video>
+              ) : (
+                <iframe
+                  src={parsedVideo.embedUrl}
+                  title={`Видео приёма: ${selectedTech.name}`}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  allowFullScreen
+                />
+              )
             ) : (
-              /* Sleek Video Placeholder for future YouTube insertion */
+              /* Sleek Video Placeholder for Russian & International Video Hostings */
               <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center relative bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900">
                 {/* Decorative video backdrop lines */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.08)_0%,transparent_70%)]" />
 
                 <div className="relative z-10 flex flex-col items-center space-y-3 max-w-sm">
                   <div className="h-16 w-16 rounded-2xl bg-stone-800/90 border border-stone-700/80 flex items-center justify-center shadow-lg group">
-                    <div className="h-12 w-12 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-400">
+                    <div className="h-12 w-12 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
                       <Play className="w-6 h-6 fill-current ml-0.5" />
                     </div>
                   </div>
 
                   <div>
                     <span className="inline-block px-2.5 py-0.5 rounded-full bg-stone-800 border border-stone-700 text-stone-300 text-[11px] font-mono mb-1.5">
-                      🎬 Окно для видеоприёма (YouTube)
+                      🎬 VK Видео / Rutube / Kinescope / MP4
                     </span>
                     <h4 className="font-serif text-base sm:text-lg font-bold text-stone-200">
                       Видеодемонстрация: «{selectedTech.name}»
                     </h4>
                     <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                      В это окно будет встроено короткое видео с правильной траекторией движения веника и постановкой рук мастера.
+                      Встройте видео с любого российского сервиса (работает быстро и без VPN у всех учеников).
                     </p>
                   </div>
 
-                  {/* Button to open quick YouTube URL input */}
+                  {/* Button to open quick URL input */}
                   <button
                     onClick={() => setIsAddingVideo(!isAddingVideo)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800/90 hover:bg-stone-700 text-amber-300 text-xs font-medium transition-all border border-stone-700/80 cursor-pointer shadow-sm active:scale-95"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all border border-amber-500/30 cursor-pointer shadow-sm active:scale-95"
                   >
-                    <PlusCircle className="w-3.5 h-3.5" />
-                    <span>{isAddingVideo ? 'Скрыть форму' : 'Добавить ссылку на видео (YouTube)'}</span>
+                    <PlusCircle className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{isAddingVideo ? 'Скрыть форму' : 'Добавить ссылку на видео'}</span>
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Quick YouTube URL Form (Collapsible) */}
+          {/* Quick Video URL Form (Collapsible) */}
           {isAddingVideo && (
             <form
               onSubmit={handleSaveVideoUrl}
-              className="mt-4 p-3.5 rounded-xl bg-stone-900 border border-amber-500/30 space-y-2.5 animate-fade-in"
+              className="mt-4 p-4 rounded-xl bg-stone-900 border border-amber-500/30 space-y-3 animate-fade-in"
             >
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-amber-300">
-                  Вставить ссылку на YouTube для «{selectedTech.name}»:
+                <span className="font-medium text-amber-300 flex items-center gap-1.5">
+                  <Video className="w-4 h-4 text-amber-400" />
+                  <span>Вставить видео для «{selectedTech.name}»:</span>
                 </span>
                 {activeVideoUrl && (
                   <button
                     type="button"
                     onClick={handleClearVideo}
-                    className="text-[11px] text-rose-400 hover:text-rose-300 underline"
+                    className="text-[11px] text-rose-400 hover:text-rose-300 underline cursor-pointer"
                   >
                     Удалить видео
                   </button>
@@ -269,7 +363,7 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
                   type="text"
                   value={inputUrl}
                   onChange={(e) => setInputUrl(e.target.value)}
-                  placeholder="https://www.youtube.com/watch?v=... или ID"
+                  placeholder="Ссылка VK (vk.com/video...), Rutube, Kinescope или файл .mp4"
                   className="flex-1 bg-stone-950 border border-stone-700 rounded-lg px-3 py-2 text-xs text-stone-200 placeholder:text-stone-500 focus:outline-none focus:border-amber-500"
                 />
                 <button
@@ -279,9 +373,16 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
                   Сохранить
                 </button>
               </div>
-              <p className="text-[10px] text-stone-400">
-                Поддерживаются обычные видео, Shorts и короткие ссылки youtu.be. Ссылка сохранится для этого приёма.
-              </p>
+
+              <div className="text-[10px] text-stone-400 space-y-1">
+                <div className="text-stone-300 font-medium">Поддерживаемые форматы без VPN:</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px]">
+                  <div>• <strong>VK Видео</strong>: <code className="text-amber-300">vk.com/video-123_456</code> или код плеера</div>
+                  <div>• <strong>Rutube</strong>: <code className="text-amber-300">rutube.ru/video/...</code> или embed</div>
+                  <div>• <strong>Kinescope</strong>: <code className="text-amber-300">kinescope.io/...</code> (для курсов)</div>
+                  <div>• <strong>Прямой MP4</strong>: <code className="text-amber-300">/videos/opakhivanie.mp4</code> или URL</div>
+                </div>
+              </div>
             </form>
           )}
 
