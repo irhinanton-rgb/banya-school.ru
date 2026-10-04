@@ -9,15 +9,18 @@ import {
   EMERGENCY_EVENTS,
   LEADERBOARD_CREW,
 } from './referenceData';
+import { HERBS_LIBRARY, HerbLibraryItem } from './herbsLibraryData';
 
 export const COURSE_LEVELS: LevelData[] = [...LEVELS_PART_1, ...LEVELS_PART_2];
 
 export {
   BADGES,
   HERBS_DATA,
+  HERBS_LIBRARY,
   BROOM_TECHNIQUES,
   GUEST_CASES,
   EMERGENCY_EVENTS,
   FINAL_EXAM_QUESTIONS,
   LEADERBOARD_CREW,
 };
+export type { HerbLibraryItem };
