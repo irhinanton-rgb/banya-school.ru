@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Trophy, Volume2, VolumeX, Award, BookOpen, Cloud, User as UserIcon } from 'lucide-react';
+import { Sparkles, Trophy, Volume2, VolumeX, Award, BookOpen, Cloud, User as UserIcon, Users } from 'lucide-react';
 import { LevelId, UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
 
@@ -12,6 +12,7 @@ interface HeaderProps {
   onOpenEmergency: () => void;
   onOpenAuth: () => void;
   onOpenPricing: () => void;
+  onOpenClub: () => void;
   activeTab: 'quest' | 'simulators' | 'handbook';
   setActiveTab: (tab: 'quest' | 'simulators' | 'handbook') => void;
 }
@@ -24,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenEmergency,
   onOpenAuth,
   onOpenPricing,
+  onOpenClub,
   activeTab,
   setActiveTab,
 }) => {
@@ -84,6 +86,13 @@ export const Header: React.FC<HeaderProps> = ({
             Банный Справочник
           </button>
           <button
+            onClick={onOpenClub}
+            className="text-stone-300 hover:text-amber-300 transition-colors whitespace-nowrap flex items-center gap-1.5 py-1"
+          >
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Банный Клуб & Эфиры</span>
+          </button>
+          <button
             onClick={onOpenEmergency}
             className="text-stone-400 hover:text-amber-300 transition-colors whitespace-nowrap flex items-center gap-1.5"
           >
@@ -94,6 +103,18 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Zone 3: 1-2 primary actions */}
         <div className="flex items-center gap-3">
+          {/* Community Club & Live Hub Button */}
+          <button
+            onClick={onOpenClub}
+            title="Банный Клуб: Чат сообщества, Видеоэфиры и Проверка ДЗ"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold whitespace-nowrap transition-all shadow-sm cursor-pointer active:scale-95"
+          >
+            <Users className="h-3.5 w-3.5 text-emerald-400" />
+            <span className="hidden md:inline">Банный Клуб</span>
+            <span className="inline md:hidden">Клуб</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          </button>
+
           {/* XP counter */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-900 border border-stone-800 text-xs font-mono text-amber-300">
             <Sparkles className="h-3.5 w-3.5 text-amber-400" />

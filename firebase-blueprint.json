@@ -34,6 +34,21 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["userId", "name", "xp"]
+    },
+    "CommunityMessage": {
+      "title": "CommunityMessage",
+      "description": "Messages posted in the public banya academy chat",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "authorName": { "type": "string", "maxLength": 100 },
+        "authorAvatar": { "type": "string", "maxLength": 500 },
+        "authorRole": { "type": "string", "maxLength": 32 },
+        "text": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "authorId", "authorName", "text", "createdAt"]
     }
   },
   "firestore": {
@@ -44,6 +59,10 @@
     "/users/{userId}/progress/{progressId}": {
       "schema": "UserProgress",
       "description": "User learning progress, XP and certification"
+    },
+    "/community_messages/{messageId}": {
+      "schema": "CommunityMessage",
+      "description": "Real-time messages from students and mentors"
     }
   }
 }

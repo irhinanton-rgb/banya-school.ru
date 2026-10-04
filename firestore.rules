@@ -47,6 +47,16 @@ service cloud.firestore {
         && (!('orderId' in data) || (data.orderId is string && data.orderId.size() <= 64));
     }
 
+    function isValidCommunityMessage(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 1000
+        && data.createdAt is string && data.createdAt.size() <= 64
+        && (!('authorAvatar' in data) || (data.authorAvatar is string && data.authorAvatar.size() <= 500))
+        && (!('authorRole' in data) || (data.authorRole is string && data.authorRole.size() <= 32));
+    }
+
     // User profile document
     match /users/{userId} {
       allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
@@ -63,6 +73,13 @@ service cloud.firestore {
                       && incoming().userId == existing().userId;
         allow delete: if false;
       }
+    }
+
+    // Public community messages
+    match /community_messages/{messageId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isValidId(messageId) && incoming().authorId == request.auth.uid && isValidCommunityMessage(incoming());
+      allow update, delete: if isSignedIn() && isValidId(messageId) && existing().authorId == request.auth.uid;
     }
   }
 }
