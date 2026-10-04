@@ -104,13 +104,19 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
     const authorName = user?.displayName || progress.name || 'Ученик Академии';
     const authorRole = user?.email?.includes('irhinanton') ? 'mentor' : 'student';
 
-    await sendCommunityMessage({
+    const newMsg = await sendCommunityMessage({
       authorId: user?.uid || 'guest_user',
       authorName,
       authorAvatar: user?.photoURL || undefined,
       authorRole,
       text: inputMessage.trim(),
       levelBadge: authorRole === 'mentor' ? 'Основатель & Наставник' : `Уровень: ${progress.xp} XP`,
+    });
+
+    // Immediate 0ms local state update so user never needs to reload page
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === newMsg.id)) return prev;
+      return [...prev, newMsg];
     });
 
     setInputMessage('');
@@ -392,8 +398,8 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
         {activeTab === 'webinar' && (
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-stone-950 space-y-6">
             
-            {/* Live WebRTC Meeting Room */}
-            <div className="rounded-2xl border border-stone-800 bg-stone-900/90 p-5 space-y-4">
+            {/* Live WebRTC Meeting Room - Mobile Optimized */}
+            <div className="rounded-2xl border border-stone-800 bg-stone-900/90 p-5 space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
                 <div>
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
@@ -404,86 +410,122 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
                     Интерактивная Видеокомната Академии
                   </h4>
                   <p className="text-xs text-stone-400 mt-0.5">
-                    Работает прямо в браузере без VPN и без установки Zoom (технология WebRTC). Подключение в 1 клик.
+                    Подключение в 1 клик со смартфона (iOS/Android) или компьютера без VPN и без регистрации
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setIsRoomActive(!isRoomActive)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
-                      isRoomActive
-                        ? 'bg-rose-600 hover:bg-rose-500 text-white'
-                        : 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                    }`}
-                  >
-                    <Video className="w-4 h-4" />
-                    <span>{isRoomActive ? 'Покинуть комнату' : 'Войти в видеокомнату'}</span>
-                  </button>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Комната открыта
+                  </span>
                 </div>
               </div>
 
-              {/* Embedded Video Room or Standby Screen */}
-              <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-950 border border-stone-800 flex flex-col items-center justify-center">
-                {isRoomActive ? (
+              {/* Mobile-Friendly Main Action Card */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950 border border-amber-500/30 text-center space-y-4 shadow-xl">
+                <div className="h-16 w-16 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+                  <Video className="w-8 h-8" />
+                </div>
+
+                <div className="max-w-md mx-auto space-y-1.5">
+                  <h5 className="font-serif text-lg sm:text-xl font-bold text-stone-100">
+                    Прямой эфир и видеосозвоны с мастером
+                  </h5>
+                  <p className="text-xs text-stone-400 leading-relaxed">
+                    Для смартфонов (iPhone и Android) видеокомната открывается в полноэкранном режиме с чистым доступом к микрофону и камере без сбоев.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                  <a
+                    href={`https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=true`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-stone-950 font-bold text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <Video className="w-5 h-5 text-stone-950" />
+                    <span>Войти в видеокомнату (Прямой эфир) ⚡</span>
+                    <ExternalLink className="w-4 h-4 text-stone-900" />
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsRoomActive(!isRoomActive)}
+                    className="w-full sm:w-auto px-4 py-3.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold border border-stone-700 transition-colors cursor-pointer"
+                  >
+                    {isRoomActive ? 'Скрыть встроенное видео' : 'Встроить видео на страницу (для ПК)'}
+                  </button>
+                </div>
+
+                {/* Mobile note */}
+                <p className="text-[11px] text-stone-400 flex items-center justify-center gap-1.5 pt-1">
+                  <span>📱</span>
+                  <span>На телефоне нажмите <strong>«Войти в видеокомнату»</strong> — браузер сразу запросит доступ к микрофону</span>
+                </p>
+              </div>
+
+              {/* Embedded Video (Optional for Desktop / Tablet) */}
+              {isRoomActive && (
+                <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-950 border border-stone-800 animate-fade-in shadow-2xl">
                   <iframe
                     src={`https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=true&config.startWithVideoMuted=false`}
                     title="Видеоконференция Академии Банного Мастерства"
                     className="w-full h-full border-0"
-                    allow="camera; microphone; fullscreen; display-capture; autoplay"
+                    allow="camera *; microphone *; display-capture *; autoplay *; clipboard-write *; fullscreen *"
                   />
-                ) : (
-                  <div className="p-6 text-center space-y-4 max-w-md">
-                    <div className="h-16 w-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                      <Camera className="w-8 h-8" />
-                    </div>
-                    <div>
-                      <h5 className="font-serif text-base sm:text-lg font-bold text-stone-200">
-                        Комната готова к подключению
-                      </h5>
-                      <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                        Нажмите зелёную кнопку «Войти в видеокомнату», чтобы включить камеру и микрофон. Вы сможете задать вопрос мастеру и показать хват веника.
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                      <button
-                        onClick={() => setIsRoomActive(true)}
-                        className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-colors cursor-pointer shadow-sm"
-                      >
-                        Запустить видеосвязь сейчас
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Alternative Russian Meeting Providers */}
-              <div className="p-3.5 rounded-xl bg-stone-950 border border-stone-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                <div className="text-stone-300">
-                  <span className="font-semibold text-amber-300">Резервные каналы созвонов:</span>
-                  <span className="text-stone-400 ml-1.5">
-                    Если вам удобнее отдельное приложение без VPN
-                  </span>
                 </div>
-                <div className="flex items-center gap-2">
+              )}
+
+              {/* Reliable Russian Meeting Alternatives */}
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-stone-300">
+                  Резервные российские каналы связи (100% стабильность без VPN):
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <a
                     href="https://telemost.yandex.ru"
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs border border-stone-700 transition-colors"
+                    className="p-3.5 rounded-xl bg-stone-950 hover:bg-stone-800/80 border border-stone-800 hover:border-amber-500/40 transition-all flex items-center justify-between group"
                   >
-                    <span>Яндекс Телемост</span>
-                    <ExternalLink className="w-3 h-3 text-stone-400" />
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
+                        ЯТ
+                      </div>
+                      <div className="text-left">
+                        <div className="font-bold text-stone-200 text-xs group-hover:text-amber-300">
+                          Яндекс Телемост
+                        </div>
+                        <div className="text-[11px] text-stone-400">
+                          Без ограничений по времени, работает в РФ
+                        </div>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-stone-500 group-hover:text-amber-300" />
                   </a>
+
                   <a
                     href="https://vk.com/calls"
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs border border-stone-700 transition-colors"
+                    className="p-3.5 rounded-xl bg-stone-950 hover:bg-stone-800/80 border border-stone-800 hover:border-blue-500/40 transition-all flex items-center justify-between group"
                   >
-                    <span>VK Звонки</span>
-                    <ExternalLink className="w-3 h-3 text-stone-400" />
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm">
+                        VK
+                      </div>
+                      <div className="text-left">
+                        <div className="font-bold text-stone-200 text-xs group-hover:text-blue-300">
+                          VK Звонки
+                        </div>
+                        <div className="text-[11px] text-stone-400">
+                          Удобно через приложение ВКонтакте на телефоне
+                        </div>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-stone-500 group-hover:text-blue-300" />
                   </a>
                 </div>
               </div>
@@ -512,12 +554,15 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
                   </p>
                   <div className="pt-2 flex items-center justify-between border-t border-stone-800 text-xs">
                     <span className="text-amber-400 font-medium">Спикер: Антон Ирхин</span>
-                    <button
-                      onClick={() => setIsRoomActive(true)}
-                      className="text-amber-300 hover:underline font-semibold"
+                    <a
+                      href={`https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=true`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-amber-300 hover:underline font-semibold flex items-center gap-1"
                     >
-                      Подключиться к эфиру →
-                    </button>
+                      <span>Подключиться к эфиру</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
                 </div>
 

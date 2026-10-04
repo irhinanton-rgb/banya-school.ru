@@ -117,66 +117,98 @@ export const INITIAL_HOMEWORKS: HomeworkSubmission[] = [
   },
 ];
 
+// Active listeners for instantaneous live chat updates across components and tabs
+const activeChatListeners = new Set<(messages: CommunityMessage[]) => void>();
+
+function notifyAllListeners(msgs: CommunityMessage[]) {
+  activeChatListeners.forEach((listener) => {
+    try {
+      listener(msgs);
+    } catch {
+      // ignore
+    }
+  });
+}
+
 // Subscribe to real-time chat messages
 export function subscribeToCommunityMessages(
   onMessages: (messages: CommunityMessage[]) => void
 ): () => void {
-  // If Firestore is available, try to subscribe
+  activeChatListeners.add(onMessages);
+
+  // Send current cached/local state immediately to prevent blank screen
+  const current = getCachedMessages();
+  onMessages(current);
+
+  // If Firestore is available, try to subscribe in background
+  let unsubscribeFirestore = () => {};
+
   if (db) {
     try {
       const q = query(
         collection(db, 'community_messages'),
-        orderBy('createdAt', 'asc'),
         limit(50)
       );
 
-      const unsubscribe = onSnapshot(
+      unsubscribeFirestore = onSnapshot(
         q,
         (snapshot) => {
           if (!snapshot.empty) {
-            const msgs: CommunityMessage[] = [];
+            const cloudMsgs: CommunityMessage[] = [];
             snapshot.forEach((docSnap) => {
-              msgs.push(docSnap.data() as CommunityMessage);
+              cloudMsgs.push(docSnap.data() as CommunityMessage);
             });
-            onMessages(msgs);
-            return;
+            // Merge with local messages to ensure nothing is lost
+            const local = getCachedMessages();
+            const mergedMap = new Map<string, CommunityMessage>();
+            INITIAL_MESSAGES.forEach((m) => mergedMap.set(m.id, m));
+            local.forEach((m) => mergedMap.set(m.id, m));
+            cloudMsgs.forEach((m) => mergedMap.set(m.id, m));
+            const merged = Array.from(mergedMap.values());
+            saveCachedMessages(merged);
+            notifyAllListeners(merged);
           }
-          // If empty in cloud, fallback to local
-          loadLocalMessages(onMessages);
         },
         () => {
-          loadLocalMessages(onMessages);
+          // Cloud permission or network fallback
+          onMessages(getCachedMessages());
         }
       );
-
-      return unsubscribe;
     } catch {
-      loadLocalMessages(onMessages);
+      onMessages(getCachedMessages());
     }
-  } else {
-    loadLocalMessages(onMessages);
   }
 
-  return () => {};
+  return () => {
+    activeChatListeners.delete(onMessages);
+    unsubscribeFirestore();
+  };
 }
 
-function loadLocalMessages(onMessages: (messages: CommunityMessage[]) => void) {
+function getCachedMessages(): CommunityMessage[] {
   try {
     const saved = localStorage.getItem(STORAGE_CHAT_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        onMessages(parsed);
-        return;
+        return parsed;
       }
     }
   } catch {
     // ignore
   }
-  onMessages(INITIAL_MESSAGES);
+  return INITIAL_MESSAGES;
 }
 
-// Send a new message
+function saveCachedMessages(msgs: CommunityMessage[]) {
+  try {
+    localStorage.setItem(STORAGE_CHAT_KEY, JSON.stringify(msgs.slice(-100)));
+  } catch {
+    // ignore
+  }
+}
+
+// Send a new message with 0ms optimistic delivery
 export async function sendCommunityMessage(
   msg: Omit<CommunityMessage, 'id' | 'createdAt'>
 ): Promise<CommunityMessage> {
@@ -189,22 +221,19 @@ export async function sendCommunityMessage(
     }),
   };
 
-  // 1. Save to local storage for instant feedback
-  try {
-    const saved = localStorage.getItem(STORAGE_CHAT_KEY);
-    const existing: CommunityMessage[] = saved ? JSON.parse(saved) : [...INITIAL_MESSAGES];
-    const updated = [...existing, newMsg];
-    localStorage.setItem(STORAGE_CHAT_KEY, JSON.stringify(updated.slice(-100)));
-  } catch {
-    // ignore
-  }
+  // 1. Instant local persistence & in-memory broadcast (0ms delay)
+  const current = getCachedMessages();
+  const updated = [...current, newMsg];
+  saveCachedMessages(updated);
+  notifyAllListeners(updated);
 
-  // 2. Try pushing to Firestore
+  // 2. Background push to Firestore (if authenticated & online)
   if (db) {
     try {
       await setDoc(doc(db, 'community_messages', newMsg.id), newMsg);
     } catch (err) {
-      console.warn('Firestore message sync fallback to local', err);
+      // Gracefully continue using local sync if Firestore rules require auth
+      console.info('Message stored locally in Community Chat');
     }
   }
 
