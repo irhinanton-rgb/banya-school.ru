@@ -138,9 +138,6 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
   soundEnabled,
   onGrantXp,
 }) => {
-  const [selectedTech, setSelectedTech] = useState<BroomTechnique>(BROOM_TECHNIQUES[0]);
-  const [studiedTechs, setStudiedTechs] = useState<string[]>([]);
-  
   // Custom video URLs state (persisted in localStorage for convenience)
   const [customVideos, setCustomVideos] = useState<Record<string, string>>(() => {
     try {
@@ -151,12 +148,20 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
     }
   });
 
+  const [selectedTech, setSelectedTech] = useState<BroomTechnique>(() => {
+    // Default to the first technique that has a video attached (e.g. Омахивание)
+    const withVideo = BROOM_TECHNIQUES.find((t) => !!t.videoUrl);
+    return withVideo || BROOM_TECHNIQUES[0];
+  });
+  const [studiedTechs, setStudiedTechs] = useState<string[]>([]);
+
   const [inputUrl, setInputUrl] = useState<string>('');
   const [isAddingVideo, setIsAddingVideo] = useState<boolean>(false);
   const [videoError, setVideoError] = useState<boolean>(false);
 
-  // Active video URL for current technique
-  const activeVideoUrl = customVideos[selectedTech.id] || selectedTech.videoUrl || '';
+  // Active video URL for current technique (prioritize non-empty custom video, else fallback to predefined videoUrl)
+  const customVal = customVideos[selectedTech.id];
+  const activeVideoUrl = (customVal && customVal.trim() !== '') ? customVal.trim() : (selectedTech.videoUrl || '');
   const parsedVideo = parseVideoSource(activeVideoUrl);
 
   useEffect(() => {
@@ -266,6 +271,17 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
                 />
               )}
               <span>{tech.name}</span>
+              {hasVideo && (
+                <span
+                  className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+                    isSelected
+                      ? 'bg-stone-950/20 text-stone-950'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  }`}
+                >
+                  Видео
+                </span>
+              )}
             </button>
           );
         })}
