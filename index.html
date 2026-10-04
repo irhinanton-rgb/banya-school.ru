@@ -1,6 +1,27 @@
 <!doctype html>
 <html lang="ru">
   <head>
+    <script>
+      window.addEventListener('error', function(e) {
+        var t = e.target;
+        if (t && t.tagName === 'SCRIPT' && t.src && !t.dataset.retried) {
+          t.dataset.retried = '1';
+          var s = document.createElement('script');
+          s.type = 'module';
+          s.dataset.retried = '1';
+          s.src = t.src.split('?')[0] + '?retry=' + Date.now();
+          document.head.appendChild(s);
+        } else if (t && t.tagName === 'LINK' && t.rel === 'stylesheet' && t.href && !t.dataset.retried) {
+          t.dataset.retried = '1';
+          var l = document.createElement('link');
+          l.rel = 'stylesheet';
+          l.dataset.retried = '1';
+          l.href = t.href.split('?')[0] + '?retry=' + Date.now();
+          document.head.appendChild(l);
+        }
+      }, true);
+    </script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Квест Пармастера: Путь к Мастерству</title>
