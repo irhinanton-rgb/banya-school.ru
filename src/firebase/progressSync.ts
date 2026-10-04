@@ -23,20 +23,39 @@ export interface CloudProgressData {
   updatedAt: string;
 }
 
+let lastSyncTimestamp = 0;
+const MIN_SYNC_INTERVAL_MS = 800; // Rate-limiting guard against request flooding / DDoS
+
 // Save user profile and current progress to Firestore
 export async function syncProgressToCloud(user: User, progress: UserProgress): Promise<void> {
   if (!user) return;
 
+  const now = Date.now();
+  if (now - lastSyncTimestamp < MIN_SYNC_INTERVAL_MS) {
+    return; // Throttle excessive concurrent writes
+  }
+  lastSyncTimestamp = now;
+
   const userPath = `users/${user.uid}`;
   const progressPath = `users/${user.uid}/progress/current`;
+
+  // Defensive sanitization: adhere strictly to blueprint constraints
+  const sanitizedName = String(progress.name || user.displayName || 'Пармастер').trim().slice(0, 100);
+  const sanitizedXp = Math.max(0, Math.min(1000000, Number(progress.xp) || 0));
+  const sanitizedLevels = Array.isArray(progress.completedLevels)
+    ? progress.completedLevels.filter((lvl) => typeof lvl === 'number' && lvl >= 1 && lvl <= 7).slice(0, 50)
+    : [];
+  const sanitizedBadges = Array.isArray(progress.unlockedBadges)
+    ? progress.unlockedBadges.filter((b) => typeof b === 'string').slice(0, 50)
+    : [];
 
   try {
     // 1. Save or update user profile
     const profilePayload = {
       uid: user.uid,
-      displayName: user.displayName || progress.name || 'Пармастер',
-      email: user.email || '',
-      photoURL: user.photoURL || '',
+      displayName: sanitizedName,
+      email: String(user.email || '').slice(0, 150),
+      photoURL: String(user.photoURL || '').slice(0, 500),
       createdAt: new Date().toISOString(),
     };
 
@@ -49,13 +68,13 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
     // 2. Save quest progress
     const progressPayload = {
       userId: user.uid,
-      name: progress.name || user.displayName || 'Пармастер',
-      xp: Number(progress.xp) || 0,
-      completedLevels: Array.isArray(progress.completedLevels) ? progress.completedLevels : [],
-      unlockedBadges: Array.isArray(progress.unlockedBadges) ? progress.unlockedBadges : [],
-      activeLevelId: Number(progress.activeLevelId) || 1,
-      examScore: progress.examScore !== undefined ? Number(progress.examScore) : 0,
-      certifiedDate: progress.certifiedDate || '',
+      name: sanitizedName,
+      xp: sanitizedXp,
+      completedLevels: sanitizedLevels,
+      unlockedBadges: sanitizedBadges,
+      activeLevelId: Math.max(1, Math.min(7, Number(progress.activeLevelId) || 1)),
+      examScore: progress.examScore !== undefined ? Math.max(0, Math.min(100, Number(progress.examScore))) : 0,
+      certifiedDate: String(progress.certifiedDate || '').slice(0, 64),
       updatedAt: new Date().toISOString(),
     };
 

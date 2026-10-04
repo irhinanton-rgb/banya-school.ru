@@ -19,13 +19,15 @@ interface BroomTechniquesSimulatorProps {
   onGrantXp?: (amount: number) => void;
 }
 
-// Convert any YouTube link (watch, short, youtu.be, raw ID) into a clean embed URL
+// Convert and strictly validate YouTube links into secure embed URLs
 function getYouTubeEmbedUrl(urlOrId?: string): string | null {
   if (!urlOrId || !urlOrId.trim()) return null;
   const trimmed = urlOrId.trim();
 
-  if (trimmed.includes('youtube.com/embed/')) {
-    return trimmed;
+  // If already an embed URL, verify safe domain and exact 11-char ID
+  const embedMatch = trimmed.match(/^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com)\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (embedMatch) {
+    return `https://www.youtube-nocookie.com/embed/${embedMatch[3]}`;
   }
 
   const watchMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
@@ -43,11 +45,13 @@ function getYouTubeEmbedUrl(urlOrId?: string): string | null {
     return `https://www.youtube-nocookie.com/embed/${shortsMatch[1]}`;
   }
 
+  // Exactly 11 characters alphanumeric/dash/underscore
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
     return `https://www.youtube-nocookie.com/embed/${trimmed}`;
   }
 
-  return trimmed;
+  // Reject all other unsafe URLs or script injections
+  return null;
 }
 
 export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> = ({

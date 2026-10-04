@@ -10,7 +10,11 @@ import {
   Smartphone,
   RefreshCw,
   AlertCircle,
-  User as UserIcon,
+  ExternalLink,
+  Copy,
+  Check,
+  Globe,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '../firebase/AuthContext';
 import { UserProgress } from '../types/banya';
@@ -34,8 +38,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const { user, signInWithGoogle, signOutUser, authError, clearAuthError } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const currentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isDomainError =
+    authError &&
+    (authError.includes('unauthorized-domain') ||
+      authError.includes('auth/unauthorized-domain') ||
+      authError.toLowerCase().includes('authorized domain'));
+
+  const handleCopy = (text: string, key: string) => {
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 2500);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setIsSigningIn(true);
@@ -53,10 +73,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-lg rounded-3xl border border-amber-600/40 bg-stone-950 text-stone-100 shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-xl rounded-3xl border border-amber-600/40 bg-stone-950 text-stone-100 shadow-2xl overflow-hidden flex flex-col my-auto max-h-[94vh]">
         
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-amber-950/80 via-stone-900 to-amber-950/80 border-b border-stone-800 p-5 sm:p-6">
+        <div className="relative bg-gradient-to-r from-amber-950/80 via-stone-900 to-amber-950/80 border-b border-stone-800 p-5 sm:p-6 shrink-0">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 rounded-full bg-stone-900/80 hover:bg-stone-800 text-stone-400 hover:text-stone-100 transition-colors border border-stone-700/60"
@@ -81,8 +101,114 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="p-5 sm:p-6 space-y-5">
-          {authError && (
+        <div className="p-5 sm:p-6 space-y-5 overflow-y-auto">
+          
+          {/* Specific Domain Whitelist Guidance */}
+          {isDomainError ? (
+            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/50 space-y-3.5 text-xs text-stone-200 animate-fade-in shadow-lg">
+              <div className="flex items-start gap-2.5">
+                <Globe className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-serif font-bold text-sm text-amber-200">
+                    Домен не добавлен в доверенные домены Firebase
+                  </h4>
+                  <p className="text-xs text-stone-300 mt-1 leading-relaxed">
+                    Для защиты аккаунтов от фишинга Google блокирует вход на новых или тестовых доменах, пока они не внесены в белый список в вашей консоли Firebase.
+                  </p>
+                </div>
+              </div>
+
+              {/* Domains to Copy */}
+              <div className="space-y-2 pt-1">
+                <div className="text-[11px] font-mono text-stone-400 uppercase tracking-wide">
+                  Скопируйте и добавьте эти домены в Firebase:
+                </div>
+
+                {/* Current environment hostname */}
+                {currentHostname && (
+                  <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-stone-900 border border-stone-800">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-stone-400 font-mono text-[10px]">Текущий домен:</span>
+                      <code className="text-amber-300 font-mono text-xs truncate select-all font-semibold">
+                        {currentHostname}
+                      </code>
+                    </div>
+                    <button
+                      onClick={() => handleCopy(currentHostname, 'current')}
+                      className="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-[11px] font-medium transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+                    >
+                      {copiedKey === 'current' ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-400" />
+                          <span className="text-emerald-400">Скопировано</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3 text-stone-400" />
+                          <span>Копировать</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* Primary project domain */}
+                <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-stone-900 border border-stone-800">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-stone-400 font-mono text-[10px]">Боевой домен:</span>
+                    <code className="text-emerald-300 font-mono text-xs truncate select-all font-semibold">
+                      banya-school.ru
+                    </code>
+                  </div>
+                  <button
+                    onClick={() => handleCopy('banya-school.ru', 'prod')}
+                    className="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-[11px] font-medium transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+                  >
+                    {copiedKey === 'prod' ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Скопировано</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3 text-stone-400" />
+                        <span>Копировать</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* 3 Step Instruction */}
+              <div className="p-3 rounded-xl bg-stone-950/70 border border-stone-800 space-y-1.5 text-[11px] text-stone-300 leading-relaxed">
+                <span className="font-semibold text-amber-300 block">Инструкция (занимает 30 секунд):</span>
+                <ol className="list-decimal list-inside space-y-1 text-stone-400">
+                  <li>Перейдите в консоль Firebase в раздел <strong className="text-stone-200">Authentication → Settings → Authorized domains</strong>.</li>
+                  <li>Нажмите <strong className="text-stone-200">Add domain</strong> и вставьте скопированный домен.</li>
+                  <li>Нажмите <strong className="text-stone-200">Save</strong>. После этого вход сразу заработает!</li>
+                </ol>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <a
+                  href="https://console.firebase.google.com/project/gen-lang-client-0150076326/authentication/settings"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-all shadow-md cursor-pointer"
+                >
+                  <span>Открыть Firebase Console</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+
+                <button
+                  onClick={onClose}
+                  className="px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 text-xs transition-colors border border-stone-800"
+                >
+                  Продолжить без облака (в браузере)
+                </button>
+              </div>
+            </div>
+          ) : authError ? (
             <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/50 text-xs text-rose-200 flex items-start gap-2.5 animate-fade-in">
               <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -90,7 +216,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <span>{authError}</span>
               </div>
             </div>
-          )}
+          ) : null}
 
           {user ? (
             /* Logged in state */
@@ -250,9 +376,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <span>{isSigningIn ? 'Авторизация...' : 'Войти через Google (в 1 клик)'}</span>
                 </button>
 
-                <p className="text-[11px] text-center text-stone-500">
-                  Текущий прогресс ({progress.xp} XP) автоматически объединится с вашим облачным профилем после входа.
-                </p>
+                <div className="flex items-center justify-between text-[11px] text-stone-500 pt-1">
+                  <span>Гостевой режим сохраняет прогресс в этом браузере</span>
+                  <button
+                    onClick={onClose}
+                    className="text-amber-400 hover:text-amber-300 underline cursor-pointer"
+                  >
+                    Продолжить как гость
+                  </button>
+                </div>
               </div>
             </div>
           )}

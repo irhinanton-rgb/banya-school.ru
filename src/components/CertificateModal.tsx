@@ -23,8 +23,10 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
   const handleSaveName = (e: React.FormEvent) => {
     e.preventDefault();
-    if (nameInput.trim()) {
-      onUpdateName(nameInput.trim());
+    const clean = nameInput.trim().slice(0, 50);
+    if (clean) {
+      setNameInput(clean);
+      onUpdateName(clean);
       setIsEditing(false);
     }
   };
@@ -103,7 +105,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
         {/* Printable Certificate Canvas */}
         <div
           id="certificate-print-area"
-          className="relative overflow-hidden rounded-2xl border-4 border-amber-600/60 bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950/40 p-8 sm:p-12 text-stone-100 shadow-2xl flex flex-col items-center justify-between text-center min-h-[500px]"
+          className="relative overflow-hidden rounded-2xl border-4 border-amber-600/60 bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950/40 p-8 sm:p-12 text-stone-100 shadow-2xl flex flex-col items-center justify-between text-center min-h-[500px] select-none"
         >
           {/* Ornate corner frames */}
           <div className="absolute top-3 left-3 w-12 h-12 border-t-2 border-l-2 border-amber-500/80 pointer-events-none" />
