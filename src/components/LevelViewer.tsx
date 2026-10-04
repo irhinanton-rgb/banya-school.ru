@@ -36,13 +36,16 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
   soundEnabled,
   onGrantXp,
 }) => {
+  const isCompleted = (progress?.completedLevels ?? []).includes(level.id);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
-  const [hasCompletedQuiz, setHasCompletedQuiz] = useState<boolean>(
-    progress.completedLevels.includes(level.id)
-  );
+  const [hasCompletedQuiz, setHasCompletedQuiz] = useState<boolean>(isCompleted);
+
+  React.useEffect(() => {
+    setSelectedAnswers({});
+    setHasCompletedQuiz((progress?.completedLevels ?? []).includes(level.id));
+  }, [level.id, progress?.completedLevels]);
 
   const badge = BADGES.find((b) => b.id === level.rewardBadge);
-  const isCompleted = progress.completedLevels.includes(level.id);
 
   const handleSelectAnswer = (qIdx: number, optIdx: number) => {
     setSelectedAnswers((prev) => ({
