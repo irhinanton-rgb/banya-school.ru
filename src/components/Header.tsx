@@ -11,6 +11,7 @@ interface HeaderProps {
   onNavigateToLevel: (levelId: LevelId) => void;
   onOpenEmergency: () => void;
   onOpenAuth: () => void;
+  onOpenProfile: () => void;
   onOpenPricing: () => void;
   onOpenClub: () => void;
   activeTab: 'quest' | 'simulators' | 'handbook';
@@ -24,16 +25,20 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCertificate,
   onOpenEmergency,
   onOpenAuth,
+  onOpenProfile,
   onOpenPricing,
   onOpenClub,
   activeTab,
   setActiveTab,
 }) => {
   const { user } = useAuth();
+  const isAdmin = user?.email?.toLowerCase() === 'irhinanton@gmail.com' || Boolean(progress.isAdmin);
   const completed = progress?.completedLevels ?? [];
   const badges = progress?.unlockedBadges ?? [];
   const hasCertificate = completed.includes(7) || badges.includes('master_crown');
-  const isMasterPro = progress.isPaid || progress.tariff === 'master_pro';
+  const isMasterPro = isAdmin || progress.isPaid || progress.tariff === 'master_pro';
+  const displayAvatar = progress.avatarUrl || user?.photoURL;
+  const displayName = progress.name || user?.displayName || (isAdmin ? 'Антон Ирхин' : 'Пармастер');
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-stone-800 bg-stone-950/90 backdrop-blur-md">
@@ -171,35 +176,51 @@ export const Header: React.FC<HeaderProps> = ({
           {/* User Auth / Cloud Profile Button */}
           {user ? (
             <button
-              onClick={onOpenAuth}
-              title={`Облачный профиль: ${user.displayName || 'Пармастер'} (Синхронизировано)`}
-              className="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-800 border border-emerald-500/40 text-stone-200 text-xs font-medium transition-all shadow-sm group cursor-pointer"
+              onClick={onOpenProfile}
+              title={`Личный кабинет: ${displayName} ${isAdmin ? '(Администратор)' : ''}`}
+              className={`flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-xl text-stone-200 text-xs font-medium transition-all shadow-sm group cursor-pointer ${
+                isAdmin
+                  ? 'bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/50 text-amber-200'
+                  : 'bg-stone-900 hover:bg-stone-800 border border-emerald-500/40'
+              }`}
             >
-              {user.photoURL ? (
+              {displayAvatar ? (
                 <img
-                  src={user.photoURL}
-                  alt={user.displayName || 'Пользователь'}
-                  className="h-6 w-6 rounded-lg object-cover border border-emerald-400/60"
+                  src={displayAvatar}
+                  alt={displayName}
+                  className={`h-6 w-6 rounded-lg object-cover ${isAdmin ? 'border border-amber-400' : 'border border-emerald-400/60'}`}
                 />
               ) : (
-                <div className="h-6 w-6 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold flex items-center justify-center text-[11px]">
-                  {user.displayName ? user.displayName.slice(0, 1).toUpperCase() : 'П'}
+                <div className={`h-6 w-6 rounded-lg font-bold flex items-center justify-center text-[11px] ${
+                  isAdmin ? 'bg-amber-500 text-stone-950' : 'bg-emerald-500/20 text-emerald-300'
+                }`}>
+                  {isAdmin ? '👑' : displayName.slice(0, 1).toUpperCase()}
                 </div>
               )}
-              <span className="hidden sm:inline max-w-[90px] truncate text-stone-200 group-hover:text-amber-300">
-                {user.displayName?.split(' ')[0] || 'Профиль'}
+              <span className="hidden sm:inline max-w-[100px] truncate text-stone-200 group-hover:text-amber-300">
+                {isAdmin ? '👑 Антон И.' : displayName.split(' ')[0]}
               </span>
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" title="Облако активно" />
+              <span className={`h-2 w-2 rounded-full ${isAdmin ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`} />
             </button>
           ) : (
-            <button
-              onClick={onOpenAuth}
-              title="Войти или зарегистрироваться для сохранения прогресса"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-medium transition-all shadow-sm cursor-pointer active:scale-95"
-            >
-              <Cloud className="h-3.5 w-3.5 text-amber-400" />
-              <span>Войти</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={onOpenProfile}
+                title="Личный кабинет банщика"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-300 text-xs font-medium transition-all cursor-pointer"
+              >
+                <UserIcon className="h-3.5 w-3.5 text-stone-400" />
+                <span>Кабинет</span>
+              </button>
+              <button
+                onClick={onOpenAuth}
+                title="Войти или зарегистрироваться для сохранения прогресса"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-medium transition-all shadow-sm cursor-pointer active:scale-95"
+              >
+                <Cloud className="h-3.5 w-3.5 text-amber-400" />
+                <span>Войти</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

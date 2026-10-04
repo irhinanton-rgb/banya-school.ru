@@ -19,6 +19,7 @@ import { AuthModal } from './components/AuthModal';
 import { PricingModal } from './components/PricingModal';
 import { LegalModal } from './components/LegalModal';
 import { CommunityClubModal } from './components/CommunityClubModal';
+import { UserProfileModal } from './components/profile/UserProfileModal';
 import { COURSE_LEVELS, BADGES } from './data/courseData';
 import { UserProgress, LevelId, BadgeId } from './types/banya';
 import { useAuth } from './firebase/AuthContext';
@@ -75,10 +76,26 @@ export default function App() {
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState<boolean>(false);
   const [showPricingModal, setShowPricingModal] = useState<boolean>(false);
+  const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [showLegalModal, setShowLegalModal] = useState<boolean>(false);
   const [legalInitialTab, setLegalInitialTab] = useState<'offer' | 'privacy' | 'requisites'>('offer');
   const [showClubModal, setShowClubModal] = useState<boolean>(false);
   const [clubInitialTab, setClubInitialTab] = useState<'chat' | 'webinar' | 'homework'>('chat');
+
+  // Automatic admin promotion for irhinanton@gmail.com
+  useEffect(() => {
+    if (user?.email?.toLowerCase() === 'irhinanton@gmail.com') {
+      setProgress((prev) => ({
+        ...prev,
+        isAdmin: true,
+        isPaid: true,
+        tariff: 'master_pro',
+        name: prev.name === 'Александр Мастеров' || !prev.name ? 'Антон Ирхин' : prev.name,
+        avatarUrl: prev.avatarUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=240&q=80',
+        banyaStatus: prev.banyaStatus || '👑 Основатель & Главный Наставник',
+      }));
+    }
+  }, [user]);
 
   const handleOpenClub = (tab: 'chat' | 'webinar' | 'homework' = 'chat') => {
     setClubInitialTab(tab);
@@ -288,6 +305,7 @@ export default function App() {
         onNavigateToLevel={handleSelectLevel}
         onOpenEmergency={() => setShowEmergencyModal(true)}
         onOpenAuth={() => setShowAuthModal(true)}
+        onOpenProfile={() => setShowProfileModal(true)}
         onOpenPricing={() => setShowPricingModal(true)}
         onOpenClub={() => handleOpenClub('chat')}
         activeTab={activeTab}
@@ -422,7 +440,23 @@ export default function App() {
         isSyncing={isCloudSyncing}
         lastSyncedTime={lastSyncedTime}
         onOpenPricing={() => setShowPricingModal(true)}
+        onOpenProfile={() => setShowProfileModal(true)}
         onOpenLegal={handleOpenLegal}
+      />
+
+      {/* User Personal Cabinet & Profile Modal */}
+      <UserProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        progress={progress}
+        onUpdateProgress={(updated) => {
+          setProgress((prev) => ({ ...prev, ...updated }));
+        }}
+        onOpenPricing={() => setShowPricingModal(true)}
+        onOpenCertificate={() => setShowCertificateModal(true)}
+        onOpenClub={handleOpenClub}
+        onManualSync={handleManualSync}
+        isSyncing={isCloudSyncing}
       />
 
       <PricingModal

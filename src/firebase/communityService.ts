@@ -552,3 +552,86 @@ export function submitHomework(
 
   return newHw;
 }
+
+// Admin message deletion
+export function deleteCommunityMessage(messageId: string): void {
+  try {
+    const current = getCachedMessages();
+    const updated = current.filter((m) => m.id !== messageId);
+    saveCachedMessages(updated);
+    notifyAllListeners(updated);
+
+    const client = getOrCreateMqttClient();
+    if (client) {
+      client.publish(TOPIC_HISTORY, JSON.stringify(updated.slice(-50)), { qos: 0, retain: true });
+    }
+  } catch (err) {
+    console.warn('Failed to delete message:', err);
+  }
+}
+
+// Admin homework review
+export function reviewHomework(
+  hwId: string,
+  status: 'approved' | 'needs_work',
+  mentorFeedback: string,
+  xpAwarded: number = 50
+): HomeworkSubmission[] {
+  const current = loadHomeworkSubmissions();
+  const updated = current.map((hw) => {
+    if (hw.id === hwId) {
+      return {
+        ...hw,
+        status,
+        mentorFeedback,
+        xpAwarded,
+      };
+    }
+    return hw;
+  });
+
+  try {
+    localStorage.setItem(STORAGE_HOMEWORK_KEY, JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+
+  return updated;
+}
+
+// Admin banned users list
+const STORAGE_BANNED_KEY = 'banya_banned_users';
+
+export function getBannedUsers(): string[] {
+  try {
+    const saved = localStorage.getItem(STORAGE_BANNED_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function banUser(userId: string): string[] {
+  const current = getBannedUsers();
+  if (!current.includes(userId)) {
+    const updated = [...current, userId];
+    try {
+      localStorage.setItem(STORAGE_BANNED_KEY, JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+    return updated;
+  }
+  return current;
+}
+
+export function unbanUser(userId: string): string[] {
+  const current = getBannedUsers();
+  const updated = current.filter((id) => id !== userId);
+  try {
+    localStorage.setItem(STORAGE_BANNED_KEY, JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+  return updated;
+}

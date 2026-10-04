@@ -143,7 +143,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
         </div>
 
         {/* Pro Level Access Banner */}
-        {level.id > 2 && !progress.isPaid && progress.tariff !== 'master_pro' && (
+        {level.id > 2 && !progress.isPaid && progress.tariff !== 'master_pro' && !progress.isAdmin && (
           <div className="rounded-2xl bg-gradient-to-r from-amber-950/60 via-stone-900 to-amber-950/60 border border-amber-500/50 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-lg shrink-0">

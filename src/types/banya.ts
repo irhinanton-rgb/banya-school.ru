@@ -119,4 +119,10 @@ export interface UserProgress {
   isPaid?: boolean;
   paidAt?: string;
   orderId?: string;
+  avatarUrl?: string;
+  bio?: string;
+  banyaStatus?: string;
+  city?: string;
+  favoriteBrooms?: string[];
+  isAdmin?: boolean;
 }

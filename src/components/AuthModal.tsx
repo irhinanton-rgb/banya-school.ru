@@ -35,6 +35,7 @@ interface AuthModalProps {
   isSyncing?: boolean;
   lastSyncedTime?: string | null;
   onOpenPricing?: () => void;
+  onOpenProfile?: () => void;
   onOpenLegal?: (tab: 'offer' | 'privacy' | 'requisites') => void;
 }
 
@@ -49,6 +50,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   isSyncing = false,
   lastSyncedTime,
   onOpenPricing,
+  onOpenProfile,
   onOpenLegal,
 }) => {
   const {
@@ -435,6 +437,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   )}
                 </div>
               </div>
+
+              {/* Profile & Avatar Editing Action Button */}
+              {onOpenProfile && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenProfile();
+                  }}
+                  className="w-full py-2.5 px-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
+                >
+                  <User className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Редактировать фото, банный статус и описание о себе →</span>
+                </button>
+              )}
 
               {/* Sync Statistics */}
               <div className="grid grid-cols-3 gap-2.5">

@@ -39,8 +39,8 @@ export const QuestMap: React.FC<QuestMapProps> = ({
         {COURSE_LEVELS.map((lvl) => {
           const isCompleted = progress.completedLevels.includes(lvl.id);
           const isActive = activeLevelId === lvl.id;
-          // Unlocked if previous is completed or it is level 1
-          const isUnlocked = lvl.id === 1 || progress.completedLevels.includes((lvl.id - 1) as LevelId) || isCompleted;
+          // Unlocked if admin, previous is completed or it is level 1
+          const isUnlocked = progress.isAdmin || lvl.id === 1 || progress.completedLevels.includes((lvl.id - 1) as LevelId) || isCompleted;
           const badge = BADGES.find((b) => b.id === lvl.rewardBadge);
 
           return (

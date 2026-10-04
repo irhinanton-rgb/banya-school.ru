@@ -23,6 +23,9 @@ import {
   Leaf,
   Info,
   UserCheck,
+  Trash2,
+  Ban,
+  ShieldCheck,
 } from 'lucide-react';
 import { UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
@@ -38,6 +41,11 @@ import {
   sendDirectMessage,
   loadHomeworkSubmissions,
   submitHomework,
+  deleteCommunityMessage,
+  reviewHomework,
+  banUser,
+  unbanUser,
+  getBannedUsers,
 } from '../firebase/communityService';
 import { BROOM_TECHNIQUES } from '../data/courseData';
 import { playWoodTap, playSuccessChime } from '../utils/audio';
@@ -58,6 +66,10 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
   initialTab = 'chat',
 }) => {
   const { user } = useAuth();
+  const isAdmin =
+    user?.email?.toLowerCase() === 'irhinanton@gmail.com' ||
+    Boolean(progress.isAdmin);
+  const [bannedUserIds, setBannedUserIds] = useState<string[]>(() => getBannedUsers());
   const [activeTab, setActiveTab] = useState<'chat' | 'webinar' | 'homework'>(initialTab);
 
   // Chat State
@@ -477,6 +489,23 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
                               >
                                 {msg.createdAt}
                               </span>
+
+                              {isAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (confirm(`Удалить сообщение от «${msg.authorName}»?`)) {
+                                      deleteCommunityMessage(msg.id);
+                                      setMessages((prev) => prev.filter((m) => m.id !== msg.id));
+                                      playWoodTap(progress.soundEnabled);
+                                    }
+                                  }}
+                                  className="text-stone-500 hover:text-red-400 p-0.5 transition-colors cursor-pointer ml-1"
+                                  title="Удалить сообщение (Администратор)"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              )}
                             </div>
 
                             <p
@@ -902,7 +931,7 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
                   </div>
 
                   {/* Modal Action Buttons */}
-                  <div className="pt-2 flex items-center gap-2">
+                  <div className="pt-2 flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => handleStartDmWith(selectedMember)}
                       className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md"
@@ -910,6 +939,33 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
                       <Lock className="w-3.5 h-3.5" />
                       <span>Написать личное сообщение</span>
                     </button>
+
+                    {isAdmin && selectedMember.role !== 'mentor' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (bannedUserIds.includes(selectedMember.id)) {
+                            const next = unbanUser(selectedMember.id);
+                            setBannedUserIds(next);
+                          } else {
+                            if (confirm(`Заблокировать пользователя «${selectedMember.name}»?`)) {
+                              const next = banUser(selectedMember.id);
+                              setBannedUserIds(next);
+                            }
+                          }
+                          playWoodTap(progress.soundEnabled);
+                        }}
+                        className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                          bannedUserIds.includes(selectedMember.id)
+                            ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/40'
+                            : 'bg-red-950/50 text-red-300 border border-red-500/40 hover:bg-red-900/60'
+                        }`}
+                      >
+                        <Ban className="w-3.5 h-3.5" />
+                        <span>{bannedUserIds.includes(selectedMember.id) ? 'Разблокировать' : 'Забанить'}</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => setSelectedMember(null)}
                       className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold transition-colors cursor-pointer"
@@ -1297,6 +1353,53 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
                           <p className="text-stone-200 leading-relaxed">
                             {hw.mentorFeedback}
                           </p>
+                        </div>
+                      )}
+
+                      {/* Admin Grading Controls */}
+                      {isAdmin && (
+                        <div className="pt-2 border-t border-stone-800 flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-[11px] text-amber-400 font-semibold flex items-center gap-1">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Оценка наставника:</span>
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const feedback = prompt(
+                                  `Комментарий к видео ученика «${hw.studentName}» (рецензия наставника):`,
+                                  'Отличная техника! Кисть расслаблена, амплитуда правильная. Зачёт!'
+                                );
+                                if (feedback !== null) {
+                                  const updated = reviewHomework(hw.id, 'approved', feedback, 50);
+                                  setHomeworks(updated);
+                                  if (onGrantXp) onGrantXp(50);
+                                  playSuccessChime(progress.soundEnabled);
+                                }
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-stone-950 text-xs font-bold transition-colors cursor-pointer"
+                            >
+                              ✅ Поставить Зачёт (+50 XP)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const feedback = prompt(
+                                  `Укажите замечания ученику «${hw.studentName}» для доработки:`,
+                                  'Обратите внимание на положение локтя и расслабление кисти при обратном махе.'
+                                );
+                                if (feedback !== null) {
+                                  const updated = reviewHomework(hw.id, 'needs_work', feedback, 0);
+                                  setHomeworks(updated);
+                                  playWoodTap(progress.soundEnabled);
+                                }
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-amber-950/60 text-amber-300 border border-amber-500/30 text-xs font-semibold transition-colors cursor-pointer"
+                            >
+                              ⚠️ На доработку
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
