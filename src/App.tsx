@@ -43,6 +43,7 @@ export default function App() {
             completedLevels: Array.isArray(parsed.completedLevels) ? parsed.completedLevels : [],
             unlockedBadges: Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : [],
             quizScores: parsed.quizScores && typeof parsed.quizScores === 'object' ? parsed.quizScores : INITIAL_PROGRESS.quizScores,
+            activeLevelId: (typeof parsed.activeLevelId === 'number' && parsed.activeLevelId >= 1 && parsed.activeLevelId <= 7) ? (parsed.activeLevelId as LevelId) : 1,
           };
         }
       }
