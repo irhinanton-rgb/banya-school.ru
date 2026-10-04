@@ -275,6 +275,244 @@ export async function sendCommunityMessage(
   return newMsg;
 }
 
+export interface ClubMember {
+  id: string;
+  name: string;
+  role: 'mentor' | 'master' | 'student';
+  roleTitle: string;
+  avatar?: string;
+  xp: number;
+  levelTitle: string;
+  status: 'online' | 'in_banya' | 'idle';
+  statusText: string;
+  favoriteBrooms: string[];
+  city?: string;
+  bio?: string;
+}
+
+export interface DirectMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  recipientId: string;
+  text: string;
+  createdAt: string;
+}
+
+export const CLUB_MEMBERS: ClubMember[] = [
+  {
+    id: 'mentor_anton',
+    name: 'Антон Ирхин',
+    role: 'mentor',
+    roleTitle: 'Основатель & Главный Наставник',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80',
+    xp: 2500,
+    levelTitle: 'Гранд-Мастер Пара',
+    status: 'online',
+    statusText: 'В сети · Отвечает на вопросы',
+    favoriteBrooms: ['Дуб кавказский', 'Пихта сибирская', 'Эвкалипт'],
+    city: 'Москва / Санкт-Петербург',
+    bio: '15 лет банной практики. Основатель школы правильного пара. Автор методики бережного бесконтактного прогрева и работы парой веников.',
+  },
+  {
+    id: 'user_mikhail',
+    name: 'Михаил Ковалёв',
+    role: 'student',
+    roleTitle: 'Подмастерье',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
+    xp: 320,
+    levelTitle: 'Уровень 2: Подмастерье',
+    status: 'online',
+    statusText: 'В сети · Изучает 3-й уровень',
+    favoriteBrooms: ['Берёза кудрявая', 'Дуб'],
+    city: 'Екатеринбург',
+    bio: 'Обучаюсь для домашней семейной бани. Отрабатываю омахивание и компрессы на стопы.',
+  },
+  {
+    id: 'user_elena',
+    name: 'Елена Смирнова',
+    role: 'student',
+    roleTitle: 'Ученица Академии',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
+    xp: 150,
+    levelTitle: 'Уровень 1: Новичок',
+    status: 'online',
+    statusText: 'В сети · Сдаёт видео-ДЗ',
+    favoriteBrooms: ['Липа медовая', 'Берёза'],
+    city: 'Казань',
+    bio: 'Люблю мягкий травяной пар и ароматерапию. Учусь правильно греть стопы без перегрева головы.',
+  },
+  {
+    id: 'user_dmitry',
+    name: 'Дмитрий Волков',
+    role: 'master',
+    roleTitle: 'Мастер Пара',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80',
+    xp: 890,
+    levelTitle: 'Уровень 5: Старший Пармастер',
+    status: 'in_banya',
+    statusText: 'В парной 🔥 · Парит гостей',
+    favoriteBrooms: ['Красный дуб', 'Можжевельник', 'Полынь'],
+    city: 'Новосибирск',
+    bio: 'Профессиональный банщик в загородном банном комплексе. Повышаю квалификацию по технике двух веников.',
+  },
+];
+
+// Direct messages storage key prefix
+const STORAGE_DM_KEY_PREFIX = 'banya_dm_';
+
+export function getConversationKey(userId1: string, userId2: string): string {
+  return [userId1, userId2].sort().join('_');
+}
+
+export function loadDirectMessages(userId1: string, userId2: string): DirectMessage[] {
+  const convKey = getConversationKey(userId1, userId2);
+  try {
+    const saved = localStorage.getItem(`${STORAGE_DM_KEY_PREFIX}${convKey}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // If conversation is with the mentor Anton Irkhin, provide an initial welcome direct message
+  if (userId1 === 'mentor_anton' || userId2 === 'mentor_anton') {
+    return [
+      {
+        id: `dm_welcome_${convKey}`,
+        senderId: 'mentor_anton',
+        senderName: 'Антон Ирхин',
+        recipientId: userId1 === 'mentor_anton' ? userId2 : userId1,
+        text: 'Здравствуйте! Это ваш персональный диалог со мной. Задавайте любые вопросы по технике парения, присылайте видео на разбор или консультируйтесь по подготовке вашей парной.',
+        createdAt: 'Сегодня в 10:00',
+      },
+    ];
+  }
+
+  return [];
+}
+
+export function saveDirectMessages(userId1: string, userId2: string, msgs: DirectMessage[]) {
+  const convKey = getConversationKey(userId1, userId2);
+  try {
+    localStorage.setItem(`${STORAGE_DM_KEY_PREFIX}${convKey}`, JSON.stringify(msgs.slice(-100)));
+  } catch {
+    // ignore
+  }
+}
+
+// Active listeners for direct messages
+const activeDmListeners = new Map<string, Set<(msgs: DirectMessage[]) => void>>();
+
+export function subscribeToDirectMessages(
+  userId1: string,
+  userId2: string,
+  onMessages: (msgs: DirectMessage[]) => void
+): () => void {
+  const convKey = getConversationKey(userId1, userId2);
+
+  if (!activeDmListeners.has(convKey)) {
+    activeDmListeners.set(convKey, new Set());
+  }
+  activeDmListeners.get(convKey)!.add(onMessages);
+
+  // Send current cached messages immediately
+  const initial = loadDirectMessages(userId1, userId2);
+  onMessages(initial);
+
+  // Subscribe to MQTT topic for this conversation
+  const client = getOrCreateMqttClient();
+  const topic = `banya-school-ru/dm/${convKey}`;
+  if (client) {
+    client.subscribe(topic, { qos: 0 });
+
+    const handleMessage = (incomingTopic: string, payload: Buffer) => {
+      if (incomingTopic === topic) {
+        try {
+          const parsed = JSON.parse(payload.toString());
+          if (parsed && typeof parsed === 'object' && parsed.id) {
+            const current = loadDirectMessages(userId1, userId2);
+            if (!current.some((m) => m.id === parsed.id)) {
+              const updated = [...current, parsed as DirectMessage];
+              saveDirectMessages(userId1, userId2, updated);
+              activeDmListeners.get(convKey)?.forEach((listener) => {
+                try {
+                  listener(updated);
+                } catch {
+                  // ignore
+                }
+              });
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    client.on('message', handleMessage);
+
+    return () => {
+      activeDmListeners.get(convKey)?.delete(onMessages);
+      client.off('message', handleMessage);
+    };
+  }
+
+  return () => {
+    activeDmListeners.get(convKey)?.delete(onMessages);
+  };
+}
+
+export async function sendDirectMessage(
+  senderId: string,
+  senderName: string,
+  recipientId: string,
+  text: string
+): Promise<DirectMessage> {
+  const convKey = getConversationKey(senderId, recipientId);
+  const newMsg: DirectMessage = {
+    id: `dm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    senderId,
+    senderName,
+    recipientId,
+    text,
+    createdAt: new Date().toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+  };
+
+  // 1. Instant local persistence & in-memory notify
+  const current = loadDirectMessages(senderId, recipientId);
+  const updated = [...current, newMsg];
+  saveDirectMessages(senderId, recipientId, updated);
+
+  activeDmListeners.get(convKey)?.forEach((listener) => {
+    try {
+      listener(updated);
+    } catch {
+      // ignore
+    }
+  });
+
+  // 2. Real-time cross-device broadcast via MQTT
+  try {
+    const client = getOrCreateMqttClient();
+    if (client) {
+      const topic = `banya-school-ru/dm/${convKey}`;
+      client.publish(topic, JSON.stringify(newMsg), { qos: 0 });
+    }
+  } catch (err) {
+    console.warn('DM MQTT sync warning', err);
+  }
+
+  return newMsg;
+}
+
 // Homework submissions management
 export function loadHomeworkSubmissions(): HomeworkSubmission[] {
   try {

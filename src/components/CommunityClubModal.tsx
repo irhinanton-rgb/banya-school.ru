@@ -17,14 +17,25 @@ import {
   Camera,
   Maximize2,
   Calendar,
+  Lock,
+  ArrowLeft,
+  MapPin,
+  Leaf,
+  Info,
+  UserCheck,
 } from 'lucide-react';
 import { UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
 import {
   CommunityMessage,
   HomeworkSubmission,
+  ClubMember,
+  DirectMessage,
+  CLUB_MEMBERS,
   subscribeToCommunityMessages,
   sendCommunityMessage,
+  subscribeToDirectMessages,
+  sendDirectMessage,
   loadHomeworkSubmissions,
   submitHomework,
 } from '../firebase/communityService';
@@ -54,6 +65,16 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
   const [inputMessage, setInputMessage] = useState<string>('');
   const [isSending, setIsSending] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Direct Messaging (ЛС) & Members Sidebar State
+  const [chatMode, setChatMode] = useState<'general' | 'direct'>('general');
+  const [activeDmPartner, setActiveDmPartner] = useState<ClubMember>(CLUB_MEMBERS[0]);
+  const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
+  const [dmInput, setDmInput] = useState<string>('');
+  const [isDmSending, setIsDmSending] = useState<boolean>(false);
+  const [selectedMember, setSelectedMember] = useState<ClubMember | null>(null);
+  const [mobileChatView, setMobileChatView] = useState<'chat' | 'users'>('chat');
+  const dmEndRef = useRef<HTMLDivElement>(null);
 
   // Video Conference State
   const [isRoomActive, setIsRoomActive] = useState<boolean>(false);
@@ -87,10 +108,30 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
   }, [isOpen]);
 
   useEffect(() => {
-    if (activeTab === 'chat') {
+    if (activeTab === 'chat' && chatMode === 'general') {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, activeTab]);
+  }, [messages, activeTab, chatMode]);
+
+  // Subscribe to Direct Messages when in direct mode
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'chat' || chatMode !== 'direct' || !activeDmPartner) return;
+
+    const currentUserId = user?.uid || 'guest_user';
+    const unsubscribe = subscribeToDirectMessages(currentUserId, activeDmPartner.id, (msgs) => {
+      setDirectMessages(msgs);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [isOpen, activeTab, chatMode, activeDmPartner, user?.uid]);
+
+  useEffect(() => {
+    if (chatMode === 'direct') {
+      dmEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [directMessages, chatMode]);
 
   if (!isOpen) return null;
 
@@ -121,6 +162,40 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
 
     setInputMessage('');
     setIsSending(false);
+  };
+
+  const handleSendDirectMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!dmInput.trim() || isDmSending) return;
+
+    setIsDmSending(true);
+    playWoodTap(progress.soundEnabled);
+
+    const currentUserId = user?.uid || 'guest_user';
+    const currentUserName = user?.displayName || progress.name || 'Ученик Академии';
+
+    const newDm = await sendDirectMessage(
+      currentUserId,
+      currentUserName,
+      activeDmPartner.id,
+      dmInput.trim()
+    );
+
+    setDirectMessages((prev) => {
+      if (prev.some((m) => m.id === newDm.id)) return prev;
+      return [...prev, newDm];
+    });
+
+    setDmInput('');
+    setIsDmSending(false);
+  };
+
+  const handleStartDmWith = (member: ClubMember) => {
+    setActiveDmPartner(member);
+    setChatMode('direct');
+    setMobileChatView('chat');
+    setSelectedMember(null);
+    playWoodTap(progress.soundEnabled);
   };
 
   const handleSubmitHomework = (e: React.FormEvent) => {
@@ -238,159 +313,614 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
           </button>
         </div>
 
-        {/* Tab 1: Community Chat */}
+        {/* Tab 1: Community Chat & Direct Messaging */}
         {activeTab === 'chat' && (
-          <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-stone-950 to-stone-900">
-            {/* Pinned Announcement */}
-            <div className="px-5 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2 text-amber-200">
-                <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>
-                  <strong>Субботний разбор:</strong> Задавайте вопросы по технике парения и веникам, наставник отвечает в чате и на созвонах!
-                </span>
-              </div>
-              <button
-                onClick={() => setActiveTab('webinar')}
-                className="text-[11px] text-amber-300 hover:underline font-semibold shrink-0 cursor-pointer"
-              >
-                Расписание эфиров →
-              </button>
-            </div>
-
-            {/* Messages Scroll Area */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-              {messages.map((msg) => {
-                const isMentor = msg.authorRole === 'mentor';
-                const isCurrentUser = user && msg.authorId === user.uid;
-
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex items-start gap-3 max-w-2xl ${
-                      isCurrentUser ? 'ml-auto flex-row-reverse' : ''
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-gradient-to-b from-stone-950 to-stone-900 relative">
+            
+            {/* Left / Main Messaging Panel */}
+            <div className={`flex-1 flex flex-col overflow-hidden ${mobileChatView === 'users' ? 'hidden md:flex' : 'flex'}`}>
+              
+              {/* Chat Sub-Navigation Bar */}
+              <div className="px-4 py-2.5 bg-stone-900/90 border-b border-stone-800/80 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <button
+                    onClick={() => {
+                      setChatMode('general');
+                      playWoodTap(progress.soundEnabled);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      chatMode === 'general'
+                        ? 'bg-amber-500 text-stone-950 shadow-sm'
+                        : 'bg-stone-950/80 text-stone-400 hover:text-stone-200 border border-stone-800'
                     }`}
                   >
-                    {/* Avatar */}
-                    {msg.authorAvatar ? (
-                      <img
-                        src={msg.authorAvatar}
-                        alt={msg.authorName}
-                        className="h-9 w-9 rounded-xl object-cover border border-stone-700 shrink-0 mt-0.5"
-                      />
-                    ) : (
-                      <div
-                        className={`h-9 w-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${
-                          isMentor
-                            ? 'bg-amber-500 text-stone-950 border border-amber-400'
-                            : 'bg-stone-800 text-stone-300 border border-stone-700'
-                        }`}
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Общий чат</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setChatMode('direct');
+                      playWoodTap(progress.soundEnabled);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      chatMode === 'direct'
+                        ? 'bg-amber-500 text-stone-950 shadow-sm'
+                        : 'bg-stone-950/80 text-stone-400 hover:text-stone-200 border border-stone-800'
+                    }`}
+                  >
+                    <Lock className="w-3.5 h-3.5 text-stone-400" />
+                    <span>Личные диалоги (ЛС)</span>
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  </button>
+                </div>
+
+                {/* Mobile Toggle: Show Online Users List */}
+                <button
+                  onClick={() => {
+                    setMobileChatView('users');
+                    playWoodTap(progress.soundEnabled);
+                  }}
+                  className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-stone-950/80 border border-stone-800 text-xs text-stone-300 font-medium cursor-pointer"
+                >
+                  <Users className="w-3.5 h-3.5 text-amber-400" />
+                  <span>В сети (4)</span>
+                </button>
+              </div>
+
+              {/* Mode 1: General Community Chat */}
+              {chatMode === 'general' && (
+                <>
+                  {/* Pinned Announcement */}
+                  <div className="px-4 sm:px-5 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2 text-amber-200">
+                      <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span className="text-[11px] sm:text-xs">
+                        <strong>Общий чат:</strong> Общайтесь, задавайте вопросы по технике и делитесь опытом парения!
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('webinar')}
+                      className="text-[11px] text-amber-300 hover:underline font-semibold shrink-0 cursor-pointer hidden sm:block"
+                    >
+                      Эфиры →
+                    </button>
+                  </div>
+
+                  {/* Messages Scroll Area */}
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+                    {messages.map((msg) => {
+                      const isMentor = msg.authorRole === 'mentor';
+                      const isCurrentUser = user && msg.authorId === user.uid;
+
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`flex items-start gap-3 max-w-2xl ${
+                            isCurrentUser ? 'ml-auto flex-row-reverse' : ''
+                          }`}
+                        >
+                          {/* Avatar */}
+                          {msg.authorAvatar ? (
+                            <img
+                              src={msg.authorAvatar}
+                              alt={msg.authorName}
+                              className="h-9 w-9 rounded-xl object-cover border border-stone-700 shrink-0 mt-0.5 cursor-pointer hover:border-amber-400 transition-colors"
+                              onClick={() => {
+                                const found = CLUB_MEMBERS.find((m) => m.name === msg.authorName || (isMentor && m.role === 'mentor'));
+                                if (found) setSelectedMember(found);
+                              }}
+                            />
+                          ) : (
+                            <div
+                              onClick={() => {
+                                const found = CLUB_MEMBERS.find((m) => m.name === msg.authorName);
+                                if (found) setSelectedMember(found);
+                              }}
+                              className={`h-9 w-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 cursor-pointer ${
+                                isMentor
+                                  ? 'bg-amber-500 text-stone-950 border border-amber-400'
+                                  : 'bg-stone-800 text-stone-300 border border-stone-700'
+                              }`}
+                            >
+                              {msg.authorName.slice(0, 1).toUpperCase()}
+                            </div>
+                          )}
+
+                          {/* Message Bubble */}
+                          <div
+                            className={`rounded-2xl p-3.5 space-y-1 ${
+                              isCurrentUser
+                                ? 'bg-amber-500 text-stone-950 shadow-md'
+                                : isMentor
+                                ? 'bg-stone-900 border border-amber-500/40 text-stone-200 shadow-lg'
+                                : 'bg-stone-900/90 border border-stone-800 text-stone-200 shadow-sm'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-xs font-bold cursor-pointer hover:underline ${
+                                  isCurrentUser
+                                    ? 'text-stone-950'
+                                    : isMentor
+                                    ? 'text-amber-300'
+                                    : 'text-stone-200'
+                                }`}
+                                onClick={() => {
+                                  const found = CLUB_MEMBERS.find((m) => m.name === msg.authorName || (isMentor && m.role === 'mentor'));
+                                  if (found) setSelectedMember(found);
+                                }}
+                              >
+                                {msg.authorName}
+                              </span>
+
+                              {isMentor && (
+                                <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-medium">
+                                  👑 Наставник
+                                </span>
+                              )}
+
+                              {msg.levelBadge && !isMentor && (
+                                <span
+                                  className={`text-[10px] ${
+                                    isCurrentUser ? 'text-stone-800' : 'text-stone-400'
+                                  }`}
+                                >
+                                  {msg.levelBadge}
+                                </span>
+                              )}
+
+                              <span
+                                className={`text-[10px] ml-auto ${
+                                  isCurrentUser ? 'text-stone-800' : 'text-stone-500'
+                                }`}
+                              >
+                                {msg.createdAt}
+                              </span>
+                            </div>
+
+                            <p
+                              className={`text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${
+                                isCurrentUser ? 'text-stone-950 font-medium' : 'text-stone-300'
+                              }`}
+                            >
+                              {msg.text}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div ref={messagesEndRef} />
+                  </div>
+
+                  {/* Quick Question Chips */}
+                  <div className="px-4 py-2 bg-stone-950/80 border-t border-stone-800/80 flex items-center gap-2 overflow-x-auto scrollbar-thin">
+                    <span className="text-[11px] text-stone-500 shrink-0">Частые вопросы:</span>
+                    {[
+                      'Как правильно запарить дубовый веник?',
+                      'Какая температура идеальна для первого захода?',
+                      'Как не обжечь руки паром при припарке?',
+                    ].map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => setInputMessage(chip)}
+                        className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-amber-300 text-[11px] whitespace-nowrap border border-stone-800 transition-colors cursor-pointer"
                       >
-                        {msg.authorName.slice(0, 1).toUpperCase()}
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* General Chat Input Bar */}
+                  <form
+                    onSubmit={handleSendMessage}
+                    className="p-3 sm:p-4 bg-stone-900 border-t border-stone-800 flex items-center gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      placeholder="Напишите вопрос по технике, веникам или поделитесь опытом..."
+                      className="flex-1 bg-stone-950 border border-stone-700 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none focus:border-amber-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!inputMessage.trim() || isSending}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer active:scale-95"
+                    >
+                      <span>Отправить</span>
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </form>
+                </>
+              )}
+
+              {/* Mode 2: Direct Messages (ЛС) */}
+              {chatMode === 'direct' && (
+                <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-stone-950 to-stone-900">
+                  
+                  {/* Direct Message Partner Top Bar */}
+                  <div className="px-4 py-3 bg-stone-900 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        {activeDmPartner.avatar ? (
+                          <img
+                            src={activeDmPartner.avatar}
+                            alt={activeDmPartner.name}
+                            className="h-10 w-10 rounded-xl object-cover border border-amber-500/40"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-xl bg-amber-500 text-stone-950 font-bold flex items-center justify-center text-sm">
+                            {activeDmPartner.name.slice(0, 1)}
+                          </div>
+                        )}
+                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-stone-900" />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-sm text-stone-100">
+                            {activeDmPartner.name}
+                          </h4>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                            activeDmPartner.role === 'mentor'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : 'bg-stone-800 text-stone-300'
+                          }`}>
+                            {activeDmPartner.roleTitle}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-emerald-400 flex items-center gap-1 mt-0.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span>{activeDmPartner.statusText}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quick Partner Switcher */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto">
+                      <span className="text-[10px] text-stone-500 hidden sm:inline">Собеседник:</span>
+                      {CLUB_MEMBERS.map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => {
+                            setActiveDmPartner(m);
+                            playWoodTap(progress.soundEnabled);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            activeDmPartner.id === m.id
+                              ? 'bg-amber-500 text-stone-950 font-bold'
+                              : 'bg-stone-950 hover:bg-stone-800 text-stone-400 border border-stone-800'
+                          }`}
+                        >
+                          {m.role === 'mentor' ? '👑 Антон' : m.name.split(' ')[0]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Direct Messages Scroll Area */}
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
+                    {directMessages.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-2 text-stone-500">
+                        <Lock className="w-8 h-8 text-amber-500/40" />
+                        <p className="text-xs text-stone-400">
+                          Начало личной переписки с <strong>{activeDmPartner.name}</strong>.
+                        </p>
+                        <p className="text-[11px] text-stone-500 max-w-xs">
+                          Сообщения приватны и доставляются моментально на любое устройство.
+                        </p>
+                      </div>
+                    ) : (
+                      directMessages.map((dm) => {
+                        const isFromMe = dm.senderId === (user?.uid || 'guest_user');
+
+                        return (
+                          <div
+                            key={dm.id}
+                            className={`flex flex-col max-w-md ${isFromMe ? 'ml-auto items-end' : 'items-start'}`}
+                          >
+                            <div className="text-[10px] text-stone-500 mb-1 px-1">
+                              {isFromMe ? 'Вы' : dm.senderName} · {dm.createdAt}
+                            </div>
+                            <div
+                              className={`rounded-2xl p-3.5 text-xs sm:text-sm leading-relaxed shadow-md ${
+                                isFromMe
+                                  ? 'bg-amber-500 text-stone-950 font-medium rounded-br-none'
+                                  : 'bg-stone-900 border border-stone-800 text-stone-200 rounded-bl-none'
+                              }`}
+                            >
+                              {dm.text}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                    <div ref={dmEndRef} />
+                  </div>
+
+                  {/* Quick Direct Prompt Chips */}
+                  <div className="px-4 py-2 bg-stone-950/80 border-t border-stone-800/80 flex items-center gap-2 overflow-x-auto scrollbar-thin">
+                    <span className="text-[11px] text-stone-500 shrink-0">Подсказка:</span>
+                    {[
+                      'Антон, посмотрите мою технику омахивания',
+                      'Какую температуру посоветуете для первого раза?',
+                      'Как правильно мыть веник после парения?',
+                    ].map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => setDmInput(chip)}
+                        className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-amber-300 text-[11px] whitespace-nowrap border border-stone-800 transition-colors cursor-pointer"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Direct Message Input Bar */}
+                  <form
+                    onSubmit={handleSendDirectMessage}
+                    className="p-3 sm:p-4 bg-stone-900 border-t border-stone-800 flex items-center gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={dmInput}
+                      onChange={(e) => setDmInput(e.target.value)}
+                      placeholder={`Личное сообщение для ${activeDmPartner.name}...`}
+                      className="flex-1 bg-stone-950 border border-stone-700 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none focus:border-amber-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!dmInput.trim() || isDmSending}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer active:scale-95"
+                    >
+                      <span>Отправить</span>
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+
+            {/* Right Panel: Online Users & Profiles (Always visible on Desktop, togglable on Mobile) */}
+            <div className={`w-full md:w-72 lg:w-80 shrink-0 border-t md:border-t-0 md:border-l border-stone-800 bg-stone-950/95 flex flex-col ${
+              mobileChatView === 'users' ? 'flex' : 'hidden md:flex'
+            }`}>
+              {/* Right Panel Header */}
+              <div className="p-3.5 border-b border-stone-800/80 bg-stone-900/60 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-amber-400" />
+                  <span className="font-serif font-bold text-xs sm:text-sm text-stone-200">
+                    Участники онлайн
+                  </span>
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-semibold border border-emerald-500/20">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    4 в сети
+                  </span>
+                </div>
+
+                {/* Mobile Back to Chat Button */}
+                <button
+                  onClick={() => setMobileChatView('chat')}
+                  className="md:hidden text-xs text-amber-400 font-semibold flex items-center gap-1 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>В чат</span>
+                </button>
+              </div>
+
+              {/* Current User Card */}
+              <div className="p-3 border-b border-stone-800/80 bg-gradient-to-r from-amber-500/5 to-transparent">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative">
+                    <div className="h-9 w-9 rounded-xl bg-amber-500 text-stone-950 font-bold flex items-center justify-center text-xs shadow-sm">
+                      {(user?.displayName || progress.name || 'У')[0].toUpperCase()}
+                    </div>
+                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-stone-950" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-stone-200 truncate">
+                        {user?.displayName || progress.name || 'Вы (Ученик)'}
+                      </span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-medium">
+                        Вы
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-stone-400 mt-0.5">
+                      {progress.xp} XP · В сети 🟢
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Members List */}
+              <div className="flex-1 overflow-y-auto p-2.5 space-y-2">
+                <div className="text-[10px] uppercase font-semibold text-stone-500 px-2 tracking-wider">
+                  Наставники и ученики клуба:
+                </div>
+
+                {CLUB_MEMBERS.map((member) => {
+                  const isMentor = member.role === 'mentor';
+                  const isOnline = member.status === 'online';
+
+                  return (
+                    <div
+                      key={member.id}
+                      className="p-2.5 rounded-xl bg-stone-900/60 hover:bg-stone-900 border border-stone-800/80 hover:border-stone-700 transition-all space-y-2 group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div
+                          className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0"
+                          onClick={() => setSelectedMember(member)}
+                        >
+                          <div className="relative shrink-0">
+                            {member.avatar ? (
+                              <img
+                                src={member.avatar}
+                                alt={member.name}
+                                className="h-9 w-9 rounded-xl object-cover border border-stone-700"
+                              />
+                            ) : (
+                              <div className="h-9 w-9 rounded-xl bg-stone-800 text-stone-300 font-bold flex items-center justify-center text-xs">
+                                {member.name[0]}
+                              </div>
+                            )}
+                            <span
+                              className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-stone-950 ${
+                                isOnline ? 'bg-emerald-500' : 'bg-amber-500'
+                              }`}
+                            />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-xs text-stone-200 group-hover:text-amber-300 transition-colors truncate">
+                                {member.name}
+                              </span>
+                              {isMentor && (
+                                <span className="text-[10px] text-amber-400">👑</span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-stone-400 truncate">
+                              {member.roleTitle}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Direct Message Action Button */}
+                        <button
+                          onClick={() => handleStartDmWith(member)}
+                          className="px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-amber-500 hover:text-stone-950 text-stone-300 text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                          title="Написать личное сообщение"
+                        >
+                          <Lock className="w-3 h-3" />
+                          <span>ЛС</span>
+                        </button>
+                      </div>
+
+                      {/* Status / XP info bar */}
+                      <div className="flex items-center justify-between text-[10px] text-stone-500 border-t border-stone-800/60 pt-1.5 px-0.5">
+                        <span className="truncate max-w-[150px] text-emerald-400/90">
+                          {member.statusText}
+                        </span>
+                        <button
+                          onClick={() => setSelectedMember(member)}
+                          className="text-stone-400 hover:text-stone-200 hover:underline cursor-pointer flex items-center gap-0.5"
+                        >
+                          <Info className="w-3 h-3" />
+                          <span>Профиль</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Member Detailed Profile Modal Dialog */}
+            {selectedMember && (
+              <div className="absolute inset-0 bg-stone-950/80 backdrop-blur-sm z-30 flex items-center justify-center p-4">
+                <div className="w-full max-w-sm rounded-2xl bg-stone-900 border border-stone-700 shadow-2xl p-5 space-y-4 animate-scale-in">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        {selectedMember.avatar ? (
+                          <img
+                            src={selectedMember.avatar}
+                            alt={selectedMember.name}
+                            className="h-14 w-14 rounded-2xl object-cover border border-amber-500/40"
+                          />
+                        ) : (
+                          <div className="h-14 w-14 rounded-2xl bg-amber-500 text-stone-950 font-bold flex items-center justify-center text-lg">
+                            {selectedMember.name[0]}
+                          </div>
+                        )}
+                        <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-stone-900" />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="font-serif font-bold text-base text-stone-100">
+                            {selectedMember.name}
+                          </h4>
+                          {selectedMember.role === 'mentor' && (
+                            <span className="text-amber-400">👑</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-amber-400 font-medium">
+                          {selectedMember.roleTitle}
+                        </p>
+                        <p className="text-[11px] text-stone-400">
+                          {selectedMember.levelTitle} · {selectedMember.xp} XP
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedMember(null)}
+                      className="p-1.5 rounded-lg text-stone-400 hover:text-stone-200 hover:bg-stone-800 transition-colors cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Bio */}
+                  {selectedMember.bio && (
+                    <div className="p-3 rounded-xl bg-stone-950/80 border border-stone-800 text-xs text-stone-300 leading-relaxed">
+                      {selectedMember.bio}
+                    </div>
+                  )}
+
+                  {/* Details Grid */}
+                  <div className="space-y-2 text-xs">
+                    {selectedMember.city && (
+                      <div className="flex items-center gap-2 text-stone-400">
+                        <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span>Город: <strong className="text-stone-200">{selectedMember.city}</strong></span>
                       </div>
                     )}
 
-                    {/* Message Bubble */}
-                    <div
-                      className={`rounded-2xl p-3.5 space-y-1 ${
-                        isCurrentUser
-                          ? 'bg-amber-500 text-stone-950 shadow-md'
-                          : isMentor
-                          ? 'bg-stone-900 border border-amber-500/40 text-stone-200 shadow-lg'
-                          : 'bg-stone-900/90 border border-stone-800 text-stone-200 shadow-sm'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-xs font-bold ${
-                            isCurrentUser
-                              ? 'text-stone-950'
-                              : isMentor
-                              ? 'text-amber-300'
-                              : 'text-stone-200'
-                          }`}
-                        >
-                          {msg.authorName}
-                        </span>
-
-                        {isMentor && (
-                          <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-medium">
-                            👑 Наставник
-                          </span>
-                        )}
-
-                        {msg.levelBadge && !isMentor && (
-                          <span
-                            className={`text-[10px] ${
-                              isCurrentUser ? 'text-stone-800' : 'text-stone-400'
-                            }`}
-                          >
-                            {msg.levelBadge}
-                          </span>
-                        )}
-
-                        <span
-                          className={`text-[10px] ml-auto ${
-                            isCurrentUser ? 'text-stone-800' : 'text-stone-500'
-                          }`}
-                        >
-                          {msg.createdAt}
-                        </span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-stone-400">
+                        <Leaf className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>Любимые веники:</span>
                       </div>
-
-                      <p
-                        className={`text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${
-                          isCurrentUser ? 'text-stone-950 font-medium' : 'text-stone-300'
-                        }`}
-                      >
-                        {msg.text}
-                      </p>
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {selectedMember.favoriteBrooms.map((broom) => (
+                          <span
+                            key={broom}
+                            className="px-2 py-0.5 rounded-md bg-stone-800 border border-stone-700 text-emerald-300 text-[10px]"
+                          >
+                            🌿 {broom}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
 
-            {/* Quick Question Chips */}
-            <div className="px-4 py-2 bg-stone-950/80 border-t border-stone-800/80 flex items-center gap-2 overflow-x-auto scrollbar-thin">
-              <span className="text-[11px] text-stone-500 shrink-0">Частые вопросы:</span>
-              {[
-                'Как правильно запарить дубовый веник?',
-                'Какая температура идеальна для первого захода?',
-                'Как не обжечь руки паром при припарке?',
-              ].map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  onClick={() => setInputMessage(chip)}
-                  className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-amber-300 text-[11px] whitespace-nowrap border border-stone-800 transition-colors cursor-pointer"
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
+                  {/* Modal Action Buttons */}
+                  <div className="pt-2 flex items-center gap-2">
+                    <button
+                      onClick={() => handleStartDmWith(selectedMember)}
+                      className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md"
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Написать личное сообщение</span>
+                    </button>
+                    <button
+                      onClick={() => setSelectedMember(null)}
+                      className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      Закрыть
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
-            {/* Chat Input Bar */}
-            <form
-              onSubmit={handleSendMessage}
-              className="p-3 sm:p-4 bg-stone-900 border-t border-stone-800 flex items-center gap-2"
-            >
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Напишите вопрос по технике, веникам или поделитесь опытом..."
-                className="flex-1 bg-stone-950 border border-stone-700 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none focus:border-amber-500"
-              />
-              <button
-                type="submit"
-                disabled={!inputMessage.trim() || isSending}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer active:scale-95"
-              >
-                <span>Отправить</span>
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
           </div>
         )}
 
