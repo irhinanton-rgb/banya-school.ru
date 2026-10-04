@@ -70,7 +70,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|sitemap\\.xml|robots\\.txt|favicon\\.ico|og-banner\\.).*)",
+      "source": "/((?!assets/|.*\\.[a-zA-Z0-9]+).*)",
       "destination": "/index.html"
     }
   ]
