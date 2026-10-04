@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { FINAL_EXAM_QUESTIONS } from '../data/courseData';
 import { QuizQuestion } from '../types/banya';
 import { playSuccessChime } from '../utils/audio';
-import confetti from 'canvas-confetti';
-import { Award, CheckCircle2, XCircle, AlertCircle, ArrowRight, RotateCcw, X } from 'lucide-react';
+import confetti from '../utils/confetti';
+import { Award, CheckCircle2, XCircle, ArrowRight, RotateCcw, X } from 'lucide-react';
 
 interface FinalExamModalProps {
   isOpen: boolean;

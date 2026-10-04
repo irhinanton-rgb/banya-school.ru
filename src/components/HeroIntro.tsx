@@ -1,7 +1,6 @@
 import React from 'react';
-import { Sparkles, Award, ArrowRight, ShieldCheck, Flame, Compass } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { UserProgress, LevelId } from '../types/banya';
-import heroImg from '../assets/images/hero_banya_master_1791055049693.jpg';
 
 interface HeroIntroProps {
   progress: UserProgress;
@@ -12,20 +11,65 @@ interface HeroIntroProps {
 export const HeroIntro: React.FC<HeroIntroProps> = ({
   progress,
   onStartQuest,
-  onSelectLevel,
 }) => {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-stone-800 bg-stone-900/90 shadow-2xl">
-      {/* Background Image Scrim */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src={heroImg}
-          alt="Пармастер в аутентичной парной"
-          referrerPolicy="no-referrer"
-          className="h-full w-full object-cover object-center opacity-30 mix-blend-luminosity filter brightness-75"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/80 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-stone-950 via-stone-950/70 to-transparent" />
+      {/* Zero-latency Atmospheric Banya Artwork & Scrim */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <svg
+          viewBox="0 0 1200 600"
+          preserveAspectRatio="xMidYMid slice"
+          className="h-full w-full object-cover opacity-35"
+          aria-hidden="true"
+        >
+          <defs>
+            <radialGradient id="hearthGlow" cx="78%" cy="62%" r="52%">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.55" />
+              <stop offset="45%" stopColor="#b45309" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="#0c0a09" stopOpacity="0" />
+            </radialGradient>
+            <linearGradient id="woodPlank" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#1c1917" />
+              <stop offset="50%" stopColor="#292524" />
+              <stop offset="100%" stopColor="#0c0a09" />
+            </linearGradient>
+            <linearGradient id="steamWave" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#fde68a" stopOpacity="0.04" />
+              <stop offset="50%" stopColor="#fbbf24" stopOpacity="0.16" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          <rect width="1200" height="600" fill="url(#woodPlank)" />
+          {/* Wooden cedar wall lines */}
+          <g stroke="#44403c" strokeWidth="1" opacity="0.35">
+            <line x1="0" y1="90" x2="1200" y2="90" />
+            <line x1="0" y1="180" x2="1200" y2="180" />
+            <line x1="0" y1="270" x2="1200" y2="270" />
+            <line x1="0" y1="360" x2="1200" y2="360" />
+            <line x1="0" y1="450" x2="1200" y2="450" />
+          </g>
+          {/* Hearth & stove warm glow */}
+          <circle cx="940" cy="370" r="340" fill="url(#hearthGlow)" />
+          {/* Rising steam ribbons */}
+          <path
+            d="M650,560 C720,430 610,320 740,190 C830,100 760,30 840,-20 L1020,-20 C940,60 1010,160 900,260 C790,360 890,460 810,580 Z"
+            fill="url(#steamWave)"
+          />
+          <path
+            d="M840,580 C910,450 820,330 940,210 C1020,130 960,50 1040,-10 L1160,-10 C1090,70 1140,170 1050,270 C950,370 1030,470 960,590 Z"
+            fill="url(#steamWave)"
+          />
+          {/* Stylized Oak Leaf & Broom Silhouette */}
+          <g transform="translate(860, 220)" opacity="0.28" stroke="#fbbf24" strokeWidth="2" fill="none">
+            <path d="M80,260 L120,120 M100,260 L120,120 M140,260 L120,120" strokeWidth="4" />
+            <ellipse cx="120" cy="95" rx="75" ry="90" fill="#78350f" fillOpacity="0.35" />
+            <circle cx="95" cy="70" r="24" />
+            <circle cx="145" cy="75" r="26" />
+            <circle cx="120" cy="45" r="28" />
+          </g>
+        </svg>
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/75 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-stone-950 via-stone-950/65 to-transparent" />
       </div>
 
       <div className="relative z-10 p-6 sm:p-10 lg:p-12 space-y-8 max-w-4xl">

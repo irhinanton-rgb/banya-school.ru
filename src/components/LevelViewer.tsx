@@ -6,7 +6,7 @@ import { BroomTechniquesSimulator } from './simulators/BroomTechniquesSimulator'
 import { HerbalBlenderSimulator } from './simulators/HerbalBlenderSimulator';
 import { GuestTriageSimulator } from './simulators/GuestTriageSimulator';
 import { playSuccessChime } from '../utils/audio';
-import confetti from 'canvas-confetti';
+import confetti from '../utils/confetti';
 import {
   Sparkles,
   Award,

@@ -11,17 +11,52 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>" />
   </head>
-  <body class="bg-stone-950 text-stone-100 antialiased selection:bg-amber-600/30 selection:text-amber-200">
+  <body class="bg-stone-950 text-stone-100 antialiased selection:bg-amber-600/30 selection:text-amber-200" style="margin:0;background-color:#0c0a09;color:#f5f5f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
     <div id="root">
-      <div style="min-height: 100vh; background-color: #0c0a09; display: flex; align-items: center; justify-content: center; color: #d6d3d1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <div style="text-align: center; padding: 20px;">
-          <div style="font-size: 36px; margin-bottom: 12px;">🌿</div>
-          <div style="font-size: 20px; font-weight: 600; color: #fbbf24; margin-bottom: 6px;">Квест Пармастера</div>
-          <div style="font-size: 13px; color: #a8a29e;">Загрузка банной академии...</div>
-        </div>
+      <!-- Instant pre-rendered Academy shell (replaced automatically when JS mounts) -->
+      <div style="min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;background-color:#0c0a09;color:#f5f5f4;">
+        <header style="border-bottom:1px solid #292524;background:rgba(12,10,9,0.95);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fde68a;">Квест Пармастера</div>
+          <div style="display:flex;gap:16px;font-size:13px;color:#d6d3d1;">
+            <span style="color:#fde68a;border-bottom:2px solid #f59e0b;padding-bottom:4px;">Карта Квеста</span>
+            <span>Тренажеры и Симуляторы</span>
+            <span>Банный Справочник</span>
+          </div>
+          <div style="font-size:12px;background:#1c1917;border:1px solid #292524;padding:6px 12px;border-radius:8px;color:#fcd34d;">0 XP · Аттестация</div>
+        </header>
+        <main style="max-width:1200px;width:100%;margin:0 auto;padding:32px 20px;box-sizing:border-box;">
+          <div style="border:1px solid #292524;background:#1c1917;border-radius:24px;padding:36px;margin-bottom:28px;">
+            <div style="display:inline-block;padding:4px 12px;border-radius:999px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:#fcd34d;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;">
+              Геймифицированная Академия Банного Мастерства
+            </div>
+            <h1 style="font-family:Georgia,serif;font-size:40px;line-height:1.15;margin:0 0 16px 0;color:#f5f5f4;">
+              Квест Пармастера: <span style="color:#fbbf24;">Путь к Мастерству</span>
+            </h1>
+            <p style="font-size:15px;line-height:1.6;color:#d6d3d1;max-width:680px;margin:0 0 24px 0;">
+              Вы — авантюрист, стремящийся стать легендарным пармейстером. Ваш путь пройдёт через древние традиции бани, где вы научитесь искусству первого пара, венечного массажа, фито- и ароматерапии, а также освоите физиологию пара и секреты безопасности.
+            </p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;max-width:680px;">
+              <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
+                <div style="color:#fbbf24;font-family:Georgia,serif;font-size:24px;font-weight:700;">7</div>
+                <div style="font-size:11px;color:#a8a29e;">Квестовых уровней</div>
+              </div>
+              <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
+                <div style="color:#fbbf24;font-family:Georgia,serif;font-size:24px;font-weight:700;">8</div>
+                <div style="font-size:11px;color:#a8a29e;">Техник веника</div>
+              </div>
+              <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
+                <div style="color:#fbbf24;font-family:Georgia,serif;font-size:24px;font-weight:700;">8</div>
+                <div style="font-size:11px;color:#a8a29e;">Целебных трав</div>
+              </div>
+              <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
+                <div style="color:#fbbf24;font-family:Georgia,serif;font-size:24px;font-weight:700;">👑</div>
+                <div style="font-size:11px;color:#a8a29e;">Именной Сертификат</div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

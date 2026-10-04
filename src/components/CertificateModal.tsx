@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Award, Printer, Check, X, Sparkles, Download } from 'lucide-react';
-import sealImg from '../assets/images/banya_master_seal_1791055082387.jpg';
+import { Printer, X } from 'lucide-react';
 
 interface CertificateModalProps {
   isOpen: boolean;
@@ -159,12 +158,13 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
             {/* Seal Graphic */}
             <div className="relative flex items-center justify-center">
-              <img
-                src={sealImg}
-                alt="Золотая печать Гильдии Пармастеров"
-                referrerPolicy="no-referrer"
-                className="h-20 w-20 rounded-full border-2 border-amber-500/60 shadow-lg object-cover"
-              />
+              <div className="h-20 w-20 rounded-full border-2 border-amber-500/80 bg-gradient-to-br from-amber-500/20 via-stone-900 to-amber-700/30 shadow-lg flex items-center justify-center">
+                <svg viewBox="0 0 80 80" className="h-16 w-16 text-amber-400" aria-hidden="true">
+                  <circle cx="40" cy="40" r="35" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" />
+                  <circle cx="40" cy="40" r="28" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+                  <text x="40" y="46" textAnchor="middle" fontSize="24">👑</text>
+                </svg>
+              </div>
               <span className="absolute -bottom-2 text-[10px] font-mono text-amber-400 font-bold bg-stone-950/90 px-2 py-0.5 rounded border border-amber-500/40">
                 АТТЕСТОВАН
               </span>
