@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Flame, Droplets, AlertTriangle, Wind, Info, Sparkles } from 'lucide-react';
-import { playSteamSound } from '../../utils/audio';
+import { Flame, Droplets, AlertTriangle, Wind, Info, Sparkles, BookOpen } from 'lucide-react';
+import { playSteamSound, playExplosiveSteamSound } from '../../utils/audio';
+import { StoveEducationModal } from './StoveEducationModal';
 
 interface MicroclimateSimulatorProps {
   soundEnabled: boolean;
@@ -16,6 +17,7 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
   const [isSteaming, setIsSteaming] = useState<boolean>(false);
   const [steamLadles, setSteamLadles] = useState<number>(0);
   const [ventilationOpen, setVentilationOpen] = useState<boolean>(false);
+  const [isStoveModalOpen, setIsStoveModalOpen] = useState<boolean>(false);
 
   // Dew point approximation (Magnus formula approximation)
   // Td = T - ((100 - RH)/5)
@@ -75,18 +77,27 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
 
   const regime = getRegime();
 
-  const handlePourWater = () => {
+  const handleApplySteamFromStove = (
+    type: 'closed' | 'open',
+    humidityBoost = 8,
+    tempBoost = 2
+  ) => {
     setIsSteaming(true);
-    playSteamSound(soundEnabled);
     setSteamLadles((prev) => prev + 1);
-    setHumidity((prev) => Math.min(95, prev + 8));
-    setTemperature((prev) => Math.min(115, prev + 2));
+    setHumidity((prev) => Math.min(95, prev + humidityBoost));
+    setTemperature((prev) => Math.min(115, prev + tempBoost));
 
     setTimeout(() => {
       setIsSteaming(false);
-    }, 1200);
+    }, 1400);
 
     if (onSuccessTask) onSuccessTask();
+  };
+
+  const handlePourWater = () => {
+    // Open the educational stove modal as requested:
+    // "в парной кнопок нет) поэтому давай разберемся с сердцем бани а именно с печкой"
+    setIsStoveModalOpen(true);
   };
 
   const handleVentilate = () => {
@@ -189,16 +200,26 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
           <button
             onClick={handlePourWater}
             disabled={isSteaming}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-50"
+            title="Подать ковшик на камни (В парной кнопок нет 😉)"
           >
             <Droplets className="h-4 w-4" />
-            <span>{isSteaming ? 'Шипение пара...' : 'Подать ковшик на камни (+8% влажности)'}</span>
+            <span>{isSteaming ? 'Шипение пара...' : 'Подать ковшик на камни (В парной кнопок нет 😉)'}</span>
+          </button>
+
+          <button
+            onClick={() => setIsStoveModalOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-900/90 hover:bg-stone-800 text-amber-300 text-xs font-semibold transition-all border border-amber-600/40 cursor-pointer active:scale-95"
+            title="Интерактивный макет устройства печи, физика пара и ИК-волны"
+          >
+            <Sparkles className="h-4 w-4 text-amber-400" />
+            <span>Макет печи в разрезе 🪵</span>
           </button>
 
           <button
             onClick={handleVentilate}
             disabled={ventilationOpen}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 active:scale-95 text-stone-200 text-xs font-medium transition-all border border-stone-700 cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-800/90 hover:bg-stone-700 active:scale-95 text-stone-200 text-xs font-medium transition-all border border-stone-700 cursor-pointer disabled:opacity-50 ml-auto"
           >
             <Wind className="h-4 w-4 text-cyan-400" />
             <span>{ventilationOpen ? 'Проветривание...' : 'Залповое проветривание'}</span>
@@ -275,6 +296,14 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
           Если тело гостя холодное или покрыто каплями воды от душа перед входом в парную, горячий пар не прогревает его мягко, а мгновенно конденсируется на этих каплях, вызывая жгучую боль и ожог. Именно поэтому перед первым паром тело вытирают насухо!
         </div>
       </div>
+
+      {/* Interactive Stove Educational Modal & Blueprint */}
+      <StoveEducationModal
+        isOpen={isStoveModalOpen}
+        onClose={() => setIsStoveModalOpen(false)}
+        onApplySteam={handleApplySteamFromStove}
+        soundEnabled={soundEnabled}
+      />
     </div>
   );
 };
