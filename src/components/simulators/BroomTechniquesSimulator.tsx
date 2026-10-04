@@ -153,16 +153,22 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
 
   const [inputUrl, setInputUrl] = useState<string>('');
   const [isAddingVideo, setIsAddingVideo] = useState<boolean>(false);
+  const [videoError, setVideoError] = useState<boolean>(false);
 
   // Active video URL for current technique
   const activeVideoUrl = customVideos[selectedTech.id] || selectedTech.videoUrl || '';
   const parsedVideo = parseVideoSource(activeVideoUrl);
+
+  useEffect(() => {
+    setVideoError(false);
+  }, [selectedTech.id, activeVideoUrl]);
 
   const handleSelectTech = (tech: BroomTechnique) => {
     setSelectedTech(tech);
     playWoodTap(soundEnabled);
     setInputUrl(customVideos[tech.id] || tech.videoUrl || '');
     setIsAddingVideo(false);
+    setVideoError(false);
   };
 
   const handleMarkAsStudied = (techId: string) => {
@@ -279,16 +285,43 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
           <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-900 border border-stone-800/80 shadow-2xl flex flex-col items-center justify-center">
             {parsedVideo ? (
               parsedVideo.type === 'html5' ? (
-                <video
-                  key={parsedVideo.directUrl}
-                  src={parsedVideo.directUrl}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="w-full h-full object-contain bg-black"
-                >
-                  Ваш браузер не поддерживает встроенное воспроизведение видео.
-                </video>
+                videoError ? (
+                  <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center bg-stone-950/90 text-stone-300 space-y-3">
+                    <div className="h-12 w-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl border border-amber-500/30">
+                      📹
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-amber-200 text-sm">
+                        Видеофайл приёма «{selectedTech.name}»
+                      </h4>
+                      <p className="text-xs text-stone-400 mt-1 max-w-sm leading-relaxed">
+                        Путь в проекте: <code className="text-amber-300 font-mono text-[11px] bg-stone-900 px-1.5 py-0.5 rounded border border-stone-800">{parsedVideo.directUrl}</code>
+                      </p>
+                      <p className="text-[11px] text-stone-500 mt-2 max-w-xs mx-auto">
+                        Загрузите файл видео в папку <strong className="text-stone-300">public/videos/</strong> на GitHub, либо укажите ссылку на VK Видео / Rutube / Облако.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingVideo(true)}
+                      className="px-3.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-medium border border-stone-700 transition-colors cursor-pointer"
+                    >
+                      Вставить ссылку на VK / Rutube / Диск
+                    </button>
+                  </div>
+                ) : (
+                  <video
+                    key={parsedVideo.directUrl}
+                    src={parsedVideo.directUrl}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    onError={() => setVideoError(true)}
+                    className="w-full h-full object-contain bg-black"
+                  >
+                    Ваш браузер не поддерживает встроенное воспроизведение видео.
+                  </video>
+                )
               ) : (
                 <iframe
                   src={parsedVideo.embedUrl}

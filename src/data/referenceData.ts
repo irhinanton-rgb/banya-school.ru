@@ -148,6 +148,7 @@ export const BROOM_TECHNIQUES: BroomTechnique[] = [
     purpose: 'Активация рецепторов кожи, равномерное распределение тепла, подготовка к глубокому контакту.',
     zone: 'Спина, бедра, икры',
     frequency: 75,
+    videoUrl: '/videos/omakhivanie.mp4',
   },
   {
     id: 'small_contact',
