@@ -1,12 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { BROOM_TECHNIQUES } from '../../data/courseData';
 import { BroomTechnique } from '../../types/banya';
-import { playWoodTap, playSteamSound } from '../../utils/audio';
-import { Play, Sparkles, Activity, CheckCircle2, RotateCcw } from 'lucide-react';
+import { playWoodTap, playSuccessChime } from '../../utils/audio';
+import {
+  Play,
+  Sparkles,
+  CheckCircle2,
+  Video,
+  ExternalLink,
+  PlusCircle,
+  Eye,
+  Layers,
+  HelpCircle,
+} from 'lucide-react';
 
 interface BroomTechniquesSimulatorProps {
   soundEnabled: boolean;
   onGrantXp?: (amount: number) => void;
+}
+
+// Convert any YouTube link (watch, short, youtu.be, raw ID) into a clean embed URL
+function getYouTubeEmbedUrl(urlOrId?: string): string | null {
+  if (!urlOrId || !urlOrId.trim()) return null;
+  const trimmed = urlOrId.trim();
+
+  if (trimmed.includes('youtube.com/embed/')) {
+    return trimmed;
+  }
+
+  const watchMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (watchMatch) {
+    return `https://www.youtube-nocookie.com/embed/${watchMatch[1]}`;
+  }
+
+  const shortMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (shortMatch) {
+    return `https://www.youtube-nocookie.com/embed/${shortMatch[1]}`;
+  }
+
+  const shortsMatch = trimmed.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/);
+  if (shortsMatch) {
+    return `https://www.youtube-nocookie.com/embed/${shortsMatch[1]}`;
+  }
+
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return `https://www.youtube-nocookie.com/embed/${trimmed}`;
+  }
+
+  return trimmed;
 }
 
 export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> = ({
@@ -14,50 +55,91 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
   onGrantXp,
 }) => {
   const [selectedTech, setSelectedTech] = useState<BroomTechnique>(BROOM_TECHNIQUES[0]);
-  const [isAnimating, setIsAnimating] = useState<boolean>(true);
-  const [tapCount, setTapCount] = useState<number>(0);
-  const [combo, setCombo] = useState<number>(0);
-  const [feedbackMsg, setFeedbackMsg] = useState<string>('Нажимайте кнопку удара в ритм техники!');
+  const [studiedTechs, setStudiedTechs] = useState<string[]>([]);
+  
+  // Custom video URLs state (persisted in localStorage for convenience)
+  const [customVideos, setCustomVideos] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem('banya_technique_videos');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
-  // Wood tap mechanic
-  const handleTap = () => {
-    playWoodTap(soundEnabled);
-    setTapCount((prev) => prev + 1);
-    setCombo((prev) => {
-      const next = prev + 1;
-      if (next % 6 === 0) {
-        setFeedbackMsg(`🔥 Идеальный ритм! Техника «${selectedTech.name}» закреплена (+10 XP)`);
-        if (onGrantXp) onGrantXp(10);
-      } else {
-        setFeedbackMsg(`Удар ${next}: мягкая подушка листьев, спина прямая!`);
-      }
-      return next;
-    });
-  };
+  const [inputUrl, setInputUrl] = useState<string>('');
+  const [isAddingVideo, setIsAddingVideo] = useState<boolean>(false);
+
+  // Active video URL for current technique
+  const activeVideoUrl = customVideos[selectedTech.id] || selectedTech.videoUrl || '';
+  const embedUrl = getYouTubeEmbedUrl(activeVideoUrl);
 
   const handleSelectTech = (tech: BroomTechnique) => {
     setSelectedTech(tech);
-    setCombo(0);
-    setFeedbackMsg(`Выбрана техника: ${tech.name}. Держите мягкий хват!`);
-    playSteamSound(soundEnabled);
+    playWoodTap(soundEnabled);
+    setInputUrl(customVideos[tech.id] || tech.videoUrl || '');
+    setIsAddingVideo(false);
   };
+
+  const handleMarkAsStudied = (techId: string) => {
+    if (!studiedTechs.includes(techId)) {
+      setStudiedTechs((prev) => [...prev, techId]);
+      playSuccessChime(soundEnabled);
+      if (onGrantXp) onGrantXp(15);
+    }
+  };
+
+  const handleSaveVideoUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = {
+      ...customVideos,
+      [selectedTech.id]: inputUrl.trim(),
+    };
+    setCustomVideos(updated);
+    try {
+      localStorage.setItem('banya_technique_videos', JSON.stringify(updated));
+    } catch {
+      // ignore storage error
+    }
+    setIsAddingVideo(false);
+    playSuccessChime(soundEnabled);
+  };
+
+  const handleClearVideo = () => {
+    const updated = { ...customVideos };
+    delete updated[selectedTech.id];
+    setCustomVideos(updated);
+    setInputUrl('');
+    try {
+      localStorage.setItem('banya_technique_videos', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  };
+
+  const isStudied = studiedTechs.includes(selectedTech.id);
 
   return (
     <div className="rounded-2xl border border-stone-800 bg-stone-900/90 p-5 sm:p-6 space-y-6">
+      
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800 pb-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
             <span>🌿</span>
-            <span>Интерактивный Венечный Тренажер</span>
+            <span>Видео-Практикум Венечного Мастерства</span>
           </div>
           <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mt-1">
-            8 Приёмов Венечного Массажа & Ритм-Тренажёр
+            8 Приёмов Венечного Массажа (Видеодемонстрация)
           </h3>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-stone-950 border border-stone-800 px-3 py-1.5 text-xs font-mono text-amber-300">
-            Серия ударов: <span className="font-bold tabular-nums">{tapCount}</span>
+          <div className="rounded-xl bg-stone-950 border border-stone-800 px-3.5 py-1.5 text-xs font-mono text-stone-300">
+            Изучено приёмов:{' '}
+            <span className="text-amber-400 font-bold">
+              {studiedTechs.length} / {BROOM_TECHNIQUES.length}
+            </span>
           </div>
         </div>
       </div>
@@ -66,191 +148,230 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
       <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
         {BROOM_TECHNIQUES.map((tech) => {
           const isSelected = selectedTech.id === tech.id;
+          const isItemStudied = studiedTechs.includes(tech.id);
+          const hasVideo = !!(customVideos[tech.id] || tech.videoUrl);
+
           return (
             <button
               key={tech.id}
               onClick={() => handleSelectTech(tech)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0 cursor-pointer ${
                 isSelected
                   ? 'bg-amber-500 text-stone-950 font-bold shadow-md'
                   : 'bg-stone-950 hover:bg-stone-800 text-stone-300 border border-stone-800'
               }`}
             >
-              {tech.name}
+              {isItemStudied && (
+                <CheckCircle2
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    isSelected ? 'text-stone-950' : 'text-emerald-400'
+                  }`}
+                />
+              )}
+              {hasVideo && !isItemStudied && (
+                <Video
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    isSelected ? 'text-stone-950' : 'text-red-400'
+                  }`}
+                />
+              )}
+              <span>{tech.name}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Main Interactive Stage */}
+      {/* Main Content Layout: Video Slot on Left, Technique Card on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Left: Dynamic Visual Broom Stage */}
-        <div className="lg:col-span-7 rounded-xl border border-stone-800 bg-stone-950 p-6 flex flex-col justify-between relative overflow-hidden">
-          {/* Ambient Wood Glow */}
+        
+        {/* Left: Video Player Box / Embed Frame */}
+        <div className="lg:col-span-7 rounded-2xl border border-stone-800 bg-stone-950 p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden shadow-inner">
+          
+          {/* Ambient Lighting */}
           <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-amber-600/10 blur-3xl pointer-events-none" />
           <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-emerald-600/10 blur-3xl pointer-events-none" />
 
-          {/* SVG Animated Brooms Demonstration */}
-          <div className="relative h-48 w-full flex items-center justify-center my-2">
-            <svg
-              className="w-full h-full max-w-md"
-              viewBox="0 0 400 200"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          {/* Video Container (16:9 Aspect Ratio) */}
+          <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-900 border border-stone-800/80 shadow-2xl flex flex-col items-center justify-center">
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                title={`Видео приёма: ${selectedTech.name}`}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              /* Sleek Video Placeholder for future YouTube insertion */
+              <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center relative bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900">
+                {/* Decorative video backdrop lines */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.08)_0%,transparent_70%)]" />
+
+                <div className="relative z-10 flex flex-col items-center space-y-3 max-w-sm">
+                  <div className="h-16 w-16 rounded-2xl bg-stone-800/90 border border-stone-700/80 flex items-center justify-center shadow-lg group">
+                    <div className="h-12 w-12 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-400">
+                      <Play className="w-6 h-6 fill-current ml-0.5" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-stone-800 border border-stone-700 text-stone-300 text-[11px] font-mono mb-1.5">
+                      🎬 Окно для видеоприёма (YouTube)
+                    </span>
+                    <h4 className="font-serif text-base sm:text-lg font-bold text-stone-200">
+                      Видеодемонстрация: «{selectedTech.name}»
+                    </h4>
+                    <p className="text-xs text-stone-400 mt-1 leading-relaxed">
+                      В это окно будет встроено короткое видео с правильной траекторией движения веника и постановкой рук мастера.
+                    </p>
+                  </div>
+
+                  {/* Button to open quick YouTube URL input */}
+                  <button
+                    onClick={() => setIsAddingVideo(!isAddingVideo)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800/90 hover:bg-stone-700 text-amber-300 text-xs font-medium transition-all border border-stone-700/80 cursor-pointer shadow-sm active:scale-95"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    <span>{isAddingVideo ? 'Скрыть форму' : 'Добавить ссылку на видео (YouTube)'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Quick YouTube URL Form (Collapsible) */}
+          {isAddingVideo && (
+            <form
+              onSubmit={handleSaveVideoUrl}
+              className="mt-4 p-3.5 rounded-xl bg-stone-900 border border-amber-500/30 space-y-2.5 animate-fade-in"
             >
-              {/* Bath shelf / body line */}
-              <rect x="50" y="150" width="300" height="20" rx="4" fill="#292524" stroke="#44403c" strokeWidth="2" />
-              <text x="200" y="164" textAnchor="middle" fill="#78716c" fontSize="10" fontFamily="sans-serif">
-                Поверхность тела гостя (зона: {selectedTech.zone})
-              </text>
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-amber-300">
+                  Вставить ссылку на YouTube для «{selectedTech.name}»:
+                </span>
+                {activeVideoUrl && (
+                  <button
+                    type="button"
+                    onClick={handleClearVideo}
+                    className="text-[11px] text-rose-400 hover:text-rose-300 underline"
+                  >
+                    Удалить видео
+                  </button>
+                )}
+              </div>
 
-              {/* Steam waves */}
-              <path
-                d="M 120 70 Q 140 50, 160 70 T 200 70"
-                stroke="rgba(245, 158, 11, 0.3)"
-                strokeWidth="2"
-                strokeDasharray="4 4"
-                className="animate-pulse"
-              />
-              <path
-                d="M 220 60 Q 240 40, 260 60 T 300 60"
-                stroke="rgba(245, 158, 11, 0.3)"
-                strokeWidth="2"
-                strokeDasharray="4 4"
-                className="animate-pulse"
-              />
-
-              {/* Left Broom Graphic */}
-              <g
-                className="transition-transform duration-300 origin-[140px_40px]"
-                style={{
-                  transform:
-                    selectedTech.id === 'opakhivanie'
-                      ? 'translateY(-15px) rotate(-15deg)'
-                      : selectedTech.id === 'priparka'
-                      ? 'translateY(40px) scale(1.05)'
-                      : selectedTech.id === 'dvoika_perekhlyost'
-                      ? 'translateX(30px) rotate(25deg)'
-                      : 'translateY(10px) rotate(-8deg)',
-                }}
-              >
-                {/* Handle */}
-                <rect x="135" y="20" width="8" height="50" rx="2" fill="#78350f" stroke="#92400e" strokeWidth="1" />
-                {/* Leaves fan */}
-                <path
-                  d="M 110 70 Q 140 55, 170 70 C 185 100, 175 125, 140 135 C 105 125, 95 100, 110 70 Z"
-                  fill="#15803d"
-                  stroke="#16a34a"
-                  strokeWidth="2"
-                  opacity="0.9"
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={inputUrl}
+                  onChange={(e) => setInputUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=... или ID"
+                  className="flex-1 bg-stone-950 border border-stone-700 rounded-lg px-3 py-2 text-xs text-stone-200 placeholder:text-stone-500 focus:outline-none focus:border-amber-500"
                 />
-                <circle cx="140" cy="100" r="14" fill="#22c55e" opacity="0.4" />
-              </g>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs cursor-pointer transition-colors"
+                >
+                  Сохранить
+                </button>
+              </div>
+              <p className="text-[10px] text-stone-400">
+                Поддерживаются обычные видео, Shorts и короткие ссылки youtu.be. Ссылка сохранится для этого приёма.
+              </p>
+            </form>
+          )}
 
-              {/* Right Broom Graphic */}
-              <g
-                className="transition-transform duration-300 origin-[260px_40px]"
-                style={{
-                  transform:
-                    selectedTech.id === 'opakhivanie'
-                      ? 'translateY(-15px) rotate(15deg)'
-                      : selectedTech.id === 'priparka'
-                      ? 'translateY(40px) scale(1.05)'
-                      : selectedTech.id === 'dvoika_perekhlyost'
-                      ? 'translateX(-30px) rotate(-25deg)'
-                      : 'translateY(10px) rotate(8deg)',
-                }}
+          {/* Bottom Bar under video: Status and Studied Action */}
+          <div className="mt-4 pt-3 border-t border-stone-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-stone-400 font-mono">
+              <span>Зона:</span>
+              <span className="text-amber-300 font-semibold">{selectedTech.zone}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {!isAddingVideo && (
+                <button
+                  onClick={() => setIsAddingVideo(true)}
+                  className="text-stone-400 hover:text-amber-300 text-xs transition-colors flex items-center gap-1"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span>{activeVideoUrl ? 'Изменить видео' : 'Вставить видео'}</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => handleMarkAsStudied(selectedTech.id)}
+                disabled={isStudied}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  isStudied
+                    ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/50 cursor-default'
+                    : 'bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold shadow-md cursor-pointer active:scale-95'
+                }`}
               >
-                {/* Handle */}
-                <rect x="255" y="20" width="8" height="50" rx="2" fill="#78350f" stroke="#92400e" strokeWidth="1" />
-                {/* Leaves fan */}
-                <path
-                  d="M 230 70 Q 260 55, 290 70 C 305 100, 295 125, 260 135 C 225 125, 215 100, 230 70 Z"
-                  fill="#15803d"
-                  stroke="#16a34a"
-                  strokeWidth="2"
-                  opacity="0.9"
-                />
-                <circle cx="260" cy="100" r="14" fill="#22c55e" opacity="0.4" />
-              </g>
-            </svg>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{isStudied ? 'Приём изучен ✓' : 'Отметить как изученный (+15 XP)'}</span>
+              </button>
+            </div>
           </div>
 
-          {/* Rhythm Tapper Button */}
-          <div className="rounded-xl bg-stone-900/90 border border-stone-800 p-4 space-y-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-stone-400 font-medium">Ритмический тренажер руки:</span>
-              <span className="text-amber-400 font-mono font-semibold">
-                Темп: {selectedTech.tempo} ({selectedTech.frequency} уд/мин)
+        </div>
+
+        {/* Right: Technique Anatomy & Pedagogical Instructions */}
+        <div className="lg:col-span-5 rounded-2xl border border-stone-800 bg-stone-950/80 p-5 sm:p-6 space-y-4 flex flex-col justify-between shadow-lg">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+              <span className="text-xs font-mono uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5" />
+                <span>Карточка приёма</span>
+              </span>
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-stone-800 text-stone-300 font-mono font-medium">
+                Темп: {selectedTech.tempo}
               </span>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <button
-                onClick={handleTap}
-                className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-bold text-sm tracking-wide transition-all shadow-lg cursor-pointer select-none"
-              >
-                <span>🍃</span>
-                <span>Сделать удар веником (Тап в ритм)</span>
-              </button>
-
-              <button
-                onClick={() => setCombo(0)}
-                title="Сбросить счетчик"
-                className="p-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 transition-colors"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </button>
+            <div>
+              <h4 className="font-serif text-2xl font-bold text-stone-100">
+                {selectedTech.name}
+              </h4>
+              <p className="text-xs sm:text-sm text-stone-300 mt-2 leading-relaxed">
+                {selectedTech.description}
+              </p>
             </div>
 
-            <p className="text-xs text-amber-200/80 font-mono text-center sm:text-left">
-              {feedbackMsg}
-            </p>
+            <div className="space-y-3 pt-2 text-xs">
+              <div className="p-3 rounded-xl bg-stone-900 border border-stone-800/80 space-y-1">
+                <strong className="text-stone-200 block font-semibold flex items-center gap-1.5">
+                  <span>👐</span> Механика выполнения:
+                </strong>
+                <p className="text-stone-300 leading-relaxed">{selectedTech.execution}</p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-800/40 space-y-1">
+                <strong className="text-emerald-300 block font-semibold flex items-center gap-1.5">
+                  <span>🩺</span> Физиологический эффект:
+                </strong>
+                <p className="text-emerald-100/90 leading-relaxed">{selectedTech.purpose}</p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-800/40 space-y-1">
+                <strong className="text-amber-300 block font-semibold flex items-center gap-1.5">
+                  <span>🎯</span> Рабочая зона тела:
+                </strong>
+                <p className="text-amber-100/90 font-mono">{selectedTech.zone}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-stone-900 p-3.5 border border-stone-800/80 text-[11px] text-stone-400 leading-relaxed mt-2">
+            <span className="text-amber-400 font-semibold block mb-0.5">
+              💡 Совет наставника банной школы:
+            </span>
+            Никогда не бейте по телу голой деревянной ручкой веника. Работает только мягкая упругая лиственная подушка, которая бережно захватывает пар из верхнего пирога и компрессирует его в мышцы.
           </div>
         </div>
 
-        {/* Right: Technique Anatomy & Instructions */}
-        <div className="lg:col-span-5 rounded-xl border border-stone-800 bg-stone-950/70 p-5 space-y-4 flex flex-col justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase text-amber-400">КАРТОЧКА ПРИЁМА</span>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-stone-800 text-stone-300 font-mono">
-                {selectedTech.tempo}
-              </span>
-            </div>
-
-            <h4 className="font-serif text-xl font-bold text-stone-100">
-              {selectedTech.name}
-            </h4>
-
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-              {selectedTech.description}
-            </p>
-
-            <div className="border-t border-stone-800 pt-3 space-y-2 text-xs">
-              <div>
-                <strong className="text-stone-200 block mb-0.5">Механика выполнения:</strong>
-                <p className="text-stone-400 leading-relaxed">{selectedTech.execution}</p>
-              </div>
-
-              <div>
-                <strong className="text-stone-200 block mb-0.5">Физиологический эффект:</strong>
-                <p className="text-emerald-400/90 leading-relaxed">{selectedTech.purpose}</p>
-              </div>
-
-              <div>
-                <strong className="text-stone-200 block mb-0.5">Рабочая зона тела:</strong>
-                <p className="text-amber-300/90 font-mono">{selectedTech.zone}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-stone-900 p-3 border border-stone-800/80 text-[11px] text-stone-400 leading-relaxed">
-            <span className="text-amber-400 font-semibold block mb-0.5">Совет наставника:</span>
-            Никогда не бейте по телу деревянной ручкой веника. Работает только мягкая упругая лиственная шапка, которая бережно захватывает пар из воздуха.
-          </div>
-        </div>
       </div>
+
     </div>
   );
 };

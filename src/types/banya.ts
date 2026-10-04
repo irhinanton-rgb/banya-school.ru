@@ -75,6 +75,7 @@ export interface BroomTechnique {
   purpose: string;
   zone: string;
   frequency: number; // beats per minute for rhythm simulation
+  videoUrl?: string; // YouTube embed or watch URL
 }
 
 export interface GuestCase {
