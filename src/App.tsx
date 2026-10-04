@@ -15,8 +15,15 @@ import { EmergencyEventModal } from './components/simulators/EmergencyEventModal
 import { FinalExamModal } from './components/FinalExamModal';
 import { CertificateModal } from './components/CertificateModal';
 import { LeaderboardModal } from './components/LeaderboardModal';
+import { AuthModal } from './components/AuthModal';
 import { COURSE_LEVELS, BADGES } from './data/courseData';
 import { UserProgress, LevelId, BadgeId } from './types/banya';
+import { useAuth } from './firebase/AuthContext';
+import {
+  syncProgressToCloud,
+  fetchProgressFromCloud,
+  mergeUserProgress,
+} from './firebase/progressSync';
 
 const STORAGE_KEY = 'banya_quest_master_progress_v1';
 
@@ -31,6 +38,11 @@ const INITIAL_PROGRESS: UserProgress = {
 };
 
 export default function App() {
+  const { user } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
+  const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
+
   const [progress, setProgress] = useState<UserProgress>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -68,6 +80,81 @@ export default function App() {
       // ignore
     }
   }, [progress]);
+
+  // When user logs in, fetch cloud progress and merge
+  useEffect(() => {
+    if (!user) return;
+    const currentUser = user;
+
+    let isCancelled = false;
+    async function loadCloud() {
+      setIsCloudSyncing(true);
+      try {
+        const remote = await fetchProgressFromCloud(currentUser);
+        if (isCancelled) return;
+
+        if (remote) {
+          setProgress((prev) => {
+            const merged = mergeUserProgress(prev, remote);
+            // Push merged back to cloud
+            syncProgressToCloud(currentUser, merged);
+            return merged;
+          });
+        } else {
+          // Push local progress to cloud
+          await syncProgressToCloud(currentUser, progress);
+        }
+        setLastSyncedTime(
+          new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+        );
+      } catch (err) {
+        console.error('Cloud progress fetch failed:', err);
+      } finally {
+        if (!isCancelled) setIsCloudSyncing(false);
+      }
+    }
+
+    loadCloud();
+    return () => {
+      isCancelled = true;
+    };
+  }, [user]);
+
+  // Auto-save to cloud on progress change when logged in
+  useEffect(() => {
+    if (!user) return;
+    const currentUser = user;
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsCloudSyncing(true);
+        await syncProgressToCloud(currentUser, progress);
+        setLastSyncedTime(
+          new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+        );
+      } catch (err) {
+        console.error('Auto cloud save failed:', err);
+      } finally {
+        setIsCloudSyncing(false);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [progress, user]);
+
+  const handleManualSync = async () => {
+    if (!user) return;
+    const currentUser = user;
+    setIsCloudSyncing(true);
+    try {
+      await syncProgressToCloud(currentUser, progress);
+      setLastSyncedTime(
+        new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+      );
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
 
   const handleToggleSound = () => {
     setProgress((prev) => ({
@@ -165,6 +252,7 @@ export default function App() {
         onOpenCertificate={() => setShowCertificateModal(true)}
         onNavigateToLevel={handleSelectLevel}
         onOpenEmergency={() => setShowEmergencyModal(true)}
+        onOpenAuth={() => setShowAuthModal(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
@@ -247,6 +335,15 @@ export default function App() {
         isOpen={showLeaderboardModal}
         onClose={() => setShowLeaderboardModal(false)}
         progress={progress}
+      />
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        progress={progress}
+        onManualSync={handleManualSync}
+        isSyncing={isCloudSyncing}
+        lastSyncedTime={lastSyncedTime}
       />
 
       {/* Quiet Footer */}

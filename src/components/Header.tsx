@@ -1,6 +1,7 @@
 import React from 'react';
-import { Sparkles, Trophy, Volume2, VolumeX, Award, BookOpen } from 'lucide-react';
+import { Sparkles, Trophy, Volume2, VolumeX, Award, BookOpen, Cloud, User as UserIcon } from 'lucide-react';
 import { LevelId, UserProgress } from '../types/banya';
+import { useAuth } from '../firebase/AuthContext';
 
 interface HeaderProps {
   progress: UserProgress;
@@ -9,6 +10,7 @@ interface HeaderProps {
   onOpenCertificate: () => void;
   onNavigateToLevel: (levelId: LevelId) => void;
   onOpenEmergency: () => void;
+  onOpenAuth: () => void;
   activeTab: 'quest' | 'simulators' | 'handbook';
   setActiveTab: (tab: 'quest' | 'simulators' | 'handbook') => void;
 }
@@ -19,9 +21,11 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenLeaderboard,
   onOpenCertificate,
   onOpenEmergency,
+  onOpenAuth,
   activeTab,
   setActiveTab,
 }) => {
+  const { user } = useAuth();
   const completed = progress?.completedLevels ?? [];
   const badges = progress?.unlockedBadges ?? [];
   const hasCertificate = completed.includes(7) || badges.includes('master_crown');
@@ -126,6 +130,40 @@ export const Header: React.FC<HeaderProps> = ({
             <Award className="h-3.5 w-3.5" />
             <span>{hasCertificate ? 'Сертификат 👑' : 'Аттестация'}</span>
           </button>
+
+          {/* User Auth / Cloud Profile Button */}
+          {user ? (
+            <button
+              onClick={onOpenAuth}
+              title={`Облачный профиль: ${user.displayName || 'Пармастер'} (Синхронизировано)`}
+              className="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-800 border border-emerald-500/40 text-stone-200 text-xs font-medium transition-all shadow-sm group cursor-pointer"
+            >
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'Пользователь'}
+                  className="h-6 w-6 rounded-lg object-cover border border-emerald-400/60"
+                />
+              ) : (
+                <div className="h-6 w-6 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold flex items-center justify-center text-[11px]">
+                  {user.displayName ? user.displayName.slice(0, 1).toUpperCase() : 'П'}
+                </div>
+              )}
+              <span className="hidden sm:inline max-w-[90px] truncate text-stone-200 group-hover:text-amber-300">
+                {user.displayName?.split(' ')[0] || 'Профиль'}
+              </span>
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" title="Облако активно" />
+            </button>
+          ) : (
+            <button
+              onClick={onOpenAuth}
+              title="Войти или зарегистрироваться для сохранения прогресса"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-medium transition-all shadow-sm cursor-pointer active:scale-95"
+            >
+              <Cloud className="h-3.5 w-3.5 text-amber-400" />
+              <span>Войти</span>
+            </button>
+          )}
         </div>
       </div>
     </header>
