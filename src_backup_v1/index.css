@@ -1,0 +1,49 @@
+@import "tailwindcss" source("../src");
+
+@theme {
+  --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #0c0a09;
+  color: #f5f5f4;
+}
+
+/* Atmospheric Steam animations */
+@keyframes float-steam {
+  0% {
+    transform: translateY(0px) scale(0.98);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translateY(-8px) scale(1.02);
+    opacity: 0.28;
+  }
+  100% {
+    transform: translateY(0px) scale(0.98);
+    opacity: 0.15;
+  }
+}
+
+.animate-steam {
+  animation: float-steam 7s ease-in-out infinite;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1c1917;
+}
+::-webkit-scrollbar-thumb {
+  background: #44403c;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #78716c;
+}

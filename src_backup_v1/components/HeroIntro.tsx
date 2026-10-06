@@ -87,32 +87,8 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
           </h1>
 
           <p className="text-sm sm:text-base text-stone-300 leading-relaxed max-w-2xl">
-            Полноценная авторская программа обучения искусству парения от первого пара до виртуозного владения парой веников, фитотерапии и безопасности в парной.
+            Вы — авантюрист, стремящийся стать легендарным пармейстером. Ваш путь пройдёт через древние традиции бани, где вы научитесь искусству первого пара, венечного массажа, фито- и ароматерапии, а также освоите физиологию пара и секреты безопасности.
           </p>
-
-          {/* Master Founder Trust Card */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-stone-950/85 border border-amber-500/25 shadow-lg backdrop-blur-sm max-w-2xl">
-            <div className="relative shrink-0">
-              <img
-                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=240&q=80"
-                alt="Антон Ирхин"
-                className="h-13 w-13 rounded-2xl object-cover border-2 border-amber-500 shadow-md"
-              />
-              <span className="absolute -bottom-1 -right-1 text-xs">👑</span>
-            </div>
-            <div className="space-y-0.5">
-              <div className="text-[10px] font-mono text-amber-400 uppercase tracking-wider font-semibold">
-                Автор курса & Главный Наставник
-              </div>
-              <div className="text-sm font-bold text-stone-100 flex items-center gap-2">
-                <span>Антон Ирхин</span>
-                <span className="text-xs text-stone-400 font-normal">· 15 лет банной практики</span>
-              </div>
-              <p className="text-xs text-stone-300 leading-snug">
-                «Пар должен быть мягким, целительным и ласковым. Здесь вы научитесь парить так, чтобы гости возвращались к вам снова и снова.»
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Core Stats / Feature Pillars */}

@@ -36,11 +36,8 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto">
-      <div className="relative w-full max-w-4xl rounded-t-3xl sm:rounded-2xl border-t sm:border border-stone-800 bg-stone-900 p-5 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto">
-        {/* Mobile Swipe Handle */}
-        <div className="w-12 h-1 bg-stone-700/80 rounded-full mx-auto -mt-1 mb-2 sm:hidden shrink-0 print:hidden" />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="relative w-full max-w-4xl rounded-2xl border border-stone-800 bg-stone-900 p-6 sm:p-8 shadow-2xl space-y-6">
         {/* Modal Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-800 pb-4 print:hidden">
           <div className="flex items-center gap-3">

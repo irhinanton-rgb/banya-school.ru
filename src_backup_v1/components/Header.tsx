@@ -106,15 +106,16 @@ export const Header: React.FC<HeaderProps> = ({
         </nav>
 
         {/* Zone 3: 1-2 primary actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Community Club & Live Hub Button (desktop nav, on mobile accessible in bottom nav) */}
+        <div className="flex items-center gap-3">
+          {/* Community Club & Live Hub Button */}
           <button
             onClick={onOpenClub}
             title="Банный Клуб: Чат сообщества, Видеоэфиры и Проверка ДЗ"
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold whitespace-nowrap transition-all shadow-sm cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold whitespace-nowrap transition-all shadow-sm cursor-pointer active:scale-95"
           >
             <Users className="h-3.5 w-3.5 text-emerald-400" />
-            <span>Банный Клуб</span>
+            <span className="hidden md:inline">Банный Клуб</span>
+            <span className="inline md:hidden">Клуб</span>
           </button>
 
           {/* XP counter */}
@@ -134,11 +135,11 @@ export const Header: React.FC<HeaderProps> = ({
             {progress.soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4 text-stone-600" />}
           </button>
 
-          {/* Leaderboard (hidden on mobile, accessible via desk) */}
+          {/* Leaderboard */}
           <button
             onClick={onOpenLeaderboard}
             title="Таблица рекордов"
-            className="hidden sm:flex p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-amber-200 hover:border-stone-700 transition-colors"
+            className="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-amber-200 hover:border-stone-700 transition-colors"
             aria-label="Таблица рекордов"
           >
             <Trophy className="h-4 w-4" />

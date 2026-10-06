@@ -20,8 +20,6 @@ import { PricingModal } from './components/PricingModal';
 import { LegalModal } from './components/LegalModal';
 import { CommunityClubModal } from './components/CommunityClubModal';
 import { UserProfileModal } from './components/profile/UserProfileModal';
-import { MobileBottomNav } from './components/MobileBottomNav';
-import { MobileLevelQuickNav } from './components/MobileLevelQuickNav';
 import { COURSE_LEVELS, BADGES } from './data/courseData';
 import { UserProgress, LevelId, BadgeId } from './types/banya';
 import { useAuth } from './firebase/AuthContext';
@@ -102,18 +100,6 @@ export default function App() {
   const handleOpenClub = (tab: 'chat' | 'webinar' | 'homework' = 'chat') => {
     setClubInitialTab(tab);
     setShowClubModal(true);
-  };
-
-  const handleScrollToMap = () => {
-    setActiveTab('quest');
-    setTimeout(() => {
-      const el = document.getElementById('quest-roadmap-section');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 700, behavior: 'smooth' });
-      }
-    }, 50);
   };
 
   const handleOpenLegal = (tab: 'offer' | 'privacy' | 'requisites' = 'offer') => {
@@ -327,17 +313,10 @@ export default function App() {
       />
 
       {/* Main Content Viewport */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10 pb-28 md:pb-12">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         {/* Tab 1: Quest Journey */}
         {activeTab === 'quest' && (
-          <div className="space-y-8 sm:space-y-10">
-            {/* Mobile Horizontal Station Quick Selector */}
-            <MobileLevelQuickNav
-              activeLevelId={progress.activeLevelId}
-              onSelectLevel={handleSelectLevel}
-              progress={progress}
-            />
-
+          <div className="space-y-10">
             {/* Hero Prologue Banner */}
             {showHero && (
               <HeroIntro
@@ -374,6 +353,7 @@ export default function App() {
                       Банный Клуб: Чат Сообщества & Онлайн-Эфиры
                     </h3>
                     <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-semibold">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                       Live
                     </span>
                   </div>
@@ -400,13 +380,11 @@ export default function App() {
             </div>
 
             {/* Quest Roadmap Map */}
-            <div id="quest-roadmap-section" className="scroll-mt-20">
-              <QuestMap
-                progress={progress}
-                onSelectLevel={handleSelectLevel}
-                activeLevelId={progress.activeLevelId}
-              />
-            </div>
+            <QuestMap
+              progress={progress}
+              onSelectLevel={handleSelectLevel}
+              activeLevelId={progress.activeLevelId}
+            />
 
             {/* Badges / Trophies Shelf */}
             <BadgesShowcase unlockedBadges={progress.unlockedBadges} />
@@ -555,16 +533,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-
-      {/* Mobile Sticky Bottom Navigation Bar */}
-      <MobileBottomNav
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenClub={() => handleOpenClub('chat')}
-        onOpenProfile={() => setShowProfileModal(true)}
-        onScrollToMap={handleScrollToMap}
-        progress={progress}
-      />
     </div>
   );
 }

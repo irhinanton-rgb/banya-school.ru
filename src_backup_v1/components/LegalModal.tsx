@@ -17,14 +17,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-5 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-3xl rounded-t-3xl sm:rounded-3xl border-t sm:border border-stone-800 bg-stone-950 text-stone-100 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-3xl rounded-3xl border border-stone-800 bg-stone-950 text-stone-100 shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh]">
         
-        {/* Mobile Swipe Handle */}
-        <div className="w-12 h-1 bg-stone-700/80 rounded-full mx-auto my-2 sm:hidden shrink-0" />
-
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 border-b border-stone-800 p-4 sm:p-6 shrink-0 flex items-center justify-between">
+        <div className="relative bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 border-b border-stone-800 p-5 sm:p-6 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
               <Shield className="w-5 h-5" />

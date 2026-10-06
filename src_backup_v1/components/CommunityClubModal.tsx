@@ -233,14 +233,11 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-5xl h-[92vh] sm:h-[90vh] max-h-[850px] flex flex-col rounded-t-3xl sm:rounded-2xl bg-stone-950 border-t sm:border border-stone-800 shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-5xl h-[90vh] max-h-[800px] flex flex-col rounded-2xl bg-stone-950 border border-stone-800 shadow-2xl overflow-hidden">
         
-        {/* Mobile Swipe Handle */}
-        <div className="w-12 h-1 bg-stone-700/80 rounded-full mx-auto my-2 sm:hidden shrink-0" />
-
         {/* Top Header Bar */}
-        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 border-b border-stone-800/80 bg-stone-900/90 shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-800/80 bg-stone-900/90">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-stone-950 shadow-md">
               <Users className="w-5 h-5 text-stone-950" />

@@ -43,11 +43,8 @@ export const EmergencyEventModal: React.FC<EmergencyEventModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-t-3xl sm:rounded-2xl border-t sm:border border-stone-800 bg-stone-900 p-5 sm:p-7 shadow-2xl space-y-6 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto">
-        {/* Mobile Swipe Handle */}
-        <div className="w-12 h-1 bg-stone-700/80 rounded-full mx-auto -mt-1 mb-2 sm:hidden shrink-0" />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-stone-800 bg-stone-900 p-6 sm:p-7 shadow-2xl space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-stone-800 pb-4">
           <div className="flex items-center gap-3">
