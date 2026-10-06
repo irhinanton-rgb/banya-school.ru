@@ -341,7 +341,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
               <ol className="list-decimal pl-5 space-y-1 text-stone-300 leading-relaxed">
                 <li>Откройте консоль Firebase: <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-amber-400 underline inline-flex items-center gap-0.5">console.firebase.google.com <ExternalLink className="w-3 h-3" /></a></li>
-                <li>Перейдите в проект <strong>gen-lang-client-0150076326</strong> → <strong>Authentication</strong> → вкладка <strong>Sign-in method</strong>.</li>
+                <li>Перейдите в проект <strong>banya-school</strong> → <strong>Authentication</strong> → вкладка <strong>Sign-in method</strong>.</li>
                 <li>Нажмите <strong>Email/Password</strong> и переключите тумблер в положение <strong>Enable</strong>.</li>
                 <li>(Для входа по SMS) Нажмите <strong>Phone</strong> и также включите его.</li>
               </ol>
@@ -835,7 +835,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           <span>Настройка SMS в Firebase:</span>
                         </div>
                         <p className="text-[11px] text-stone-400 leading-relaxed">
-                          В проекте <strong>gen-lang-client-0150076326</strong> перейдите в <em>Authentication → Sign-in method → Phone</em> и включите тумблер <strong>Enable</strong>.
+                          В проекте <strong>banya-school</strong> перейдите в <em>Authentication → Sign-in method → Phone</em> и включите тумблер <strong>Enable</strong>.
                         </p>
                         <div className="text-[11px] text-stone-400 bg-stone-950/80 p-2.5 rounded-lg border border-stone-800/80 space-y-1">
                           <strong className="text-amber-300 block">💡 Вход без ожидания SMS (тестовые номера):</strong>

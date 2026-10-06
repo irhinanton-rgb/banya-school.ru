@@ -1,12 +1,12 @@
 {
-  "projectId": "gen-lang-client-0150076326",
-  "appId": "1:331655236138:web:942b0833d4e958654f9153",
-  "apiKey": "AIzaSyDSl-cWWHjsEDeRHGzOK9KbObaJFJRATIc",
-  "authDomain": "gen-lang-client-0150076326.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-5d827f15-d7c0-4c86-8ad4-3691ad534115",
-  "storageBucket": "gen-lang-client-0150076326.firebasestorage.app",
-  "messagingSenderId": "331655236138",
+  "projectId": "banya-school",
+  "appId": "1:923632191778:web:fea12832cc7a1f9c51bd7b",
+  "apiKey": "AIzaSyBlnpleN1s4EBg2-qh3UR075cCOVuAiLaw",
+  "authDomain": "banya-school.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "banya-school.firebasestorage.app",
+  "messagingSenderId": "923632191778",
   "measurementId": "",
-  "oAuthClientId": "331655236138-letku5r0g0sb0kn1ljc8bpvm4lj5fqak.apps.googleusercontent.com",
+  "oAuthClientId": "",
   "recaptchaSiteKey": ""
 }
