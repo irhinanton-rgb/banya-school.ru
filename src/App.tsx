@@ -11,6 +11,7 @@ import { LevelViewer } from './components/LevelViewer';
 import { BadgesShowcase } from './components/BadgesShowcase';
 import { SimulatorsHub } from './components/SimulatorsHub';
 import { HandbookView } from './components/HandbookView';
+import { ForumView } from './components/forum/ForumView';
 import { EmergencyEventModal } from './components/simulators/EmergencyEventModal';
 import { FinalExamModal } from './components/FinalExamModal';
 import { CertificateModal } from './components/CertificateModal';
@@ -71,7 +72,7 @@ export default function App() {
     return INITIAL_PROGRESS;
   });
 
-  const [activeTab, setActiveTab] = useState<'quest' | 'simulators' | 'handbook'>('quest');
+  const [activeTab, setActiveTab] = useState<'quest' | 'simulators' | 'handbook' | 'forum'>('quest');
   const [showHero, setShowHero] = useState<boolean>(() => (progress?.completedLevels?.length ?? 0) === 0);
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
   const [showExamModal, setShowExamModal] = useState<boolean>(false);
@@ -426,6 +427,15 @@ export default function App() {
 
         {/* Tab 3: Pocket Handbook */}
         {activeTab === 'handbook' && <HandbookView />}
+
+        {/* Tab 4: Forum of Masters & Programs Marketplace */}
+        {activeTab === 'forum' && (
+          <ForumView
+            progress={progress}
+            onOpenPricing={() => setShowPricingModal(true)}
+            onOpenAuth={() => setShowAuthModal(true)}
+          />
+        )}
       </main>
 
       {/* Modals */}

@@ -14,8 +14,8 @@ interface HeaderProps {
   onOpenProfile: () => void;
   onOpenPricing: () => void;
   onOpenClub: () => void;
-  activeTab: 'quest' | 'simulators' | 'handbook';
-  setActiveTab: (tab: 'quest' | 'simulators' | 'handbook') => void;
+  activeTab: 'quest' | 'simulators' | 'handbook' | 'forum';
+  setActiveTab: (tab: 'quest' | 'simulators' | 'handbook' | 'forum') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -92,6 +92,19 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             Банный Справочник
+          </button>
+          <button
+            onClick={() => setActiveTab('forum')}
+            className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'forum'
+                ? 'border-amber-500 text-amber-200'
+                : 'border-transparent text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            <span>Форум Мастеров</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono font-semibold">
+              new
+            </span>
           </button>
         </nav>
 

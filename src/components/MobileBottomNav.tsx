@@ -3,8 +3,8 @@ import { BookOpen, Compass, BookMarked, MessageSquare, User } from 'lucide-react
 import { UserProgress } from '../types/banya';
 
 interface MobileBottomNavProps {
-  activeTab: 'quest' | 'simulators' | 'handbook';
-  setActiveTab: (tab: 'quest' | 'simulators' | 'handbook') => void;
+  activeTab: 'quest' | 'simulators' | 'handbook' | 'forum';
+  setActiveTab: (tab: 'quest' | 'simulators' | 'handbook' | 'forum') => void;
   onOpenClub: () => void;
   onOpenProfile: () => void;
   onScrollToMap: () => void;
@@ -21,6 +21,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 }) => {
   const isQuestActive = activeTab === 'quest';
   const isHandbookActive = activeTab === 'handbook';
+  const isForumActive = activeTab === 'forum';
   const isAdmin = Boolean(progress.isAdmin);
 
   return (
@@ -88,17 +89,23 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           </span>
         </button>
 
-        {/* Tab 4: Банный Клуб */}
+        {/* Tab 4: Форум & Программы */}
         <button
-          onClick={onOpenClub}
-          className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-stone-400 hover:text-amber-300 transition-all cursor-pointer active:scale-95"
+          onClick={() => setActiveTab('forum')}
+          className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${
+            isForumActive
+              ? 'text-amber-400 font-bold scale-105'
+              : 'text-stone-400 hover:text-stone-200'
+          }`}
         >
           <div className="relative">
-            <MessageSquare className="w-5 h-5 text-emerald-400" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400" />
+            <MessageSquare className={`w-5 h-5 ${isForumActive ? 'text-amber-400' : 'text-stone-400'}`} />
+            {isForumActive && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-400" />
+            )}
           </div>
-          <span className="text-[10px] mt-1 tracking-tight leading-none text-emerald-300 font-semibold truncate max-w-full">
-            Клуб
+          <span className="text-[10px] mt-1 tracking-tight leading-none truncate max-w-full">
+            Форум
           </span>
         </button>
 
