@@ -39,17 +39,15 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
       <div className="absolute inset-0 z-0 overflow-hidden">
         <video
           ref={videoRef}
-          poster="/images/hero-poster.jpg"
+          src="/videos/omakhivanie.mp4"
+          poster="/images/anton-irkhin.jpg"
           autoPlay
           loop
           muted={isMuted}
           playsInline
           className="w-full h-full object-cover object-center scale-105 pointer-events-none transition-transform duration-1000"
           style={{ filter: 'brightness(0.6) contrast(1.15) saturate(1.1)' }}
-        >
-          <source src="/videos/hero-bg.mp4" type="video/mp4" />
-          <source src="/videos/video5343800714864926871.mp4" type="video/mp4" />
-        </video>
+        />
 
         {/* Scrim Layers: Guarantees 100% Crisp Text Legibility */}
         {/* Layer 1: Dark base veil */}
