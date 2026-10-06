@@ -340,6 +340,7 @@ export const HandbookView: React.FC = () => {
                   <BroomIllustration
                     id={broom.id}
                     name={broom.name}
+                    imageUrl={broom.imageUrl}
                     spriteCol={broom.spriteCol}
                     spriteRow={broom.spriteRow}
                   />

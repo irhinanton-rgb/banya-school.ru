@@ -216,6 +216,7 @@ export interface BroomCard {
   name: string;
   treeType: string;
   icon: string;
+  imageUrl?: string;
   flexibility: 'Мягкий' | 'Средний' | 'Жесткий' | 'Колючий' | 'Гибкий';
   steamingMethod: string;
   lifespan: string;
@@ -232,6 +233,7 @@ export const BROOMS_CATALOG: BroomCard[] = [
     name: 'Дуб классический (Кавказский/Черешчатый)',
     treeType: 'Quercus robur',
     icon: '🪵',
+    imageUrl: '/images/brooms/broom-oak.jpg',
     flexibility: 'Средний',
     spriteCol: 0,
     spriteRow: 0,
@@ -246,6 +248,7 @@ export const BROOMS_CATALOG: BroomCard[] = [
     name: 'Берёза майская',
     treeType: 'Betula pendula',
     icon: '🌿',
+    imageUrl: '/images/brooms/broom-birch.jpg',
     flexibility: 'Мягкий',
     spriteCol: 1,
     spriteRow: 0,
@@ -260,6 +263,7 @@ export const BROOMS_CATALOG: BroomCard[] = [
     name: 'Пихта сибирская',
     treeType: 'Abies sibirica',
     icon: '🌲',
+    imageUrl: '/images/brooms/broom-fir.jpg',
     flexibility: 'Мягкий',
     spriteCol: 2,
     spriteRow: 0,
@@ -274,6 +278,7 @@ export const BROOMS_CATALOG: BroomCard[] = [
     name: 'Липа цветущая',
     treeType: 'Tilia cordata',
     icon: '🌸',
+    imageUrl: '/images/brooms/broom-linden.jpg',
     flexibility: 'Мягкий',
     spriteCol: 0,
     spriteRow: 1,
@@ -288,6 +293,7 @@ export const BROOMS_CATALOG: BroomCard[] = [
     name: 'Можжевельник колючий',
     treeType: 'Juniperus communis',
     icon: '🫐',
+    imageUrl: '/images/brooms/broom-juniper.jpg',
     flexibility: 'Колючий',
     spriteCol: 1,
     spriteRow: 1,
@@ -302,6 +308,7 @@ export const BROOMS_CATALOG: BroomCard[] = [
     name: 'Эвкалипт серебристый (Прутовидный)',
     treeType: 'Eucalyptus viminalis',
     icon: '🍃',
+    imageUrl: '/images/brooms/broom-eucalyptus.jpg',
     flexibility: 'Гибкий',
     spriteCol: 2,
     spriteRow: 1,
