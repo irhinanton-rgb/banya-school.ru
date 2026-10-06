@@ -5,7 +5,7 @@ const https = require('https');
 // Load environment variables or CLI arguments
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || process.argv[2];
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID || process.argv[3];
-const SPECIFIC_DAY = process.env.DAY ? parseInt(process.env.DAY) : null;
+const SPECIFIC_DAY = process.env.DAY || process.argv[4];
 
 if (!BOT_TOKEN || !CHAT_ID) {
   console.error('Error: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be provided.');
@@ -28,20 +28,39 @@ if (fs.existsSync(statePath)) {
   }
 }
 
-let targetDay = SPECIFIC_DAY || state.nextDay || 1;
+let targetDay = SPECIFIC_DAY ? parseInt(SPECIFIC_DAY) : (state.nextDay || 1);
 if (targetDay > 30) targetDay = 1;
 
 const post = posts.find(p => p.day === targetDay) || posts[0];
 
 console.log(`Preparing to send Post for Day ${post.day}: "${post.title}" to ${CHAT_ID}`);
 
-// Convert Markdown to clean Telegram formatted message
-const messageText = post.text;
+// Convert Markdown to Telegram HTML format
+function markdownToTelegramHtml(text) {
+  let html = text
+    // Escape HTML special characters first
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Bold: **text** -> <b>text</b>
+  html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+  // Italic: *text* -> <i>$1</i>
+  html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+
+  // Links: [text](url) -> <a href="url">text</a>
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2">$1</a>');
+
+  return html;
+}
+
+const messageHtml = markdownToTelegramHtml(post.text);
 
 const payload = JSON.stringify({
   chat_id: CHAT_ID,
-  text: messageText,
-  parse_mode: 'Markdown',
+  text: messageHtml,
+  parse_mode: 'HTML',
   disable_web_page_preview: false,
   reply_markup: {
     inline_keyboard: [
@@ -76,6 +95,7 @@ const req = https.request(
         const result = JSON.parse(responseData);
         if (result.ok) {
           console.log(`Success! Post for Day ${post.day} was published to Telegram channel.`);
+          console.log(`Message ID: ${result.result.message_id}`);
           state.nextDay = (post.day % 30) + 1;
           state.lastPublishedAt = new Date().toISOString();
           state.lastDayPublished = post.day;
