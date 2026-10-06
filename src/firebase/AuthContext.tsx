@@ -194,6 +194,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 5. Phone Auth: initialize Recaptcha
   const initPhoneRecaptcha = (containerId: string): RecaptchaVerifier => {
+    // Clear DOM container to avoid "reCAPTCHA already rendered"
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById(containerId);
+      if (el) {
+        el.innerHTML = '';
+      }
+    }
+
     // Clear any existing window recaptcha verifier
     if (typeof window !== 'undefined' && (window as unknown as { recaptchaVerifier?: RecaptchaVerifier }).recaptchaVerifier) {
       try {
@@ -209,7 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // reCAPTCHA solved
       },
       'expired-callback': () => {
-        setAuthError('Время действия reCAPTCHA истекло. Попробуйте отправить код еще раз.');
+        setAuthError('Время действия проверки reCAPTCHA истекло. Пожалуйста, отправьте SMS повторно.');
       },
     });
 
@@ -228,12 +236,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAuthError(null);
     setAuthSuccessMsg(null);
     try {
-      // Ensure international prefix '+' is present
-      let cleanPhone = phoneNumber.replace(/[\s()-]/g, '');
-      if (cleanPhone.startsWith('8') && cleanPhone.length === 11) {
-        cleanPhone = '+7' + cleanPhone.slice(1);
-      } else if (!cleanPhone.startsWith('+')) {
-        cleanPhone = '+' + cleanPhone;
+      // Robust phone normalization (E.164 standard)
+      const digits = phoneNumber.replace(/\D/g, '');
+      let cleanPhone = '';
+
+      if (digits.length === 11 && (digits.startsWith('7') || digits.startsWith('8'))) {
+        cleanPhone = '+7' + digits.slice(1);
+      } else if (digits.length === 10) {
+        cleanPhone = '+7' + digits;
+      } else if (phoneNumber.trim().startsWith('+')) {
+        cleanPhone = '+' + digits;
+      } else {
+        cleanPhone = '+' + digits;
+      }
+
+      if (cleanPhone.length < 11) {
+        setAuthError('Слишком короткий номер телефона. Проверьте правильность (например: +7 999 123-45-67).');
+        return null;
       }
 
       const confirmationResult = await signInWithPhoneNumber(auth, cleanPhone, recaptchaVerifier);

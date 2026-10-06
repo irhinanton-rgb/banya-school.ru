@@ -828,6 +828,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       >
                         {loading ? 'Отправка SMS...' : 'Получить SMS с кодом'}
                       </button>
+
+                      {/* Phone Setup & Testing Info */}
+                      <div className="rounded-xl border border-stone-800 bg-stone-900/60 p-3 space-y-2 text-xs text-stone-300 mt-3">
+                        <div className="flex items-center justify-between font-mono text-[11px] text-amber-400 font-semibold">
+                          <span>Настройка SMS в Firebase:</span>
+                        </div>
+                        <p className="text-[11px] text-stone-400 leading-relaxed">
+                          В проекте <strong>gen-lang-client-0150076326</strong> перейдите в <em>Authentication → Sign-in method → Phone</em> и включите тумблер <strong>Enable</strong>.
+                        </p>
+                        <div className="text-[11px] text-stone-400 bg-stone-950/80 p-2.5 rounded-lg border border-stone-800/80 space-y-1">
+                          <strong className="text-amber-300 block">💡 Вход без ожидания SMS (тестовые номера):</strong>
+                          <span>В настройках Phone разверните пункт <em>«Phone numbers for testing»</em> и укажите номер (например: <code className="text-amber-200 font-mono">+79991234567</code>) и код <code className="text-amber-200 font-mono">123456</code>. По этому номеру вход будет срабатывать мгновенно!</span>
+                        </div>
+                      </div>
                     </form>
                   ) : (
                     <form onSubmit={handleVerifyPhoneCode} className="space-y-4">
