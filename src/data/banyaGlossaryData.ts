@@ -222,6 +222,8 @@ export interface BroomCard {
   indications: string;
   aromaNotes: string;
   secretMastery: string;
+  spriteCol: number;
+  spriteRow: number;
 }
 
 export const BROOMS_CATALOG: BroomCard[] = [
@@ -231,6 +233,8 @@ export const BROOMS_CATALOG: BroomCard[] = [
     treeType: 'Quercus robur',
     icon: '🪵',
     flexibility: 'Средний',
+    spriteCol: 0,
+    spriteRow: 0,
     steamingMethod: 'Холодное замачивание на 20 мин, затем в теплой воде 45°C на 10 мин. Не кипятить!',
     lifespan: '3–5 интенсивных парений (очень прочный лист)',
     indications: 'Жирная пористая кожа, гипертония, потребность в глубоком сильном прогреве. Дубильные вещества танины матируют кожу.',
@@ -243,6 +247,8 @@ export const BROOMS_CATALOG: BroomCard[] = [
     treeType: 'Betula pendula',
     icon: '🌿',
     flexibility: 'Мягкий',
+    spriteCol: 1,
+    spriteRow: 0,
     steamingMethod: '15 минут в прохладной воде, затем подержать над паром 30 секунд.',
     lifespan: '1–2 парения (нежный гибкий лист)',
     indications: 'Боли в мышцах и суставах после тренировок, очищение бронхов у курильщиков, глубокое потоотделение.',
@@ -250,23 +256,13 @@ export const BROOMS_CATALOG: BroomCard[] = [
     secretMastery: 'Шероховатый лист берёзы плотно прилипает к распаренной коже, впитывая шлаки как губка.'
   },
   {
-    id: 'linden_flowering',
-    name: 'Липа цветущая',
-    treeType: 'Tilia cordata',
-    icon: '🌸',
-    flexibility: 'Мягкий',
-    steamingMethod: 'Теплая вода 40°C на 10 минут под крышкой.',
-    lifespan: '1–2 парения',
-    indications: 'Простуды, мигрени, бессонница, женское и детское деликатное парение. Стимулирует мягкое потоотделение.',
-    aromaNotes: 'Медовый, сладкий, обволакивающий успокаивающий аромат.',
-    secretMastery: 'Идеален для бесконтактного убаюкивающего опахивания и фитоингаляций на голову.'
-  },
-  {
     id: 'fir_siberian',
     name: 'Пихта сибирская',
     treeType: 'Abies sibirica',
     icon: '🌲',
     flexibility: 'Мягкий',
+    spriteCol: 2,
+    spriteRow: 0,
     steamingMethod: 'Холодная вода или свежемороженый. В парной используется холодным на лицо гостя.',
     lifespan: '1 парение',
     indications: 'Нервное истощение, кашель, снижение иммунитета. Мощнейший антисептик.',
@@ -274,11 +270,27 @@ export const BROOMS_CATALOG: BroomCard[] = [
     secretMastery: 'Кладите веер из двух пихтовых веников под голову и на лицо гостя — создаёт эффект лесного кислородного шатра.'
   },
   {
+    id: 'linden_flowering',
+    name: 'Липа цветущая',
+    treeType: 'Tilia cordata',
+    icon: '🌸',
+    flexibility: 'Мягкий',
+    spriteCol: 0,
+    spriteRow: 1,
+    steamingMethod: 'Теплая вода 40°C на 10 минут под крышкой.',
+    lifespan: '1–2 парения',
+    indications: 'Простуды, мигрени, бессонница, женское и детское деликатное парение. Стимулирует мягкое потоотделение.',
+    aromaNotes: 'Медовый, сладкий, обволакивающий успокаивающий аромат.',
+    secretMastery: 'Идеален для бесконтактного убаюкивающего опахивания и фитоингаляций на голову.'
+  },
+  {
     id: 'juniper',
     name: 'Можжевельник колючий',
     treeType: 'Juniperus communis',
     icon: '🫐',
     flexibility: 'Колючий',
+    spriteCol: 1,
+    spriteRow: 1,
     steamingMethod: 'Кратковременно опустить в горячую воду 70°C на 15–20 мин, чтобы хвоя стала мягче и эластичнее.',
     lifespan: '2–3 парения',
     indications: 'Радикулит, остеохондроз, целлюлит, застой лимфы, глубокая рефлексотерапия.',
@@ -291,6 +303,8 @@ export const BROOMS_CATALOG: BroomCard[] = [
     treeType: 'Eucalyptus viminalis',
     icon: '🍃',
     flexibility: 'Гибкий',
+    spriteCol: 2,
+    spriteRow: 1,
     steamingMethod: '10 минут в теплой воде, затем вплести в дубовый веник.',
     lifespan: '2–3 парения',
     indications: 'Заложенность носа, фарингит, трахеит, воспаления кожи.',

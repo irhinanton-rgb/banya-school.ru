@@ -9,6 +9,7 @@ import {
 } from '../data/banyaGlossaryData';
 import { HERBS_LIBRARY } from '../data/herbsLibraryData';
 import { BROOM_TECHNIQUES } from '../data/referenceData';
+import { BroomIllustration } from './BroomIllustration';
 import {
   BookOpen,
   Search,
@@ -332,11 +333,19 @@ export const HandbookView: React.FC = () => {
             {filteredBrooms.map((broom) => (
               <div
                 key={broom.id}
-                className="rounded-2xl border border-stone-800 bg-stone-900/90 p-6 space-y-4 shadow-md flex flex-col justify-between hover:border-amber-500/40 transition-all"
+                className="rounded-2xl border border-stone-800 bg-stone-900/90 p-5 space-y-4 shadow-md flex flex-col justify-between hover:border-amber-500/40 transition-all"
               >
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{broom.icon}</span>
+                  {/* Botanical Illustration Panel */}
+                  <BroomIllustration
+                    id={broom.id}
+                    name={broom.name}
+                    spriteCol={broom.spriteCol}
+                    spriteRow={broom.spriteRow}
+                  />
+
+                  <div className="flex items-center gap-3 pt-1">
+                    <span className="text-2xl">{broom.icon}</span>
                     <div>
                       <h3 className="font-serif text-lg font-bold text-stone-100">
                         {broom.name}
