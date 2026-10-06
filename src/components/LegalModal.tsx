@@ -187,11 +187,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   </div>
                   <div>
                     <span className="text-stone-500 block">ФИО Исполнителя:</span>
-                    <span className="text-amber-200 font-medium">Ирхин Антон (или ваше официальное ФИО)</span>
+                    <span className="text-amber-200 font-medium">Ирхин Антон</span>
                   </div>
                   <div>
-                    <span className="text-stone-500 block">ИНН:</span>
-                    <span className="text-stone-200 font-mono">Указывается в договоре и чеке «Мой налог»</span>
+                    <span className="text-stone-500 block">ИНН плательщика:</span>
+                    <span className="text-amber-300 font-mono font-bold text-sm">614007827150</span>
                   </div>
                   <div>
                     <span className="text-stone-500 block">E-mail для связи и поддержки:</span>

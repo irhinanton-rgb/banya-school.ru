@@ -19,6 +19,7 @@ import { LeaderboardModal } from './components/LeaderboardModal';
 import { AuthModal } from './components/AuthModal';
 import { PricingModal } from './components/PricingModal';
 import { LegalModal } from './components/LegalModal';
+import { RequisitesPage } from './components/legal/RequisitesPage';
 import { CommunityClubModal } from './components/CommunityClubModal';
 import { UserProfileModal } from './components/profile/UserProfileModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
@@ -84,6 +85,25 @@ export default function App() {
   const [legalInitialTab, setLegalInitialTab] = useState<'offer' | 'privacy' | 'requisites'>('offer');
   const [showClubModal, setShowClubModal] = useState<boolean>(false);
   const [clubInitialTab, setClubInitialTab] = useState<'chat' | 'webinar' | 'homework'>('chat');
+
+  const [isRequisitesRoute, setIsRequisitesRoute] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname.toLowerCase();
+      const s = window.location.search.toLowerCase();
+      return p.includes('requisites') || p.includes('inn') || p.includes('legal') || s.includes('requisites');
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const p = window.location.pathname.toLowerCase();
+      const s = window.location.search.toLowerCase();
+      setIsRequisitesRoute(p.includes('requisites') || p.includes('inn') || p.includes('legal') || s.includes('requisites'));
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Automatic admin promotion for irhinanton@gmail.com
   useEffect(() => {
@@ -308,6 +328,20 @@ export default function App() {
 
   const currentLevelData =
     COURSE_LEVELS.find((l) => l.id === progress.activeLevelId) || COURSE_LEVELS[0];
+
+  if (isRequisitesRoute) {
+    return (
+      <RequisitesPage
+        onBackToMain={() => {
+          if (typeof window !== 'undefined') {
+            window.history.pushState({}, '', '/');
+          }
+          setIsRequisitesRoute(false);
+        }}
+        onOpenLegalModal={handleOpenLegal}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col justify-between selection:bg-amber-600/30 selection:text-amber-200">
@@ -565,6 +599,28 @@ export default function App() {
             >
               ЧП в парной
             </button>
+          </div>
+        </div>
+
+        {/* Official Legal & INN line for YooKassa & Bank Compliance */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-3 pt-3 border-t border-stone-900 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-[11px] text-stone-500 font-mono text-center sm:text-left">
+          <div>
+            Исполнитель: <strong className="text-stone-300">Самозанятый Ирхин Антон</strong> · ИНН: <strong className="text-amber-300 font-bold">614007827150</strong> · e-mail: <a href="mailto:irhinanton@gmail.com" className="text-amber-400 hover:underline">irhinanton@gmail.com</a>
+          </div>
+          <div>
+            <a
+              href="/requisites"
+              onClick={(e) => {
+                e.preventDefault();
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', '/requisites');
+                }
+                setIsRequisitesRoute(true);
+              }}
+              className="text-amber-400 hover:underline cursor-pointer"
+            >
+              Официальная страница реквизитов (banya-school.ru/requisites) →
+            </a>
           </div>
         </div>
       </footer>
