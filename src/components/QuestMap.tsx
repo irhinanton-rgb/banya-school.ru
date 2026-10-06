@@ -35,13 +35,14 @@ export const QuestMap: React.FC<QuestMapProps> = ({
       </div>
 
       {/* Quest Steps Linear Roadmap */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         {COURSE_LEVELS.map((lvl) => {
           const isCompleted = progress.completedLevels.includes(lvl.id);
           const isActive = activeLevelId === lvl.id;
           // Unlocked if admin, previous is completed or it is level 1
           const isUnlocked = progress.isAdmin || lvl.id === 1 || progress.completedLevels.includes((lvl.id - 1) as LevelId) || isCompleted;
           const badge = BADGES.find((b) => b.id === lvl.rewardBadge);
+          const isFinalExam = lvl.id === 7;
 
           return (
             <div
@@ -52,7 +53,9 @@ export const QuestMap: React.FC<QuestMapProps> = ({
               className={`rounded-2xl border p-5 transition-all relative flex flex-col justify-between ${
                 isUnlocked ? 'cursor-pointer hover:border-amber-500/60 hover:-translate-y-1 shadow-lg' : 'opacity-60 cursor-not-allowed'
               } ${
-                isActive
+                isFinalExam
+                  ? 'md:col-span-2 lg:col-span-3 border-amber-500/40 bg-gradient-to-r from-amber-950/30 via-stone-900 to-amber-950/30'
+                  : isActive
                   ? 'border-amber-500 bg-amber-950/20 ring-1 ring-amber-500/50'
                   : isCompleted
                   ? 'border-emerald-500/40 bg-stone-900/90'

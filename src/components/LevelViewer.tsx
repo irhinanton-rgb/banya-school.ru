@@ -81,7 +81,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-6xl mx-auto">
       {/* Level Header / Quest Briefing */}
       <div className="rounded-2xl border border-stone-800 bg-stone-900/90 p-6 sm:p-8 space-y-6 relative overflow-hidden">
         {/* Glow */}

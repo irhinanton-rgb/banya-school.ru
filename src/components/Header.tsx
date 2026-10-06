@@ -62,7 +62,7 @@ export const Header: React.FC<HeaderProps> = ({
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
           <button
             onClick={() => setActiveTab('quest')}
-            className={`transition-colors py-1 border-b-2 whitespace-nowrap ${
+            className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'quest'
                 ? 'border-amber-500 text-amber-200'
                 : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -72,17 +72,20 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('simulators')}
-            className={`transition-colors py-1 border-b-2 whitespace-nowrap ${
+            className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'simulators'
                 ? 'border-amber-500 text-amber-200'
                 : 'border-transparent text-stone-400 hover:text-stone-200'
             }`}
           >
-            Тренажеры и Симуляторы
+            <span>Тренажеры и Симуляторы</span>
+            {completed.length === 0 && !isMasterPro && (
+              <span className="text-[10px] text-amber-400 font-mono">🔒</span>
+            )}
           </button>
           <button
             onClick={() => setActiveTab('handbook')}
-            className={`transition-colors py-1 border-b-2 whitespace-nowrap ${
+            className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'handbook'
                 ? 'border-amber-500 text-amber-200'
                 : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -90,31 +93,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             Банный Справочник
           </button>
-          <button
-            onClick={onOpenClub}
-            className="text-stone-300 hover:text-amber-300 transition-colors whitespace-nowrap flex items-center gap-1.5 py-1"
-          >
-            <span>Банный Клуб & Эфиры</span>
-          </button>
-          <button
-            onClick={onOpenEmergency}
-            className="text-stone-400 hover:text-amber-300 transition-colors whitespace-nowrap flex items-center gap-1.5"
-          >
-            <span>🚨</span>
-            <span>ЧП в парной</span>
-          </button>
         </nav>
 
         {/* Zone 3: 1-2 primary actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Community Club & Live Hub Button (desktop nav, on mobile accessible in bottom nav) */}
+          {/* Single Community Club & Live Hub Button */}
           <button
             onClick={onOpenClub}
             title="Банный Клуб: Чат сообщества, Видеоэфиры и Проверка ДЗ"
             className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold whitespace-nowrap transition-all shadow-sm cursor-pointer active:scale-95"
           >
             <Users className="h-3.5 w-3.5 text-emerald-400" />
-            <span>Банный Клуб</span>
+            <span>Банный Клуб & Эфиры</span>
           </button>
 
           {/* XP counter */}

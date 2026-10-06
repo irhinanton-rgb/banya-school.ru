@@ -418,6 +418,9 @@ export default function App() {
           <SimulatorsHub
             soundEnabled={progress.soundEnabled}
             onGrantXp={handleGrantXp}
+            progress={progress}
+            onNavigateToLevel={handleSelectLevel}
+            onOpenPricing={() => setShowPricingModal(true)}
           />
         )}
 
