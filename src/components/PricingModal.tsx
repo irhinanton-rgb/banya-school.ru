@@ -14,6 +14,8 @@ import {
   Flame,
   HelpCircle,
   FileText,
+  FlaskConical,
+  AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../firebase/AuthContext';
 import { UserProgress } from '../types/banya';
@@ -36,24 +38,40 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const { user } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState<'sbp' | 'card' | 'tpay'>('sbp');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [showDemoNotification, setShowDemoNotification] = useState<boolean>(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const isAlreadyPaid = progress.isPaid || progress.tariff === 'master_pro';
 
-  const handleSimulatePayment = async () => {
+  const handleInitiatePayment = async (amount: number = 3390) => {
     setIsProcessing(true);
+    setPaymentError(null);
     try {
-      const demoOrderId = `ORDER-${Math.floor(100000 + Math.random() * 900000)}`;
-      await onActivatePaidTier(demoOrderId);
-      setShowDemoNotification(true);
-      setTimeout(() => {
-        setShowDemoNotification(false);
-        onClose();
-      }, 2000);
-    } catch (e) {
-      console.error(e);
+      const response = await fetch('/api/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          description:
+            amount === 10
+              ? 'Тестовый платёж 10 ₽ (Курс Пармастера banya-school.ru)'
+              : 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)',
+          userId: user?.uid || null,
+          userEmail: user?.email || null,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.confirmationUrl) {
+        // Redirect directly to YooKassa checkout
+        window.location.href = data.confirmationUrl;
+        return;
+      }
+      throw new Error(data.error || 'Не удалось создать платёж в ЮKassa');
+    } catch (e: any) {
+      console.error('Payment initiation error:', e);
+      setPaymentError(e.message || 'Ошибка соединения с ЮKassa. Попробуйте еще раз.');
     } finally {
       setIsProcessing(false);
     }
@@ -193,10 +211,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 </p>
 
                 <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-3xl font-serif font-bold text-amber-300">2 990 ₽</span>
-                  <span className="text-sm text-stone-500 line-through">5 990 ₽</span>
+                  <span className="text-3xl font-serif font-bold text-amber-300">3 390 ₽</span>
+                  <span className="text-sm text-stone-500 line-through">6 990 ₽</span>
                   <span className="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                    -50%
+                    -52%
                   </span>
                 </div>
 
@@ -278,20 +296,46 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                       </div>
                     </div>
 
+                    {paymentError && (
+                      <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                        <span>{paymentError}</span>
+                      </div>
+                    )}
+
                     <button
-                      onClick={handleSimulatePayment}
+                      onClick={() => handleInitiatePayment(3390)}
                       disabled={isProcessing}
                       className="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:opacity-50"
                     >
                       {isProcessing ? (
-                        <span>Обработка платежа...</span>
+                        <span className="flex items-center gap-2">
+                          <span className="w-4 h-4 border-2 border-stone-950 border-t-transparent rounded-full animate-spin" />
+                          Переход в ЮKassa...
+                        </span>
                       ) : (
                         <>
-                          <span>Оплатить 2 990 ₽ и открыть курс</span>
+                          <span>Оплатить 3 390 ₽ через ЮKassa</span>
                           <ArrowRight className="w-4 h-4" />
                         </>
                       )}
                     </button>
+
+                    {/* Test Payment Button (10 RUB) requested by Anton */}
+                    <div className="pt-2 border-t border-stone-800/80">
+                      <button
+                        type="button"
+                        onClick={() => handleInitiatePayment(10)}
+                        disabled={isProcessing}
+                        className="w-full py-2.5 px-4 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-amber-500/30 hover:border-amber-500/60 text-stone-300 hover:text-amber-200 text-xs font-mono transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50 shadow-sm"
+                      >
+                        <FlaskConical className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>🧪 Проверить оплату: тестовый платёж 10 ₽</span>
+                      </button>
+                      <p className="text-[10px] text-stone-500 text-center mt-1 font-mono">
+                        Спишет 10 ₽ реальными деньгами через ЮKassa для проверки эквайринга
+                      </p>
+                    </div>
                   </>
                 ) : (
                   <div className="w-full py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-center font-bold text-xs">
@@ -350,13 +394,6 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               </div>
             </div>
           </div>
-
-          {/* Demo Success Toast */}
-          {showDemoNotification && (
-            <div className="p-4 rounded-xl bg-emerald-600 text-white font-bold text-sm text-center animate-bounce">
-              🎉 Оплата успешно подтверждена! Курс «Мастер Пара PRO» разблокирован.
-            </div>
-          )}
         </div>
       </div>
     </div>

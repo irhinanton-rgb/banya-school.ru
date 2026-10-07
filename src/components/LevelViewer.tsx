@@ -163,7 +163,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                 onClick={onOpenPricing}
                 className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs shrink-0 cursor-pointer shadow-md transition-all whitespace-nowrap"
               >
-                Открыть тарифы (от 2 990 ₽)
+                Открыть тарифы (3 390 ₽)
               </button>
             )}
           </div>

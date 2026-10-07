@@ -27,6 +27,7 @@ import { MobileLevelQuickNav } from './components/MobileLevelQuickNav';
 import { COURSE_LEVELS, BADGES } from './data/courseData';
 import { UserProgress, LevelId, BadgeId } from './types/banya';
 import { useAuth } from './firebase/AuthContext';
+import confetti from 'canvas-confetti';
 import {
   syncProgressToCloud,
   fetchProgressFromCloud,
@@ -103,6 +104,39 @@ export default function App() {
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // YooKassa Payment Return Listener (?payment=success)
+  const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState<boolean>(false);
+  const [successfulOrderId, setSuccessfulOrderId] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('payment') === 'success') {
+        const orderId = searchParams.get('orderId') || `YOOKASSA-${Date.now()}`;
+        setSuccessfulOrderId(orderId);
+        setShowPaymentSuccessModal(true);
+        handleActivatePaidTier(orderId);
+
+        try {
+          confetti({
+            particleCount: 90,
+            spread: 60,
+            origin: { y: 0.6 }
+          });
+        } catch {
+          // ignore
+        }
+
+        // Clean query params from URL without refreshing
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    } catch (e) {
+      console.error('Error handling payment return:', e);
+    }
   }, []);
 
   // Automatic admin promotion for irhinanton@gmail.com
@@ -550,6 +584,44 @@ export default function App() {
         onGrantXp={handleGrantXp}
         initialTab={clubInitialTab}
       />
+
+      {/* YooKassa Payment Success Celebration Modal */}
+      {showPaymentSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative max-w-lg w-full rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-emerald-500/50 p-6 sm:p-8 shadow-2xl text-center space-y-5">
+            <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center text-3xl shadow-inner animate-bounce">
+              🎉
+            </div>
+            <div className="space-y-2">
+              <span className="text-xs font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
+                ЮKassa • Оплата успешно подтверждена
+              </span>
+              <h3 className="text-2xl font-serif font-bold text-stone-100">
+                Добро пожаловать в «Мастер Пара PRO»!
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                Ваш доступ к полному курсу, всем 7 станциям квеста, банным симуляторам и итоговой аттестации успешно открыт!
+              </p>
+            </div>
+
+            {successfulOrderId && (
+              <div className="p-3 rounded-xl bg-stone-900/90 border border-stone-800 text-[11px] font-mono text-stone-400">
+                Номер операции: <span className="text-amber-300 font-semibold">{successfulOrderId}</span>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setShowPaymentSuccessModal(false);
+                handleScrollToMap();
+              }}
+              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-sm transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
+            >
+              Перейти к изучению курса
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="w-full border-t border-stone-800/80 bg-stone-950 py-6 print:hidden">
