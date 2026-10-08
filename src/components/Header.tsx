@@ -86,28 +86,28 @@ export const Header: React.FC<HeaderProps> = ({
               setActiveTab('quest');
             }
           }}
-          className="flex items-center gap-3 text-left transition-opacity hover:opacity-90 group cursor-pointer"
+          className="flex items-center gap-3 text-left transition-opacity hover:opacity-95 group cursor-pointer"
         >
-          <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl overflow-hidden bg-stone-950 border border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)] group-hover:border-amber-400/70 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all shrink-0 ring-1 ring-amber-500/10">
+          <div className="relative flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl overflow-hidden bg-black border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all shrink-0">
             <img
-              src="/images/abm-icon.jpg"
+              src="/images/abm2-icon.jpg"
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
-                if (!target.src.includes('abm-logo.jpg')) {
-                  target.src = '/images/abm-logo.jpg';
-                } else if (!target.src.includes('%D0%90%D0%91%D0%9C.jpg')) {
-                  target.src = '/images/%D0%90%D0%91%D0%9C.jpg';
+                if (!target.src.includes('abm2-logo.jpg')) {
+                  target.src = '/images/abm2-logo.jpg';
+                } else if (!target.src.includes('%D0%90%D0%91%D0%9C2.jpg')) {
+                  target.src = '/images/%D0%90%D0%91%D0%9C2.jpg';
                 }
               }}
-              alt="Академия Банного Мастерства"
-              className="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+              alt="АБМ — Академия Банного Мастерства"
+              className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-300"
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-serif text-base sm:text-lg font-bold tracking-wide text-stone-100 group-hover:text-amber-200 transition-colors">
+            <span className="font-serif text-base sm:text-lg font-bold tracking-wide text-stone-100 group-hover:text-amber-200 transition-colors leading-tight">
               Квест Пармастера
             </span>
-            <span className="text-[10px] font-mono tracking-wider uppercase text-amber-400/80 -mt-0.5">
+            <span className="text-[10px] font-mono tracking-wider uppercase text-amber-400/80 mt-0.5">
               Академия Банного Мастерства
             </span>
           </div>
