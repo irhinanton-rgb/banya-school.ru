@@ -12,7 +12,7 @@ import {
   Flame,
   FileText,
   MessageSquare,
-  ShieldAlert,
+  Lock,
 } from 'lucide-react';
 import { LevelId, UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
@@ -55,6 +55,10 @@ export const Header: React.FC<HeaderProps> = ({
 
   const isAdmin = user?.email?.toLowerCase() === 'irhinanton@gmail.com' || Boolean(progress.isAdmin);
   const isMasterPro = isAdmin || progress.isPaid || progress.tariff === 'master_pro';
+  const isCourseCompleted =
+    Boolean(progress.certifiedDate) ||
+    Boolean(progress.completedLevels && progress.completedLevels.includes(7)) ||
+    Boolean(progress.completedLevels && progress.completedLevels.length >= 7);
   const displayAvatar = progress.avatarUrl || user?.photoURL;
   const displayName = progress.name || user?.displayName || (isAdmin ? 'Антон Ирхин' : 'Пармастер');
 
@@ -236,24 +240,29 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <button
                   onClick={() => {
-                    onOpenEmergency();
-                    setDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-rose-300 hover:bg-rose-950/40 transition-colors text-left cursor-pointer"
-                >
-                  <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
-                  <span>Протоколы ЧП в парной</span>
-                </button>
-
-                <button
-                  onClick={() => {
                     onOpenCertificate();
                     setDropdownOpen(false);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-stone-400 hover:bg-stone-800 hover:text-stone-200 transition-colors text-left cursor-pointer"
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors text-left cursor-pointer ${
+                    isCourseCompleted
+                      ? 'text-amber-300 hover:bg-stone-800'
+                      : 'text-stone-400 hover:bg-stone-800 hover:text-stone-200'
+                  }`}
                 >
-                  <Award className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>Именной Сертификат</span>
+                  <div className="flex items-center gap-3">
+                    <Award className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Именной Сертификат</span>
+                  </div>
+                  {!isCourseCompleted ? (
+                    <span className="flex items-center gap-1 text-[10px] font-mono text-stone-400 bg-stone-950 px-2 py-0.5 rounded border border-stone-800">
+                      <Lock className="w-2.5 h-2.5 text-amber-400/80" />
+                      <span>После 7 уровней</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-mono text-emerald-400 font-semibold">
+                      Доступен 👑
+                    </span>
+                  )}
                 </button>
               </div>
             )}

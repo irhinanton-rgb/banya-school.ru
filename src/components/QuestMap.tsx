@@ -166,28 +166,36 @@ export const QuestMap: React.FC<QuestMapProps> = ({
           {remainingLevels.map((lvl) => {
             const isCompleted = completed.includes(lvl.id);
             const isActive = activeLevelId === lvl.id;
-            // Accessible if PRO/admin, or if previous level completed
-            const isAccessible =
-              isMasterPro ||
-              completed.includes((lvl.id - 1) as LevelId) ||
-              isCompleted;
+            const isLevel2 = lvl.id === 2;
+            const isLevel1Done = completed.includes(1);
 
+            // Level 2 is unlocked in the free version immediately upon completing Level 1!
+            // Levels 3 to 7 are PRO levels (accessible if isMasterPro and previous level done, or already completed).
+            const isAccessible = isLevel2
+              ? isLevel1Done || isMasterPro || isCompleted
+              : isMasterPro && (completed.includes((lvl.id - 1) as LevelId) || isCompleted);
+
+            const isProLocked = !isAccessible && lvl.id >= 3 && !isMasterPro;
             const badge = BADGES.find((b) => b.id === lvl.rewardBadge);
-            const isFinalExam = lvl.id === 7;
 
             return (
               <div
                 key={lvl.id}
+                title={isProLocked ? 'Доступно в PRO-версии' : undefined}
                 onClick={() => {
                   if (isAccessible) {
                     onSelectLevel(lvl.id);
-                  } else if (onOpenPricing) {
+                  } else if (isProLocked && onOpenPricing) {
                     onOpenPricing();
+                  } else if (isLevel2 && !isLevel1Done) {
+                    onSelectLevel(1);
                   }
                 }}
                 className={`group rounded-2xl border p-5 transition-all relative flex flex-col justify-between ${
                   isAccessible
                     ? 'border-stone-800 bg-stone-900/90 hover:border-amber-500/60 hover:-translate-y-1 shadow-lg cursor-pointer'
+                    : isProLocked
+                    ? 'border-stone-800/80 bg-stone-950/75 backdrop-blur-md opacity-75 hover:opacity-100 hover:border-amber-500/50 cursor-pointer shadow-inner'
                     : 'border-stone-800/80 bg-stone-950/70 backdrop-blur-md opacity-60 hover:opacity-85 cursor-pointer shadow-inner'
                 } ${
                   isActive
@@ -199,7 +207,16 @@ export const QuestMap: React.FC<QuestMapProps> = ({
               >
                 {/* Fog of war overlay for locked cards */}
                 {!isAccessible && (
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-stone-950/40 via-stone-950/60 to-stone-950/80 pointer-events-none rounded-2xl" />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-stone-950/30 via-stone-950/50 to-stone-950/80 pointer-events-none" />
+                )}
+
+                {/* Unobtrusive floating badge for PRO levels 3-7 on hover */}
+                {isProLocked && (
+                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20">
+                    <span className="px-2.5 py-1 rounded-lg bg-stone-900/95 border border-amber-500/50 text-amber-300 text-[10px] font-mono font-medium shadow-xl backdrop-blur-md flex items-center gap-1.5">
+                      <span>👑 Доступно в PRO-версии</span>
+                    </span>
+                  </div>
                 )}
 
                 <div className="relative space-y-3 z-10">
@@ -228,13 +245,19 @@ export const QuestMap: React.FC<QuestMapProps> = ({
                           <span>Пройден</span>
                         </span>
                       ) : isAccessible ? (
-                        <span className="text-[11px] text-amber-400 font-mono">
-                          Доступен
+                        <span className="text-[11px] text-amber-400 font-mono flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span>{isLevel2 ? 'Доступен бесплатно' : 'Доступен'}</span>
                         </span>
+                      ) : isLevel2 ? (
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-stone-800/80 border border-stone-700 text-[10px] font-mono text-stone-300 shadow-sm">
+                          <Lock className="h-3 w-3 text-stone-400" />
+                          <span>Бесплатно · Откроется после Уровня 1</span>
+                        </div>
                       ) : (
-                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-[10px] font-mono text-amber-300 font-semibold shadow-sm">
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-[10px] font-mono text-amber-300 font-semibold shadow-sm group-hover:bg-amber-500/20 transition-colors">
                           <Lock className="h-3 w-3 text-amber-400" />
-                          <span>PRO · Откроется после Уровня {lvl.id - 1}</span>
+                          <span>PRO-уровень</span>
                         </div>
                       )}
                     </div>
@@ -269,13 +292,17 @@ export const QuestMap: React.FC<QuestMapProps> = ({
                           : 'bg-stone-800 text-stone-300 hover:text-white'
                       }`}
                     >
-                      <span>{isCompleted ? 'Повторить' : 'Войти'}</span>
+                      <span>{isCompleted ? 'Повторить' : isLevel2 ? 'Начать Уровень 2' : 'Войти'}</span>
                       <ArrowRight className="h-3 w-3" />
                     </button>
+                  ) : isProLocked ? (
+                    <span className="text-[11px] text-amber-400/90 font-mono group-hover:text-amber-300 flex items-center gap-1">
+                      <span>Открыть в PRO</span>
+                      <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                    </span>
                   ) : (
-                    <span className="text-[11px] text-amber-400/80 font-mono group-hover:text-amber-300 flex items-center gap-1">
-                      <span>Подробнее</span>
-                      <ArrowRight className="h-3 w-3" />
+                    <span className="text-[11px] text-stone-400 font-mono flex items-center gap-1">
+                      <span>Сдайте Уровень 1</span>
                     </span>
                   )}
                 </div>

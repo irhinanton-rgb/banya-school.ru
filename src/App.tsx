@@ -569,6 +569,16 @@ export default function App() {
         userName={progress.name}
         onUpdateName={handleUpdateStudentName}
         certifiedDate={progress.certifiedDate || '3 октября 2026 г.'}
+        isCompleted={Boolean(
+          progress.certifiedDate ||
+          progress.completedLevels.includes(7) ||
+          progress.completedLevels.length >= 7
+        )}
+        completedLevelsCount={progress.completedLevels.length}
+        onContinueCourse={() => {
+          setShowHero(false);
+          setActiveTab('quest');
+        }}
       />
 
       <LeaderboardModal
@@ -673,20 +683,6 @@ export default function App() {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <button
-              onClick={() => handleOpenClub('chat')}
-              className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>🌿 Банный Клуб & Эфиры</span>
-            </button>
-            <span aria-hidden="true">·</span>
-            <button
-              onClick={() => setShowPricingModal(true)}
-              className="text-amber-400 hover:text-amber-300 font-semibold transition-colors cursor-pointer"
-            >
-              ⭐ Тарифы и оплата
-            </button>
-            <span aria-hidden="true">·</span>
-            <button
               onClick={() => handleOpenLegal('offer')}
               className="hover:text-stone-300 transition-colors cursor-pointer"
             >
@@ -705,13 +701,6 @@ export default function App() {
               className="hover:text-stone-300 transition-colors cursor-pointer"
             >
               Реквизиты самозанятого
-            </button>
-            <span aria-hidden="true">·</span>
-            <button
-              onClick={() => setShowEmergencyModal(true)}
-              className="hover:text-amber-400 transition-colors cursor-pointer"
-            >
-              ЧП в парной
             </button>
           </div>
         </div>
