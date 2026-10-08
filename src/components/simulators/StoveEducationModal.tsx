@@ -30,7 +30,6 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   soundEnabled,
 }) => {
   const [activeTab, setActiveTab] = useState<'blueprint' | 'steamTypes' | 'ceremonies' | 'infrared' | 'quiz'>('blueprint');
-  const [viewMode, setViewMode] = useState<'3d_photo' | 'svg_schema'>('3d_photo');
   const [selectedPart, setSelectedPart] = useState<string>('closed_chamber');
   const [steamAnimation, setSteamAnimation] = useState<'closed' | 'open' | 'herbal' | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -360,390 +359,394 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                     </div>
                   )}
 
-                  <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-stone-800/80 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-stone-300 font-semibold">МАКЕТ ПЕЧИ В РАЗРЕЗЕ:</span>
-                      <span className="text-amber-400 font-bold hidden sm:inline">● КЛИКАЙ НА ТОЧКИ</span>
-                    </div>
-
-                    {/* View mode toggle */}
-                    <div className="flex items-center gap-1 bg-stone-950 p-1 rounded-xl border border-stone-800">
-                      <button
-                        onClick={() => {
-                          playWoodTap(soundEnabled);
-                          setViewMode('3d_photo');
-                        }}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-                          viewMode === '3d_photo'
-                            ? 'bg-amber-500 text-stone-950 shadow font-bold'
-                            : 'text-stone-400 hover:text-stone-200'
-                        }`}
-                      >
-                        📸 3D Фото-разрез
-                      </button>
-                      <button
-                        onClick={() => {
-                          playWoodTap(soundEnabled);
-                          setViewMode('svg_schema');
-                        }}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-                          viewMode === 'svg_schema'
-                            ? 'bg-amber-500 text-stone-950 shadow font-bold'
-                            : 'text-stone-400 hover:text-stone-200'
-                        }`}
-                      >
-                        📐 Схема (SVG)
-                      </button>
-                    </div>
+                  <div className="w-full flex items-center justify-between pb-3 border-b border-stone-800/80 text-xs">
+                    <span className="font-mono text-stone-300 font-semibold flex items-center gap-2">
+                      <span>🪵</span>
+                      <span>ИНТЕРАКТИВНЫЙ РАЗРЕЗ ПЕЧИ (КЛИКАЙ НА УЗЛЫ)</span>
+                    </span>
+                    <span className="text-amber-400 font-bold hidden sm:inline">
+                      ● РЕЖИМ: ЗАКРЫТАЯ КАМЕНКА 550°C
+                    </span>
                   </div>
 
-                  {/* 3D Photo Cutaway Mode */}
-                  {viewMode === '3d_photo' ? (
-                    <div className="w-full relative my-2 rounded-2xl overflow-hidden border border-amber-500/40 shadow-2xl bg-black">
-                      <div className="relative w-full aspect-[1024/559]">
-                        <img
-                          src="/images/stove-anatomy.jpg"
-                          alt="3D Анатомия банной печи в разрезе"
-                          className="w-full h-full object-cover block select-none pointer-events-none"
-                        />
-
-                        {/* Visual overlay gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
-
-                        {/* Interactive Hotspot Pins */}
-                        {[
-                          {
-                            id: 'chimney_economizer',
-                            top: '14%',
-                            left: '48%',
-                            label: 'Дымоход с экономайзером',
-                            temp: '300–450°C',
-                            icon: '💨',
-                            color: 'border-stone-400 bg-stone-900/90 text-stone-200',
-                          },
-                          {
-                            id: 'open_stones',
-                            top: '30%',
-                            left: '36%',
-                            label: 'Открытая каменка (Арома)',
-                            temp: '180–260°C',
-                            icon: '🪨',
-                            color: 'border-rose-400 bg-rose-950/90 text-rose-200',
-                          },
-                          {
-                            id: 'steam_cannon',
-                            top: '36%',
-                            left: '58%',
-                            label: 'Паровая пушка / Воронка',
-                            temp: 'до 500°C',
-                            icon: '🚿',
-                            color: 'border-cyan-400 bg-cyan-950/90 text-cyan-200',
-                          },
-                          {
-                            id: 'closed_chamber',
-                            top: '48%',
-                            left: '47%',
-                            label: 'Закрытая каменка (Ядро 550°C)',
-                            temp: '450–650°C',
-                            icon: '🔒',
-                            color: 'border-amber-400 bg-amber-950/90 text-amber-200',
-                          },
-                          {
-                            id: 'sarcophagus',
-                            top: '60%',
-                            left: '26%',
-                            label: 'Облицовка (Талькохлорит)',
-                            temp: '60–85°C',
-                            icon: '🛡️',
-                            color: 'border-emerald-400 bg-emerald-950/90 text-emerald-200',
-                          },
-                          {
-                            id: 'convection_doors',
-                            top: '68%',
-                            left: '66%',
-                            label: 'Конвекционная заслонка',
-                            temp: 'Регулируемая',
-                            icon: '🚪',
-                            color: 'border-blue-400 bg-blue-950/90 text-blue-200',
-                          },
-                          {
-                            id: 'firebox',
-                            top: '80%',
-                            left: '47%',
-                            label: 'Топка и пламя (950°C)',
-                            temp: '800–1100°C',
-                            icon: '🔥',
-                            color: 'border-orange-400 bg-orange-950/90 text-orange-200',
-                          },
-                        ].map((spot) => {
-                          const isSelected = selectedPart === spot.id;
-                          return (
-                            <div
-                              key={spot.id}
-                              style={{ top: spot.top, left: spot.left }}
-                              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 group cursor-pointer"
-                              onClick={() => {
-                                playWoodTap(soundEnabled);
-                                setSelectedPart(spot.id);
-                              }}
-                            >
-                              {/* Pulsing ring animation */}
-                              <span
-                                className={`absolute -inset-2 rounded-full animate-ping opacity-60 pointer-events-none ${
-                                  isSelected ? 'bg-amber-400 opacity-90' : 'bg-amber-500/40'
-                                }`}
-                              />
-
-                              {/* Main button pin */}
-                              <button
-                                className={`relative flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-bold shadow-lg transition-all transform hover:scale-110 active:scale-95 cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-amber-500 border-white text-stone-950 scale-105 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.7)]'
-                                    : `${spot.color} hover:border-amber-400 hover:text-white`
-                                }`}
-                                title={spot.label}
-                              >
-                                <span>{spot.icon}</span>
-                                <span className="hidden sm:inline font-mono text-[10px]">{spot.label.split(' ')[0]}</span>
-                              </button>
-
-                              {/* Hover Tooltip */}
-                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:flex flex-col items-center pointer-events-none z-40 whitespace-nowrap">
-                                <div className="px-2.5 py-1 rounded-lg bg-stone-950/95 border border-amber-500/70 text-[11px] text-amber-200 shadow-xl">
-                                  <span className="font-semibold block">{spot.label}</span>
-                                  <span className="text-[10px] text-rose-400 font-mono">{spot.temp}</span>
-                                </div>
-                                <div className="w-2 h-2 bg-stone-950 border-r border-b border-amber-500/70 rotate-45 -mt-1" />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : (
-                    /* SVG Cutaway Graphic */
-                    <div className="w-full max-w-[460px] aspect-[4/5] relative my-2">
-                      <svg viewBox="0 0 400 500" className="w-full h-full select-none">
+                  {/* SVG Cutaway Graphic */}
+                  <div className="w-full max-w-[500px] aspect-[4/5] relative my-2">
+                    <svg viewBox="0 0 440 560" className="w-full h-full select-none">
                       <defs>
-                        {/* Gradients */}
-                        <linearGradient id="fireGrad" x1="0" y1="1" x2="0" y2="0">
-                          <stop offset="0%" stopColor="#ef4444" />
-                          <stop offset="40%" stopColor="#f97316" />
-                          <stop offset="80%" stopColor="#facc15" />
+                        {/* Realistic Fire Gradient */}
+                        <linearGradient id="fireGradRich" x1="0" y1="1" x2="0" y2="0">
+                          <stop offset="0%" stopColor="#b91c1c" />
+                          <stop offset="25%" stopColor="#ea580c" />
+                          <stop offset="55%" stopColor="#f59e0b" />
+                          <stop offset="85%" stopColor="#fef08a" />
                           <stop offset="100%" stopColor="#ffffff" />
                         </linearGradient>
 
-                        <linearGradient id="stoneSarcophagus" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#292524" />
+                        {/* Polished Soapstone Sarcophagus Gradient */}
+                        <linearGradient id="soapstoneGrad" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#1c1917" />
+                          <stop offset="15%" stopColor="#292524" />
                           <stop offset="50%" stopColor="#44403c" />
-                          <stop offset="100%" stopColor="#292524" />
+                          <stop offset="85%" stopColor="#292524" />
+                          <stop offset="100%" stopColor="#1c1917" />
                         </linearGradient>
 
-                        <linearGradient id="coreGlow" x1="0" y1="1" x2="0" y2="0">
-                          <stop offset="0%" stopColor="#dc2626" />
-                          <stop offset="70%" stopColor="#ea580c" />
-                          <stop offset="100%" stopColor="#f59e0b" />
-                        </linearGradient>
+                        {/* Superheated Core Radiance */}
+                        <radialGradient id="hotCoreRadial" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor="#fef08a" stopOpacity="1" />
+                          <stop offset="35%" stopColor="#f59e0b" stopOpacity="0.9" />
+                          <stop offset="70%" stopColor="#dc2626" stopOpacity="0.8" />
+                          <stop offset="100%" stopColor="#7f1d1d" stopOpacity="0.7" />
+                        </radialGradient>
 
-                        <radialGradient id="softIRWave">
-                          <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.15" />
+                        {/* Soft Infrared Bio-Resonance Waves */}
+                        <radialGradient id="irWaveGrad">
+                          <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.16" />
                           <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
                         </radialGradient>
+
+                        {/* Metallic Stainless Steel */}
+                        <linearGradient id="steelPipeGrad" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#57534e" />
+                          <stop offset="40%" stopColor="#a8a29e" />
+                          <stop offset="70%" stopColor="#d6d3d1" />
+                          <stop offset="100%" stopColor="#57534e" />
+                        </linearGradient>
                       </defs>
 
                       {/* External Infrared Waves radiating from Sarcophagus */}
-                      <circle cx="200" cy="270" r="190" fill="url(#softIRWave)" stroke="#f59e0b" strokeWidth="1" strokeDasharray="6 4" opacity="0.4" />
-                      <circle cx="200" cy="270" r="170" fill="none" stroke="#f59e0b" strokeWidth="1" strokeDasharray="4 3" opacity="0.6" />
+                      <circle cx="220" cy="310" r="210" fill="url(#irWaveGrad)" stroke="#f59e0b" strokeWidth="1" strokeDasharray="6 4" opacity="0.4" />
+                      <circle cx="220" cy="310" r="185" fill="none" stroke="#f59e0b" strokeWidth="1" strokeDasharray="4 3" opacity="0.6" />
 
-                      {/* Chimney Pipe & Rock Mesh (Дымоход) */}
+                      {/* --- 1. CHIMNEY & ECONOMIZER (Дымоход с экономайзером) --- */}
                       <g
-                        className="cursor-pointer transition-transform hover:opacity-90"
-                        onClick={() => setSelectedPart('chimney_economizer')}
+                        className="cursor-pointer transition-all hover:opacity-95"
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setSelectedPart('chimney_economizer');
+                        }}
                       >
-                        {/* Pipe */}
-                        <rect x="175" y="10" width="50" height="110" rx="4" fill="#57534e" stroke="#78716c" strokeWidth="2" />
-                        {/* Shiber valve handle */}
-                        <line x1="165" y1="50" x2="235" y2="50" stroke="#f59e0b" strokeWidth="4" strokeLinecap="round" />
-                        <circle cx="235" cy="50" r="5" fill="#f59e0b" />
-                        {/* Economizer Mesh */}
-                        <rect x="160" y="55" width="80" height="65" rx="6" fill="#1c1917" stroke="#a8a29e" strokeWidth="1.5" strokeDasharray="3 2" />
-                        {/* Stones around pipe */}
-                        <circle cx="175" cy="72" r="7" fill="#78716c" />
-                        <circle cx="195" cy="68" r="8" fill="#57534e" />
-                        <circle cx="215" cy="74" r="7" fill="#78716c" />
-                        <circle cx="180" cy="95" r="9" fill="#44403c" />
-                        <circle cx="202" cy="100" r="8" fill="#78716c" />
-                        <circle cx="222" cy="92" r="8" fill="#57534e" />
+                        {/* Chimney Pipe */}
+                        <rect
+                          x="192"
+                          y="15"
+                          width="56"
+                          height="115"
+                          rx="4"
+                          fill="url(#steelPipeGrad)"
+                          stroke={selectedPart === 'chimney_economizer' ? '#f59e0b' : '#78716c'}
+                          strokeWidth={selectedPart === 'chimney_economizer' ? 2.5 : 1.5}
+                        />
+
+                        {/* Damper (Шибер) Control Rod & Plate */}
+                        <line x1="180" y1="55" x2="260" y2="55" stroke="#f59e0b" strokeWidth="4" strokeLinecap="round" />
+                        <circle cx="260" cy="55" r="6" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
+                        <text x="272" y="59" fill="#f59e0b" fontSize="9" fontWeight="bold" fontFamily="monospace">Шибер</text>
+
+                        {/* Economizer Rock Cage */}
+                        <rect
+                          x="175"
+                          y="62"
+                          width="90"
+                          height="70"
+                          rx="8"
+                          fill="#141211"
+                          stroke={selectedPart === 'chimney_economizer' ? '#f59e0b' : '#a8a29e'}
+                          strokeWidth={selectedPart === 'chimney_economizer' ? 2 : 1.5}
+                          strokeDasharray="4 2"
+                        />
+
+                        {/* Stones inside economizer cage */}
+                        <circle cx="192" cy="80" r="8" fill="#78716c" />
+                        <circle cx="214" cy="76" r="9" fill="#57534e" />
+                        <circle cx="238" cy="82" r="8" fill="#78716c" />
+                        <circle cx="198" cy="104" r="10" fill="#44403c" />
+                        <circle cx="222" cy="110" r="9" fill="#78716c" />
+                        <circle cx="244" cy="102" r="9" fill="#57534e" />
                       </g>
 
-                      {/* Outer Stone Sarcophagus (Облицовка / Саркофаг) */}
+                      {/* --- 2. OUTER STONE SARCOPHAGUS (Саркофаг из талькохлорита) --- */}
                       <g
-                        className="cursor-pointer transition-transform hover:opacity-95"
-                        onClick={() => setSelectedPart('sarcophagus')}
+                        className="cursor-pointer transition-all hover:opacity-95"
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setSelectedPart('sarcophagus');
+                        }}
                       >
                         <rect
-                          x="70"
-                          y="120"
-                          width="260"
-                          height="350"
-                          rx="12"
-                          fill="url(#stoneSarcophagus)"
+                          x="75"
+                          y="135"
+                          width="290"
+                          height="390"
+                          rx="14"
+                          fill="url(#soapstoneGrad)"
                           stroke={selectedPart === 'sarcophagus' ? '#f59e0b' : '#78716c'}
                           strokeWidth={selectedPart === 'sarcophagus' ? 3 : 2}
                         />
 
-                        {/* Stone pattern grooves */}
-                        <line x1="70" y1="200" x2="330" y2="200" stroke="#1c1917" strokeWidth="2" />
-                        <line x1="70" y1="280" x2="330" y2="280" stroke="#1c1917" strokeWidth="2" />
-                        <line x1="70" y1="360" x2="330" y2="360" stroke="#1c1917" strokeWidth="2" />
-                        <line x1="160" y1="120" x2="160" y2="200" stroke="#1c1917" strokeWidth="2" />
-                        <line x1="240" y1="200" x2="240" y2="280" stroke="#1c1917" strokeWidth="2" />
-                        <line x1="150" y1="280" x2="150" y2="360" stroke="#1c1917" strokeWidth="2" />
+                        {/* Stone Masonry Seams & Chamfers */}
+                        <line x1="75" y1="220" x2="365" y2="220" stroke="#0c0a09" strokeWidth="2.5" />
+                        <line x1="75" y1="305" x2="365" y2="305" stroke="#0c0a09" strokeWidth="2.5" />
+                        <line x1="75" y1="395" x2="365" y2="395" stroke="#0c0a09" strokeWidth="2.5" />
+                        <line x1="75" y1="480" x2="365" y2="480" stroke="#0c0a09" strokeWidth="2.5" />
+                        
+                        <line x1="175" y1="135" x2="175" y2="220" stroke="#0c0a09" strokeWidth="2" />
+                        <line x1="265" y1="220" x2="265" y2="305" stroke="#0c0a09" strokeWidth="2" />
+                        <line x1="165" y1="305" x2="165" y2="395" stroke="#0c0a09" strokeWidth="2" />
+                        <line x1="275" y1="395" x2="275" y2="480" stroke="#0c0a09" strokeWidth="2" />
                       </g>
 
-                      {/* Convection Doors (Конвекционные заслонки) */}
+                      {/* --- 3. CONVECTION DAMPERS (Конвекционные заслонки) --- */}
                       <g
                         className="cursor-pointer transition-all"
-                        onClick={() => setSelectedPart('convection_doors')}
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setSelectedPart('convection_doors');
+                        }}
                       >
-                        {/* Top convection damper */}
-                        <rect x="80" y="135" width="35" height="18" rx="3" fill="#0c0a09" stroke="#f59e0b" strokeWidth="1.5" />
-                        <text x="83" y="148" fill="#f59e0b" fontSize="8" fontFamily="sans-serif">ЗАКР</text>
+                        {/* Top Louvers (Hot Air Outlet) */}
+                        <rect x="85" y="150" width="40" height="22" rx="4" fill="#0c0a09" stroke={selectedPart === 'convection_doors' ? '#38bdf8' : '#f59e0b'} strokeWidth="1.5" />
+                        <text x="91" y="165" fill="#f59e0b" fontSize="9" fontWeight="bold" fontFamily="sans-serif">ЗАКР</text>
 
-                        <rect x="285" y="135" width="35" height="18" rx="3" fill="#0c0a09" stroke="#f59e0b" strokeWidth="1.5" />
-                        <text x="288" y="148" fill="#f59e0b" fontSize="8" fontFamily="sans-serif">ЗАКР</text>
+                        <rect x="315" y="150" width="40" height="22" rx="4" fill="#0c0a09" stroke={selectedPart === 'convection_doors' ? '#38bdf8' : '#f59e0b'} strokeWidth="1.5" />
+                        <text x="321" y="165" fill="#f59e0b" fontSize="9" fontWeight="bold" fontFamily="sans-serif">ЗАКР</text>
 
-                        {/* Bottom air intake */}
-                        <rect x="80" y="435" width="35" height="18" rx="3" fill="#0c0a09" stroke="#78716c" strokeWidth="1" />
-                        <rect x="285" y="435" width="35" height="18" rx="3" fill="#0c0a09" stroke="#78716c" strokeWidth="1" />
+                        {/* Bottom Air Intakes (Cool air in) */}
+                        <rect x="85" y="490" width="40" height="22" rx="4" fill="#0c0a09" stroke="#78716c" strokeWidth="1.5" />
+                        <rect x="315" y="490" width="40" height="22" rx="4" fill="#0c0a09" stroke="#78716c" strokeWidth="1.5" />
+                        
+                        {/* Airflow Direction Indicators */}
+                        <path d="M 105,485 L 105,455" stroke="#38bdf8" strokeWidth="2" strokeDasharray="3 2" markerEnd="url(#arrow)" />
+                        <path d="M 335,485 L 335,455" stroke="#38bdf8" strokeWidth="2" strokeDasharray="3 2" />
                       </g>
 
-                      {/* Open Stones Tray (Открытая каменка) */}
+                      {/* --- 4. OPEN STONES TRAY (Открытая каменка - Арома) --- */}
                       <g
                         className="cursor-pointer"
-                        onClick={() => setSelectedPart('open_stones')}
-                      >
-                        <rect x="125" y="125" width="150" height="35" rx="6" fill="#1c1917" stroke="#e11d48" strokeWidth="1.5" />
-                        {/* Upper stones */}
-                        <ellipse cx="145" cy="138" rx="10" ry="7" fill="#78716c" />
-                        <ellipse cx="170" cy="134" rx="12" ry="8" fill="#a8a29e" />
-                        <ellipse cx="200" cy="138" rx="14" ry="9" fill="#78716c" />
-                        <ellipse cx="230" cy="134" rx="12" ry="8" fill="#a8a29e" />
-                        <ellipse cx="255" cy="138" rx="10" ry="7" fill="#78716c" />
-                        <text x="165" y="152" fill="#fda4af" fontSize="9" fontWeight="bold">220°C Открытая</text>
-                      </g>
-
-                      {/* Steam Cannon Funnel (Паровая пушка) */}
-                      <g
-                        className="cursor-pointer"
-                        onClick={() => setSelectedPart('steam_cannon')}
-                      >
-                        <polygon points="190,110 210,110 203,165 197,165" fill="#38bdf8" stroke="#0284c7" strokeWidth="1.5" />
-                        <line x1="200" y1="165" x2="200" y2="245" stroke="#38bdf8" strokeWidth="3" />
-                        {/* Water drop icon */}
-                        <circle cx="200" cy="120" r="4" fill="#38bdf8" />
-                      </g>
-
-                      {/* Closed Stone Core (Закрытая каменка - ЯДРО) */}
-                      <g
-                        className="cursor-pointer"
-                        onClick={() => setSelectedPart('closed_chamber')}
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setSelectedPart('open_stones');
+                        }}
                       >
                         <rect
-                          x="120"
-                          y="165"
-                          width="160"
-                          height="100"
-                          rx="8"
-                          fill="url(#coreGlow)"
-                          stroke={selectedPart === 'closed_chamber' ? '#ffffff' : '#f59e0b'}
-                          strokeWidth={selectedPart === 'closed_chamber' ? 3 : 2}
+                          x="135"
+                          y="140"
+                          width="170"
+                          height="40"
+                          rx="7"
+                          fill="#1c1917"
+                          stroke={selectedPart === 'open_stones' ? '#f43f5e' : '#e11d48'}
+                          strokeWidth={selectedPart === 'open_stones' ? 2.5 : 1.5}
                         />
 
-                        {/* Internal Glowing Hot Rocks and Cast Iron Spheres */}
-                        <circle cx="145" cy="190" r="12" fill="#7f1d1d" stroke="#fca5a5" strokeWidth="1" />
-                        <circle cx="175" cy="185" r="14" fill="#991b1b" stroke="#fca5a5" strokeWidth="1" />
-                        <circle cx="205" cy="188" r="13" fill="#b91c1c" stroke="#fef08a" strokeWidth="1.5" />
-                        <circle cx="235" cy="186" r="14" fill="#7f1d1d" stroke="#fca5a5" strokeWidth="1" />
-                        <circle cx="258" cy="195" r="11" fill="#991b1b" stroke="#fca5a5" strokeWidth="1" />
+                        {/* Upper Stones with soft warm tints */}
+                        <ellipse cx="158" cy="155" rx="12" ry="8" fill="#78716c" />
+                        <ellipse cx="186" cy="151" rx="14" ry="9" fill="#a8a29e" />
+                        <ellipse cx="220" cy="155" rx="16" ry="10" fill="#78716c" />
+                        <ellipse cx="254" cy="151" rx="14" ry="9" fill="#a8a29e" />
+                        <ellipse cx="282" cy="155" rx="12" ry="8" fill="#78716c" />
+                        <text x="180" y="171" fill="#fda4af" fontSize="10" fontWeight="bold">220°C Открытая</text>
+                      </g>
 
-                        <circle cx="138" cy="220" r="13" fill="#b91c1c" stroke="#fef08a" strokeWidth="1.5" />
-                        <circle cx="168" cy="225" r="15" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
-                        <circle cx="200" cy="220" r="16" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
-                        <circle cx="232" cy="226" r="15" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
-                        <circle cx="260" cy="218" r="12" fill="#b91c1c" stroke="#fef08a" strokeWidth="1.5" />
+                      {/* --- 5. STEAM CANNON (Паровая пушка / Дозатор) --- */}
+                      <g
+                        className="cursor-pointer"
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setSelectedPart('steam_cannon');
+                        }}
+                      >
+                        {/* Funnel */}
+                        <polygon
+                          points="210,120 230,120 224,180 216,180"
+                          fill="#38bdf8"
+                          stroke={selectedPart === 'steam_cannon' ? '#ffffff' : '#0284c7'}
+                          strokeWidth="2"
+                        />
+                        {/* Feed pipe down into the hot bottom */}
+                        <line x1="220" y1="180" x2="220" y2="280" stroke="#38bdf8" strokeWidth="4" />
+                        {/* Bottom distribution branches */}
+                        <line x1="160" y1="280" x2="280" y2="280" stroke="#38bdf8" strokeWidth="3" strokeDasharray="5 3" />
+                        {/* Water Droplet Glow */}
+                        <circle cx="220" cy="132" r="5" fill="#38bdf8" className="animate-pulse" />
+                      </g>
 
-                        {/* Core Label */}
-                        <rect x="135" y="242" width="130" height="18" rx="4" fill="#000000" opacity="0.7" />
-                        <text x="145" y="255" fill="#fde047" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                      {/* --- 6. CLOSED STONE CORE (Закрытая каменка - Ядро 550°C) --- */}
+                      <g
+                        className="cursor-pointer"
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setSelectedPart('closed_chamber');
+                        }}
+                      >
+                        <rect
+                          x="130"
+                          y="185"
+                          width="180"
+                          height="115"
+                          rx="10"
+                          fill="url(#hotCoreRadial)"
+                          stroke={selectedPart === 'closed_chamber' ? '#ffffff' : '#f59e0b'}
+                          strokeWidth={selectedPart === 'closed_chamber' ? 3.5 : 2}
+                        />
+
+                        {/* Internal Glowing Hot Jadeite & Cast Iron Cannonballs */}
+                        <circle cx="158" cy="214" r="14" fill="#991b1b" stroke="#fca5a5" strokeWidth="1" />
+                        <circle cx="192" cy="208" r="15" fill="#b91c1c" stroke="#fef08a" strokeWidth="1.5" />
+                        <circle cx="228" cy="212" r="16" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
+                        <circle cx="262" cy="210" r="15" fill="#b91c1c" stroke="#fef08a" strokeWidth="1.5" />
+                        <circle cx="288" cy="220" r="12" fill="#991b1b" stroke="#fca5a5" strokeWidth="1" />
+
+                        <circle cx="150" cy="248" r="15" fill="#b91c1c" stroke="#fef08a" strokeWidth="1.5" />
+                        <circle cx="184" cy="254" r="17" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
+                        <circle cx="220" cy="248" r="18" fill="#f59e0b" stroke="#ffffff" strokeWidth="2.5" className="animate-pulse" />
+                        <circle cx="256" cy="255" r="17" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
+                        <circle cx="290" cy="246" r="14" fill="#b91c1c" stroke="#fef08a" strokeWidth="1.5" />
+
+                        {/* Core Status Banner */}
+                        <rect x="145" y="274" width="150" height="20" rx="5" fill="#000000" opacity="0.85" />
+                        <text x="155" y="288" fill="#fde047" fontSize="11" fontWeight="bold" fontFamily="monospace">
                           ЯДРО: 550°C — 650°C
                         </text>
                       </g>
 
-                      {/* Firebox & Flames (Топка и Огонь) */}
+                      {/* --- 7. FIREBOX & COMBUSTION (Топка и Пламя) --- */}
                       <g
                         className="cursor-pointer"
-                        onClick={() => setSelectedPart('firebox')}
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setSelectedPart('firebox');
+                        }}
                       >
+                        {/* Firebox Chamber */}
                         <rect
-                          x="110"
-                          y="275"
-                          width="180"
-                          height="115"
-                          rx="6"
-                          fill="#1c1917"
+                          x="120"
+                          y="310"
+                          width="200"
+                          height="130"
+                          rx="8"
+                          fill="#14110f"
                           stroke={selectedPart === 'firebox' ? '#ef4444' : '#b45309'}
-                          strokeWidth="2"
+                          strokeWidth={selectedPart === 'firebox' ? 3 : 2}
                         />
 
-                        {/* Flaming curves */}
+                        {/* Roaring Flames */}
                         <path
-                          d="M 125,370 Q 140,290 155,360 Q 170,280 185,355 Q 200,270 215,360 Q 230,285 245,365 Q 260,300 275,370 Z"
-                          fill="url(#fireGrad)"
+                          d="M 135,415 Q 155,325 170,405 Q 190,315 205,400 Q 220,305 235,405 Q 255,320 270,410 Q 290,340 305,415 Z"
+                          fill="url(#fireGradRich)"
                           className="animate-pulse"
                         />
 
-                        {/* Fire logs */}
-                        <line x1="130" y1="365" x2="270" y2="365" stroke="#78350f" strokeWidth="8" strokeLinecap="round" />
-                        <line x1="140" y1="355" x2="260" y2="355" stroke="#451a03" strokeWidth="6" strokeLinecap="round" />
-
-                        <text x="150" y="385" fill="#fca5a5" fontSize="9" fontWeight="bold">
-                          ТОПКА (950°C)
-                        </text>
+                        {/* Birch Firewood Logs */}
+                        <line x1="145" y1="410" x2="295" y2="410" stroke="#78350f" strokeWidth="10" strokeLinecap="round" />
+                        <line x1="155" y1="400" x2="285" y2="400" stroke="#451a03" strokeWidth="8" strokeLinecap="round" />
+                        
+                        {/* Secondary Air Injection Ports */}
+                        <circle cx="150" cy="335" r="3" fill="#38bdf8" />
+                        <circle cx="290" cy="335" r="3" fill="#38bdf8" />
+                        <text x="175" y="340" fill="#fca5a5" fontSize="11" fontWeight="bold">ТОПКА (950°C)</text>
                       </g>
 
-                      {/* Ash Pan / Grate (Зольник и Поддувало) */}
+                      {/* --- 8. ASH PAN & PRIMARY AIR (Зольник и Поддувало) --- */}
                       <g
                         className="cursor-pointer"
-                        onClick={() => setSelectedPart('firebox')}
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setSelectedPart('firebox');
+                        }}
                       >
-                        <rect x="130" y="400" width="140" height="40" rx="4" fill="#292524" stroke="#57534e" strokeWidth="1.5" />
-                        {/* Air intake slots */}
-                        <line x1="145" y1="415" x2="175" y2="415" stroke="#a8a29e" strokeWidth="2" />
-                        <line x1="185" y1="415" x2="215" y2="415" stroke="#a8a29e" strokeWidth="2" />
-                        <line x1="225" y1="415" x2="255" y2="415" stroke="#a8a29e" strokeWidth="2" />
-                        <text x="160" y="432" fill="#a8a29e" fontSize="9">Поддувало / Воздух</text>
+                        <rect x="140" y="450" width="160" height="45" rx="5" fill="#292524" stroke="#57534e" strokeWidth="1.5" />
+                        {/* Grate & Air Slots */}
+                        <line x1="160" y1="468" x2="195" y2="468" stroke="#a8a29e" strokeWidth="2.5" />
+                        <line x1="205" y1="468" x2="240" y2="468" stroke="#a8a29e" strokeWidth="2.5" />
+                        <line x1="250" y1="468" x2="285" y2="468" stroke="#a8a29e" strokeWidth="2.5" />
+                        <text x="175" y="485" fill="#a8a29e" fontSize="10">Поддувало / Приток O₂</text>
                       </g>
 
-                      {/* Interactive Selection Pins */}
-                      <circle cx="200" cy="205" r="7" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" className="animate-ping opacity-75" />
+                      {/* --- INTERACTIVE PINS (Pulsing Targets) --- */}
+                      {/* Chimney Pin */}
+                      <g
+                        className="cursor-pointer"
+                        onClick={() => { playWoodTap(soundEnabled); setSelectedPart('chimney_economizer'); }}
+                      >
+                        <circle cx="220" cy="85" r="10" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" className="animate-ping opacity-60" />
+                        <circle cx="220" cy="85" r="8" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
+                      </g>
+
+                      {/* Core Pin */}
+                      <g
+                        className="cursor-pointer"
+                        onClick={() => { playWoodTap(soundEnabled); setSelectedPart('closed_chamber'); }}
+                      >
+                        <circle cx="220" cy="245" r="12" fill="#f59e0b" stroke="#ffffff" strokeWidth="2.5" className="animate-ping opacity-80" />
+                        <circle cx="220" cy="245" r="9" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
+                      </g>
+
+                      {/* Steam Cannon Pin */}
+                      <g
+                        className="cursor-pointer"
+                        onClick={() => { playWoodTap(soundEnabled); setSelectedPart('steam_cannon'); }}
+                      >
+                        <circle cx="220" cy="150" r="9" fill="#38bdf8" stroke="#ffffff" strokeWidth="2" className="animate-ping opacity-75" />
+                        <circle cx="220" cy="150" r="7" fill="#38bdf8" stroke="#ffffff" strokeWidth="2" />
+                      </g>
+
+                      {/* Firebox Pin */}
+                      <g
+                        className="cursor-pointer"
+                        onClick={() => { playWoodTap(soundEnabled); setSelectedPart('firebox'); }}
+                      >
+                        <circle cx="220" cy="380" r="11" fill="#ef4444" stroke="#ffffff" strokeWidth="2" className="animate-ping opacity-75" />
+                        <circle cx="220" cy="380" r="8" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
+                      </g>
                     </svg>
                   </div>
-                  )}
 
-                  <div className="w-full flex items-center justify-around text-[11px] font-mono text-stone-400 pt-2 border-t border-stone-800">
-                    <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-amber-500 inline-block" />
-                      Закрытое ядро (легкий пар)
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-rose-500 inline-block" />
-                      Открытые камни (арома)
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-stone-500 inline-block" />
-                      Саркофаг (длинное ИК)
-                    </span>
+                  {/* Component Quick Chips */}
+                  <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-stone-800 text-[11px] font-mono">
+                    <button
+                      onClick={() => { playWoodTap(soundEnabled); setSelectedPart('closed_chamber'); }}
+                      className={`px-2 py-1.5 rounded-lg border text-left transition-all ${
+                        selectedPart === 'closed_chamber'
+                          ? 'border-amber-400 bg-amber-500/20 text-amber-200 font-bold'
+                          : 'border-stone-800 bg-stone-950/60 text-stone-400 hover:text-stone-200'
+                      }`}
+                    >
+                      <span className="text-amber-400 font-bold">🔒 Ядро</span> (550°C)
+                    </button>
+
+                    <button
+                      onClick={() => { playWoodTap(soundEnabled); setSelectedPart('steam_cannon'); }}
+                      className={`px-2 py-1.5 rounded-lg border text-left transition-all ${
+                        selectedPart === 'steam_cannon'
+                          ? 'border-cyan-400 bg-cyan-500/20 text-cyan-200 font-bold'
+                          : 'border-stone-800 bg-stone-950/60 text-stone-400 hover:text-stone-200'
+                      }`}
+                    >
+                      <span className="text-cyan-400 font-bold">🚿 Пушка</span> (пар)
+                    </button>
+
+                    <button
+                      onClick={() => { playWoodTap(soundEnabled); setSelectedPart('firebox'); }}
+                      className={`px-2 py-1.5 rounded-lg border text-left transition-all ${
+                        selectedPart === 'firebox'
+                          ? 'border-rose-400 bg-rose-500/20 text-rose-200 font-bold'
+                          : 'border-stone-800 bg-stone-950/60 text-stone-400 hover:text-stone-200'
+                      }`}
+                    >
+                      <span className="text-rose-400 font-bold">🔥 Топка</span> (950°C)
+                    </button>
+
+                    <button
+                      onClick={() => { playWoodTap(soundEnabled); setSelectedPart('sarcophagus'); }}
+                      className={`px-2 py-1.5 rounded-lg border text-left transition-all ${
+                        selectedPart === 'sarcophagus'
+                          ? 'border-emerald-400 bg-emerald-500/20 text-emerald-200 font-bold'
+                          : 'border-stone-800 bg-stone-950/60 text-stone-400 hover:text-stone-200'
+                      }`}
+                    >
+                      <span className="text-emerald-400 font-bold">🛡️ Саркофаг</span> (ИК)
+                    </button>
                   </div>
                 </div>
 

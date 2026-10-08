@@ -105,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div className="flex flex-col">
             <span className="font-serif text-base sm:text-lg font-bold tracking-wide text-stone-100 group-hover:text-amber-200 transition-colors leading-tight">
-              Квест Пармастера
+              Пармастер Квест
             </span>
             <span className="text-[10px] font-mono tracking-wider uppercase text-amber-400/80 mt-0.5">
               Академия Банного Мастерства

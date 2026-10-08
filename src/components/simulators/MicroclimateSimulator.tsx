@@ -209,15 +209,11 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
 
           <button
             onClick={() => setIsStoveModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-950/70 via-stone-900 to-amber-950/70 hover:from-amber-900/80 hover:to-amber-900/80 text-amber-300 text-xs font-semibold transition-all border border-amber-500/60 shadow-[0_0_15px_rgba(245,158,11,0.2)] cursor-pointer active:scale-95 group"
-            title="Интерактивный 3D-макет устройства печи, физика пара и ИК-волны"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-900/90 hover:bg-stone-800 text-amber-300 text-xs font-semibold transition-all border border-amber-600/40 cursor-pointer active:scale-95"
+            title="Интерактивный макет устройства печи, физика пара и ИК-волны"
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-            </span>
-            <Sparkles className="h-4 w-4 text-amber-400 group-hover:rotate-12 transition-transform" />
-            <span>3D-Макет Печи в Разрезе 🪵</span>
+            <Sparkles className="h-4 w-4 text-amber-400" />
+            <span>Макет печи в разрезе 🪵</span>
           </button>
 
           <button
@@ -229,45 +225,6 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
             <span>{ventilationOpen ? 'Проветривание...' : 'Залповое проветривание'}</span>
           </button>
         </div>
-      </div>
-
-      {/* 3D Stove Anatomy Preview Card */}
-      <div
-        onClick={() => setIsStoveModalOpen(true)}
-        className="group relative overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-r from-stone-950 via-stone-900/95 to-amber-950/30 p-4 sm:p-5 transition-all hover:border-amber-400 hover:shadow-[0_0_25px_rgba(245,158,11,0.25)] cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-4"
-      >
-        <div className="flex items-center gap-4 w-full sm:w-auto">
-          <div className="relative h-16 w-28 sm:h-20 sm:w-36 rounded-xl overflow-hidden border border-amber-500/50 shrink-0 bg-black shadow-inner">
-            <img
-              src="/images/stove-anatomy.jpg"
-              alt="Анатомия сердца бани — 3D макет печи"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
-            <span className="absolute bottom-1 right-1 text-[9px] font-mono font-bold bg-amber-500 text-stone-950 px-1.5 py-0.5 rounded shadow">
-              3D РАЗРЕЗ
-            </span>
-          </div>
-
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-mono text-amber-400 font-semibold uppercase tracking-wider">
-              <span>🔥 Сердце бани</span>
-              <span className="text-stone-500">•</span>
-              <span>Анатомия печи</span>
-            </div>
-            <h4 className="font-serif text-base sm:text-lg font-bold text-stone-100 group-hover:text-amber-200 transition-colors">
-              Интерактивный 3D-разрез: Топка, Закрытая каменка и Паровые пушки
-            </h4>
-            <p className="text-xs text-stone-400 mt-1 line-clamp-1">
-              Нажми, чтобы исследовать 7 внутренних зон, физику перегретого пара 550°C и безопасное ИК-тепло саркофага.
-            </p>
-          </div>
-        </div>
-
-        <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 group-hover:bg-amber-500 border border-amber-500/40 group-hover:border-amber-400 text-amber-300 group-hover:text-stone-950 text-xs font-bold transition-all shrink-0">
-          <span>Открыть макет</span>
-          <span>→</span>
-        </button>
       </div>
 
       {/* Sliders Control Deck */}

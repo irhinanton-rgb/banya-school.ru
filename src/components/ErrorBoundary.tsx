@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="text-4xl">🌿</div>
             <div className="space-y-2">
               <h2 className="font-serif text-2xl font-bold text-amber-200">
-                Квест Пармастера
+                Пармастер Квест
               </h2>
               <p className="text-sm text-stone-400">
                 Произошла задержка при синхронизации состояния парной.

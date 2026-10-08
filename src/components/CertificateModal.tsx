@@ -61,7 +61,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                 )}
               </h3>
               <p className="text-xs text-stone-400">
-                Официальный документ о прохождении курса «Квест Пармастера: Путь к Мастерству»
+                Официальный документ о прохождении курса «Пармастер Квест: Путь к Мастерству»
               </p>
             </div>
           </div>
@@ -251,7 +251,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                 <div className="text-right space-y-1">
                   <div className="text-[11px] text-stone-400 font-mono">СТАТУС КВАЛИФИКАЦИИ:</div>
                   <div className="text-sm font-bold text-emerald-400 font-mono">АККРЕДИТОВАН ✦</div>
-                  <div className="text-[10px] text-stone-500">Квест Пармастера · 100%</div>
+                  <div className="text-[10px] text-stone-500">Пармастер Квест · 100%</div>
                 </div>
               </div>
             </div>

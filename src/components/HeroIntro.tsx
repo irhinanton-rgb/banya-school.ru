@@ -122,7 +122,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
 
             {/* Main Headline */}
             <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-stone-100 leading-[1.12] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
-              Квест Пармастера: <br />
+              Пармастер Квест: <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 drop-shadow">
                 Путь к Мастерству
               </span>

@@ -679,7 +679,7 @@ export default function App() {
       <footer className="w-full border-t border-stone-800/80 bg-stone-950 py-6 print:hidden">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div>
-            © {new Date().getFullYear()} Квест Пармастера: Путь к Мастерству · banya-school.ru
+            © {new Date().getFullYear()} Пармастер Квест: Путь к Мастерству · banya-school.ru
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <button
