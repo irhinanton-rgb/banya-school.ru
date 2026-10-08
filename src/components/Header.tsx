@@ -75,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-stone-800/80 bg-stone-950/95 backdrop-blur-md">
-      <div className="mx-auto flex min-h-16 py-1.5 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Top left: Logo */}
         <button
@@ -88,13 +88,9 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           className="flex items-center gap-3 text-left transition-opacity hover:opacity-95 group cursor-pointer"
         >
-          <div
-            style={{ width: '63px', height: '84px' }}
-            className="relative flex items-center justify-center rounded-xl overflow-hidden bg-black border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all shrink-0"
-          >
+          <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 aspect-square items-center justify-center rounded-xl overflow-hidden bg-black border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all shrink-0">
             <img
               src="/images/abm2-icon.jpg"
-              style={{ width: '63px', height: '84px' }}
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
                 if (!target.src.includes('abm2-logo.jpg')) {
@@ -104,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }
               }}
               alt="АБМ — Академия Банного Мастерства"
-              className="w-[63px] h-[84px] object-cover block group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-300"
             />
           </div>
           <div className="flex flex-col">
