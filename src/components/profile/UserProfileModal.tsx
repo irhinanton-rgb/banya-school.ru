@@ -23,6 +23,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { UserProgress, LevelId, BadgeId } from '../../types/banya';
+import { BADGES } from '../../data/courseData';
 import { useAuth } from '../../firebase/AuthContext';
 import { playWoodTap, playSuccessChime } from '../../utils/audio';
 
@@ -636,6 +637,48 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   </button>
                 </div>
               )}
+
+              {/* Master's Gear and Trophies Grid */}
+              <div className="p-4 rounded-2xl bg-stone-900/60 border border-stone-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-stone-200 flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-amber-400" />
+                    <span>Собранный Инвентарь & Инструменты:</span>
+                  </div>
+                  <span className="text-xs text-amber-400 font-mono">
+                    {progress.unlockedBadges.length} / {BADGES.length}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                  {BADGES.map((b) => {
+                    const isUnlocked = progress.unlockedBadges.includes(b.id);
+                    return (
+                      <div
+                        key={b.id}
+                        className={`p-2.5 rounded-xl border text-center flex flex-col items-center justify-between transition-all ${
+                          isUnlocked
+                            ? 'bg-stone-950 border-amber-500/40 text-stone-100'
+                            : 'bg-stone-950/40 border-stone-800 text-stone-500 opacity-50'
+                        }`}
+                      >
+                        <div className="text-2xl my-1 relative">
+                          {b.icon}
+                          {!isUnlocked && (
+                            <span className="absolute -top-1 -right-1 text-[10px]">🔒</span>
+                          )}
+                        </div>
+                        <div className="text-[11px] font-semibold truncate w-full">
+                          {b.name}
+                        </div>
+                        <div className="text-[9px] text-stone-400 font-mono mt-0.5">
+                          {isUnlocked ? 'В инвентаре' : `Уровень ${b.unlockedAtLevel}`}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
 

@@ -324,6 +324,20 @@ export default function App() {
     });
   };
 
+  const handleGrantBadge = (badgeId: BadgeId, xpReward: number) => {
+    setProgress((prev) => {
+      const nextBadges = prev.unlockedBadges.includes(badgeId)
+        ? prev.unlockedBadges
+        : [...prev.unlockedBadges, badgeId];
+
+      return {
+        ...prev,
+        xp: prev.xp + xpReward,
+        unlockedBadges: nextBadges,
+      };
+    });
+  };
+
   const handlePassExam = (score: number) => {
     const today = new Date().toLocaleDateString('ru-RU', {
       year: 'numeric',
@@ -517,8 +531,13 @@ export default function App() {
                   />
                 </div>
 
-                {/* Badges / Trophies Shelf */}
-                <BadgesShowcase unlockedBadges={progress.unlockedBadges} />
+                {/* Badges / Trophies Shelf & Secret Chest */}
+                <BadgesShowcase
+                  unlockedBadges={progress.unlockedBadges}
+                  onNavigateToLevel={handleSelectLevel}
+                  onUnlockBadge={handleGrantBadge}
+                  soundEnabled={progress.soundEnabled}
+                />
               </div>
             )}
           </div>

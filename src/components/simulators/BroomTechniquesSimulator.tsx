@@ -239,6 +239,16 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
         </div>
       </div>
 
+      {/* Tool continuity banner */}
+      <div className="rounded-xl bg-amber-950/20 border border-amber-500/30 p-3 flex items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xl">🌿</span>
+          <div className="text-stone-300">
+            <strong className="text-amber-300">Рабочий инструмент:</strong> Два кавказских дубовых веника (получены за Уровень 1). Отрабатывайте мягкую лиственную подушку, синхронность кистей и волновое движение от стоп.
+          </div>
+        </div>
+      </div>
+
       {/* Technique Selector Pills */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
         {BROOM_TECHNIQUES.map((tech) => {

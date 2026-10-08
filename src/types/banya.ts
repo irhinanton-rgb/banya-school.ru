@@ -13,6 +13,10 @@ export interface Badge {
   description: string;
   icon: string;
   unlockedAtLevel: number;
+  toolType?: 'equipment' | 'key' | 'trophy';
+  howToUse?: string;
+  nextLevelSynergy?: string;
+  rarity?: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
 export type LevelId = 1 | 2 | 3 | 4 | 5 | 6 | 7;

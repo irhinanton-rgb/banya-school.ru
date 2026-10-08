@@ -163,6 +163,16 @@ export const HerbalBlenderSimulator: React.FC<HerbalBlenderSimulatorProps> = ({
         </div>
       </div>
 
+      {/* Tool Continuity Banner */}
+      <div className="rounded-xl bg-amber-950/20 border border-amber-500/30 p-3 flex items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xl">🥣</span>
+          <div className="text-stone-300">
+            <strong className="text-amber-300">Рабочий инструмент:</strong> Каменная ступа и медная чаша (награда за Уровень 2). Растирайте высушенные соцветия пестиком с легким нажимом, чтобы высвободить эфирные масла без окисления.
+          </div>
+        </div>
+      </div>
+
       {/* View 1: Comprehensive Herbs Encyclopedia */}
       {activeSubTab === 'library' && (
         <HerbsEncyclopedia
