@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowRight, Volume2, VolumeX, Play, Pause, Award, Sparkles } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, Play, Pause, Sparkles } from 'lucide-react';
 import { UserProgress, LevelId } from '../types/banya';
 
 interface HeroIntroProps {
@@ -52,8 +52,8 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
       : 'Финальная Аттестация';
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-stone-800/90 bg-stone-950 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9)]">
-      {/* 1. Cinematic Background Video — Clearly visible steaming & brooms motion */}
+    <div className="relative overflow-hidden rounded-3xl border border-stone-800/90 bg-stone-950 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9)] min-h-[680px] sm:min-h-[760px] lg:min-h-[820px] flex flex-col justify-center">
+      {/* 1. Cinematic Background Video — Full Background as originally set */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <video
           ref={videoRef}
@@ -63,8 +63,8 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
           loop
           muted={isMuted}
           playsInline
-          className="w-full h-full object-cover object-center scale-105 pointer-events-none transition-transform duration-1000"
-          style={{ filter: 'brightness(0.72) contrast(1.12) saturate(1.15)' }}
+          className="w-full h-full object-cover object-center pointer-events-none transition-transform duration-1000"
+          style={{ filter: 'brightness(0.74) contrast(1.10) saturate(1.15)' }}
         />
 
         {/* Scrim Layers: Guarantees 100% Crisp Text Legibility while video is clearly visible */}
@@ -117,7 +117,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
             {/* Category Pill */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono uppercase tracking-wider backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.2)]">
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>Академия Банного Мастерства</span>
+              <span>Школа Банного Мастерства</span>
             </div>
 
             {/* Main Headline */}
@@ -128,7 +128,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
               </span>
             </h1>
 
-            {/* Sub-headline as specifically requested in prompt */}
+            {/* Sub-headline */}
             <p className="text-base sm:text-lg text-stone-200/90 leading-relaxed font-sans max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
               Интерактивная программа от первого пара до уверенного мастера. Без скучной теории.
             </p>
@@ -158,23 +158,22 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
               </div>
             </div>
 
-            {/* 4 Feature Pillars (7 Levels, 8 Brooms, 8 Herbs, Certificate) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
-              <div className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3 backdrop-blur-md shadow-sm">
-                <div className="text-amber-300 font-serif text-xl sm:text-2xl font-bold">7</div>
-                <div className="text-[11px] text-stone-300 mt-0.5">Станций квеста</div>
-              </div>
-              <div className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3 backdrop-blur-md shadow-sm">
-                <div className="text-amber-300 font-serif text-xl sm:text-2xl font-bold">8</div>
-                <div className="text-[11px] text-stone-300 mt-0.5">Техник веника</div>
-              </div>
-              <div className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3 backdrop-blur-md shadow-sm">
-                <div className="text-amber-300 font-serif text-xl sm:text-2xl font-bold">8</div>
-                <div className="text-[11px] text-stone-300 mt-0.5">Целебных трав</div>
-              </div>
-              <div className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3 backdrop-blur-md shadow-sm">
-                <div className="text-amber-300 font-serif text-xl sm:text-2xl font-bold">👑</div>
-                <div className="text-[11px] text-stone-300 mt-0.5">Сертификат</div>
+            {/* Life is a Game — Learn Playfully Banner (replaces 4 squares) */}
+            <div className="rounded-2xl bg-gradient-to-r from-amber-950/50 via-stone-900/85 to-stone-950/90 border border-amber-500/40 p-4 sm:p-5 backdrop-blur-md shadow-xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex items-center gap-3.5 sm:gap-4 relative z-10">
+                <div className="h-11 w-11 sm:h-13 sm:w-13 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-2xl sm:text-3xl shrink-0 shadow-lg">
+                  🎮
+                </div>
+                <div className="space-y-1">
+                  <div className="font-serif text-sm sm:text-base font-bold text-amber-200 tracking-wide flex items-center gap-2">
+                    <span>Жизнь — игра, учись играючи</span>
+                    <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                  </div>
+                  <p className="text-xs sm:text-sm text-stone-300 leading-relaxed font-sans">
+                    Осваивай банное мастерство через живой опыт, интерактивные симуляторы и удовольствие от каждого пара.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -207,11 +206,11 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
                     Антон Ирхин
                   </h3>
                   <div className="text-xs font-medium text-amber-300 leading-snug">
-                    Автор курса · Наставник академии
+                    Автор курса · Мастер-наставник
                   </div>
                   <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-mono">
                     <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Онлайн в Академии</span>
+                    <span>Онлайн на платформе</span>
                   </div>
                 </div>
               </div>
@@ -228,7 +227,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
                 </div>
               </div>
 
-              {/* Specific quote from prompt */}
+              {/* Quote */}
               <div className="relative p-3.5 rounded-2xl bg-stone-950/90 border border-stone-800/90">
                 <div className="text-amber-500/40 text-3xl font-serif leading-none absolute -top-1 left-2 font-bold">
                   “

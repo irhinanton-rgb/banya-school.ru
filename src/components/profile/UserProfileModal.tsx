@@ -269,7 +269,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   </span>
                 ) : (
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold">
-                    Ученик Академии
+                    Ученик Квеста
                   </span>
                 )}
               </div>
@@ -522,7 +522,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   rows={3}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Расскажите о себе: сколько лет парите, какие бани любите, какие цели ставите в Академии..."
+                  placeholder="Расскажите о себе: сколько лет парите, какие бани любите, какие цели ставите в обучении..."
                   className="w-full bg-stone-900 border border-stone-700 rounded-xl p-3 text-xs text-stone-100 placeholder:text-stone-500 focus:outline-none focus:border-amber-500 leading-relaxed"
                 />
               </div>

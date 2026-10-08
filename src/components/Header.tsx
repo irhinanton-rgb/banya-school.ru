@@ -99,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
                   target.src = '/images/%D0%90%D0%91%D0%9C3.png';
                 }
               }}
-              alt="АБМ — Академия Банного Мастерства"
+              alt="Пармастер Квест — Школа Банного Мастерства"
               className="w-full h-full object-contain block group-hover:scale-105 transition-transform duration-300"
             />
           </div>
@@ -108,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
               Пармастер Квест
             </span>
             <span className="text-[10px] font-mono tracking-wider uppercase text-amber-400/80 mt-0.5">
-              Академия Банного Мастерства
+              Школа Банного Мастерства
             </span>
           </div>
         </button>

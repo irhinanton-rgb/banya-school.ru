@@ -71,7 +71,7 @@ export const ForumView: React.FC<ForumViewProps> = ({ progress, onOpenAuth }) =>
   ]);
 
   const currentUserId = user?.uid || (progress.name ? `local_${progress.name}` : 'guest_master');
-  const currentUserName = user?.displayName || progress.name || 'Мастер Академии';
+  const currentUserName = user?.displayName || progress.name || 'Мастер Парения';
   const isAnton = progress.name?.toLowerCase().includes('ирхин') || Boolean(progress.isAdmin);
 
   useEffect(() => {

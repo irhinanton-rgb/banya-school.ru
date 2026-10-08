@@ -145,7 +145,7 @@ export const QuestMap: React.FC<QuestMapProps> = ({
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <h3 className="font-serif text-lg sm:text-xl font-bold text-stone-200">
-              Следующие уровни Академии (2–7)
+              Следующие уровни квеста (2–7)
             </h3>
             <p className="text-xs text-stone-400">
               Программа глубокого погружения в профессию пармастера

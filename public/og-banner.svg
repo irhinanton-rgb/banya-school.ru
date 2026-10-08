@@ -27,7 +27,7 @@
 
   <!-- Title -->
   <text x="80" y="220" font-family="Georgia, serif" font-size="64" font-weight="bold" fill="#f5f5f4">
-    Квест Пармастера
+    Пармастер Квест
   </text>
   <text x="80" y="295" font-family="Georgia, serif" font-size="52" font-style="italic" fill="#fbbf24">
     Путь к Мастерству
@@ -35,7 +35,7 @@
 
   <!-- Description -->
   <text x="80" y="375" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="22" fill="#d6d3d1">
-    Интерактивная геймифицированная академия банного искусства
+    Интерактивная геймифицированная школа банного искусства
   </text>
   <text x="80" y="415" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" fill="#a8a29e">
     Техника парения · Ароматерапия · Традиции пара · Именной сертификат

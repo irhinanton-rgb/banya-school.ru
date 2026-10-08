@@ -34,7 +34,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
         ...LEADERBOARD_CREW,
         {
           rank: 0,
-          name: progress.name || 'Вы (Студент Академии)',
+          name: progress.name || 'Вы (Участник квеста)',
           title: progress.completedLevels.includes(7)
             ? 'Легендарный Пармастер 👑'
             : progress.completedLevels.length >= 4
@@ -52,7 +52,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
 
   const userEntry = combined.find((e) => (e as { isUser?: boolean }).isUser) || {
     rank: 1,
-    name: progress.name || 'Вы (Студент Академии)',
+    name: progress.name || 'Вы (Участник квеста)',
     title: 'Подмастерье Банного Дела',
     xp: progress.xp,
     badges: progress.unlockedBadges.length,

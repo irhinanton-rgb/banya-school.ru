@@ -257,7 +257,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <span>Облачный профиль пармастера</span>
               </div>
               <h2 className="text-xl font-serif font-bold text-amber-100">
-                {user ? 'Личный кабинет и Синхронизация' : 'Вход и Регистрация в Академии'}
+                {user ? 'Личный кабинет и Синхронизация' : 'Вход и Регистрация в Пармастер Квест'}
               </h2>
             </div>
           </div>
@@ -742,7 +742,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           <span>Обработка...</span>
                         ) : emailMode === 'signup' ? (
                           <>
-                            <span>Зарегистрироваться в Академии</span>
+                            <span>Зарегистрироваться в Пармастер Квест</span>
                             <ArrowRight className="w-4 h-4" />
                           </>
                         ) : (

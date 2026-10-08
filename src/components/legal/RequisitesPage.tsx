@@ -19,7 +19,7 @@ export const RequisitesPage: React.FC<RequisitesPageProps> = ({ onBackToMain, on
             className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-stone-300 hover:text-amber-400 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Вернуться на главную страницу Академии</span>
+            <span>Вернуться на главную страницу</span>
           </button>
 
           <div className="flex items-center gap-2 text-xs font-mono text-stone-400">
@@ -141,7 +141,7 @@ export const RequisitesPage: React.FC<RequisitesPageProps> = ({ onBackToMain, on
                 </h3>
                 <p className="text-xs text-stone-300 leading-relaxed">
                   Оказание информационно-консультационных и обучающих услуг в дистанционной форме посредством сети Интернет:
-                  предоставление электронного доступа к образовательной платформе «Академия Банного Мастерства»,
+                  предоставление электронного доступа к образовательной платформе «Пармастер Квест: Школа Банного Мастерства»,
                   интерактивным симуляторам, методическим материалам, технологическим картам парения и закрытому сообществу пармастеров.
                 </p>
               </div>
@@ -244,7 +244,7 @@ export const RequisitesPage: React.FC<RequisitesPageProps> = ({ onBackToMain, on
             <h2 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mb-4">
               Публичная оферта на оказание образовательных услуг
             </h2>
-            <p><strong>1. Общие положения:</strong> Настоящий документ является публичной офертой Самозанятого Ирхина Антона (ИНН: 614007827150) и определяет условия предоставления доступа к онлайн-сервису «Академия Банного Мастерства» (banya-school.ru).</p>
+            <p><strong>1. Общие положения:</strong> Настоящий документ является публичной офертой Самозанятого Ирхина Антона (ИНН: 614007827150) и определяет условия предоставления доступа к онлайн-сервису «Пармастер Квест» (banya-school.ru).</p>
             <p><strong>2. Акцепт оферты:</strong> Акцептом настоящей оферты признается оплата любого из платных тарифов доступа либо прохождение регистрации на сайте.</p>
             <p><strong>3. Стоимость:</strong> Стоимость доступа фиксируется в рублях РФ на странице «Тарифы» на момент оплаты. НДС не облагается в связи с применением режима НПД (ФЗ № 422-ФЗ).</p>
             <p><strong>4. Контакты:</strong> Исполнитель: Ирхин Антон, ИНН: 614007827150, e-mail: irhinanton@gmail.com.</p>
@@ -267,7 +267,7 @@ export const RequisitesPage: React.FC<RequisitesPageProps> = ({ onBackToMain, on
       {/* Footer */}
       <footer className="border-t border-stone-800 bg-stone-950 py-6 text-center text-xs text-stone-500">
         <div className="max-w-4xl mx-auto px-4 space-y-1">
-          <div>© 2026 Академия Банного Мастерства. Все права защищены.</div>
+          <div>© 2026 Пармастер Квест — Школа Банного Мастерства. Все права защищены.</div>
           <div className="font-mono text-stone-400">
             Исполнитель: Самозанятый Ирхин Антон | ИНН: 614007827150 | irhinanton@gmail.com
           </div>

@@ -26,7 +26,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
       case 'trophy':
         return 'Высший знак отличия';
       default:
-        return 'Реликвия Академии';
+        return 'Реликвия Пармастера';
     }
   };
 

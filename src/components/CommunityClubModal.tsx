@@ -90,7 +90,7 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
 
   // Video Conference State
   const [isRoomActive, setIsRoomActive] = useState<boolean>(false);
-  const [roomName, setRoomName] = useState<string>('BanyaSchoolAcademyRoom');
+  const [roomName, setRoomName] = useState<string>('BanyaSchoolMasterRoom');
 
   // Homework State
   const [homeworks, setHomeworks] = useState<HomeworkSubmission[]>([]);
@@ -154,7 +154,7 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
     setIsSending(true);
     playWoodTap(progress.soundEnabled);
 
-    const authorName = user?.displayName || progress.name || 'Ученик Академии';
+    const authorName = user?.displayName || progress.name || 'Ученик Квеста';
     const authorRole = user?.email?.includes('irhinanton') ? 'mentor' : 'student';
 
     const newMsg = await sendCommunityMessage({
@@ -184,7 +184,7 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
     playWoodTap(progress.soundEnabled);
 
     const currentUserId = user?.uid || 'guest_user';
-    const currentUserName = user?.displayName || progress.name || 'Ученик Академии';
+    const currentUserName = user?.displayName || progress.name || 'Ученик Квеста';
 
     const newDm = await sendDirectMessage(
       currentUserId,
@@ -217,7 +217,7 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
     const tech = BROOM_TECHNIQUES.find((t) => t.id === selectedTechId) || BROOM_TECHNIQUES[0];
     const newSubmission = submitHomework({
       studentId: user?.uid || 'guest_user',
-      studentName: user?.displayName || progress.name || 'Ученик Академии',
+      studentName: user?.displayName || progress.name || 'Ученик Квеста',
       techniqueId: tech.id,
       techniqueName: tech.name,
       videoUrl: hwVideoUrl.trim(),
@@ -984,7 +984,7 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
                     <span>Онлайн-комната разборов в реальном времени</span>
                   </div>
                   <h4 className="font-serif text-lg sm:text-xl font-bold text-stone-100 mt-1">
-                    Интерактивная Видеокомната Академии
+                    Интерактивная Видеокомната Клуба
                   </h4>
                   <p className="text-xs text-stone-400 mt-0.5">
                     Подключение в 1 клик со смартфона (iOS/Android) или компьютера без VPN и без регистрации
@@ -1047,7 +1047,7 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
                 <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-950 border border-stone-800 animate-fade-in shadow-2xl">
                   <iframe
                     src={`https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=true&config.startWithVideoMuted=false`}
-                    title="Видеоконференция Академии Банного Мастерства"
+                    title="Видеоконференция Школы Банного Мастерства"
                     className="w-full h-full border-0"
                     allow="camera *; microphone *; display-capture *; autoplay *; clipboard-write *; fullscreen *"
                   />

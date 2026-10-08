@@ -150,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await updateProfile(cred.user, { displayName: displayName.trim() });
       }
       setAuthMethod('password');
-      setAuthSuccessMsg('Регистрация успешно завершена! Добро пожаловать в Академию.');
+      setAuthSuccessMsg('Регистрация успешно завершена! Добро пожаловать в Пармастер Квест.');
       return cred.user;
     } catch (err: unknown) {
       const msg = mapAuthErrorMessage(err);

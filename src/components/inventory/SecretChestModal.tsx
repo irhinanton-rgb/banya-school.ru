@@ -97,7 +97,7 @@ export const SecretChestModal: React.FC<SecretChestModalProps> = ({
             <div>
               <div className="text-[11px] font-mono uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Тайник Академии Банного Мастерства</span>
+                <span>Тайник Пармастера</span>
               </div>
               <h3 className="font-serif text-lg sm:text-xl font-bold text-stone-100 flex items-center gap-2">
                 <span>Кованый Сундук Тайных Знаний</span>
