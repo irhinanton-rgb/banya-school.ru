@@ -30,6 +30,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   soundEnabled,
 }) => {
   const [activeTab, setActiveTab] = useState<'blueprint' | 'steamTypes' | 'ceremonies' | 'infrared' | 'quiz'>('blueprint');
+  const [viewMode, setViewMode] = useState<'3d_photo' | 'svg_schema'>('3d_photo');
   const [selectedPart, setSelectedPart] = useState<string>('closed_chamber');
   const [steamAnimation, setSteamAnimation] = useState<'closed' | 'open' | 'herbal' | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -359,14 +360,170 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                     </div>
                   )}
 
-                  <div className="w-full flex items-center justify-between pb-3 border-b border-stone-800/80 text-xs">
-                    <span className="font-mono text-stone-400">СХЕМА ПЕЧИ В РАЗРЕЗЕ (КЛИКАЙ НА ЭЛЕМЕНТЫ)</span>
-                    <span className="text-amber-400 font-bold">● РЕЖИМ: ЗАКРЫТАЯ КАМЕНКА</span>
+                  <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-stone-800/80 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-stone-300 font-semibold">МАКЕТ ПЕЧИ В РАЗРЕЗЕ:</span>
+                      <span className="text-amber-400 font-bold hidden sm:inline">● КЛИКАЙ НА ТОЧКИ</span>
+                    </div>
+
+                    {/* View mode toggle */}
+                    <div className="flex items-center gap-1 bg-stone-950 p-1 rounded-xl border border-stone-800">
+                      <button
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setViewMode('3d_photo');
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+                          viewMode === '3d_photo'
+                            ? 'bg-amber-500 text-stone-950 shadow font-bold'
+                            : 'text-stone-400 hover:text-stone-200'
+                        }`}
+                      >
+                        📸 3D Фото-разрез
+                      </button>
+                      <button
+                        onClick={() => {
+                          playWoodTap(soundEnabled);
+                          setViewMode('svg_schema');
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+                          viewMode === 'svg_schema'
+                            ? 'bg-amber-500 text-stone-950 shadow font-bold'
+                            : 'text-stone-400 hover:text-stone-200'
+                        }`}
+                      >
+                        📐 Схема (SVG)
+                      </button>
+                    </div>
                   </div>
 
-                  {/* SVG Cutaway Graphic */}
-                  <div className="w-full max-w-[460px] aspect-[4/5] relative my-2">
-                    <svg viewBox="0 0 400 500" className="w-full h-full select-none">
+                  {/* 3D Photo Cutaway Mode */}
+                  {viewMode === '3d_photo' ? (
+                    <div className="w-full relative my-2 rounded-2xl overflow-hidden border border-amber-500/40 shadow-2xl bg-black">
+                      <div className="relative w-full aspect-[1024/559]">
+                        <img
+                          src="/images/stove-anatomy.jpg"
+                          alt="3D Анатомия банной печи в разрезе"
+                          className="w-full h-full object-cover block select-none pointer-events-none"
+                        />
+
+                        {/* Visual overlay gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+
+                        {/* Interactive Hotspot Pins */}
+                        {[
+                          {
+                            id: 'chimney_economizer',
+                            top: '14%',
+                            left: '48%',
+                            label: 'Дымоход с экономайзером',
+                            temp: '300–450°C',
+                            icon: '💨',
+                            color: 'border-stone-400 bg-stone-900/90 text-stone-200',
+                          },
+                          {
+                            id: 'open_stones',
+                            top: '30%',
+                            left: '36%',
+                            label: 'Открытая каменка (Арома)',
+                            temp: '180–260°C',
+                            icon: '🪨',
+                            color: 'border-rose-400 bg-rose-950/90 text-rose-200',
+                          },
+                          {
+                            id: 'steam_cannon',
+                            top: '36%',
+                            left: '58%',
+                            label: 'Паровая пушка / Воронка',
+                            temp: 'до 500°C',
+                            icon: '🚿',
+                            color: 'border-cyan-400 bg-cyan-950/90 text-cyan-200',
+                          },
+                          {
+                            id: 'closed_chamber',
+                            top: '48%',
+                            left: '47%',
+                            label: 'Закрытая каменка (Ядро 550°C)',
+                            temp: '450–650°C',
+                            icon: '🔒',
+                            color: 'border-amber-400 bg-amber-950/90 text-amber-200',
+                          },
+                          {
+                            id: 'sarcophagus',
+                            top: '60%',
+                            left: '26%',
+                            label: 'Облицовка (Талькохлорит)',
+                            temp: '60–85°C',
+                            icon: '🛡️',
+                            color: 'border-emerald-400 bg-emerald-950/90 text-emerald-200',
+                          },
+                          {
+                            id: 'convection_doors',
+                            top: '68%',
+                            left: '66%',
+                            label: 'Конвекционная заслонка',
+                            temp: 'Регулируемая',
+                            icon: '🚪',
+                            color: 'border-blue-400 bg-blue-950/90 text-blue-200',
+                          },
+                          {
+                            id: 'firebox',
+                            top: '80%',
+                            left: '47%',
+                            label: 'Топка и пламя (950°C)',
+                            temp: '800–1100°C',
+                            icon: '🔥',
+                            color: 'border-orange-400 bg-orange-950/90 text-orange-200',
+                          },
+                        ].map((spot) => {
+                          const isSelected = selectedPart === spot.id;
+                          return (
+                            <div
+                              key={spot.id}
+                              style={{ top: spot.top, left: spot.left }}
+                              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 group cursor-pointer"
+                              onClick={() => {
+                                playWoodTap(soundEnabled);
+                                setSelectedPart(spot.id);
+                              }}
+                            >
+                              {/* Pulsing ring animation */}
+                              <span
+                                className={`absolute -inset-2 rounded-full animate-ping opacity-60 pointer-events-none ${
+                                  isSelected ? 'bg-amber-400 opacity-90' : 'bg-amber-500/40'
+                                }`}
+                              />
+
+                              {/* Main button pin */}
+                              <button
+                                className={`relative flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-bold shadow-lg transition-all transform hover:scale-110 active:scale-95 cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-amber-500 border-white text-stone-950 scale-105 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.7)]'
+                                    : `${spot.color} hover:border-amber-400 hover:text-white`
+                                }`}
+                                title={spot.label}
+                              >
+                                <span>{spot.icon}</span>
+                                <span className="hidden sm:inline font-mono text-[10px]">{spot.label.split(' ')[0]}</span>
+                              </button>
+
+                              {/* Hover Tooltip */}
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:flex flex-col items-center pointer-events-none z-40 whitespace-nowrap">
+                                <div className="px-2.5 py-1 rounded-lg bg-stone-950/95 border border-amber-500/70 text-[11px] text-amber-200 shadow-xl">
+                                  <span className="font-semibold block">{spot.label}</span>
+                                  <span className="text-[10px] text-rose-400 font-mono">{spot.temp}</span>
+                                </div>
+                                <div className="w-2 h-2 bg-stone-950 border-r border-b border-amber-500/70 rotate-45 -mt-1" />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    /* SVG Cutaway Graphic */
+                    <div className="w-full max-w-[460px] aspect-[4/5] relative my-2">
+                      <svg viewBox="0 0 400 500" className="w-full h-full select-none">
                       <defs>
                         {/* Gradients */}
                         <linearGradient id="fireGrad" x1="0" y1="1" x2="0" y2="0">
@@ -572,6 +729,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                       <circle cx="200" cy="205" r="7" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" className="animate-ping opacity-75" />
                     </svg>
                   </div>
+                  )}
 
                   <div className="w-full flex items-center justify-around text-[11px] font-mono text-stone-400 pt-2 border-t border-stone-800">
                     <span className="flex items-center gap-1">
