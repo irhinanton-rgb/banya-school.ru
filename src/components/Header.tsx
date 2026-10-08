@@ -90,17 +90,17 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 aspect-square items-center justify-center rounded-xl overflow-hidden bg-black border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all shrink-0">
             <img
-              src="/images/abm2-icon.jpg"
+              src="/images/abm3-icon.png"
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
-                if (!target.src.includes('abm2-logo.jpg')) {
-                  target.src = '/images/abm2-logo.jpg';
-                } else if (!target.src.includes('%D0%90%D0%91%D0%9C2.jpg')) {
-                  target.src = '/images/%D0%90%D0%91%D0%9C2.jpg';
+                if (!target.src.includes('abm3-logo.png')) {
+                  target.src = '/images/abm3-logo.png';
+                } else if (!target.src.includes('%D0%90%D0%91%D0%9C3.png')) {
+                  target.src = '/images/%D0%90%D0%91%D0%9C3.png';
                 }
               }}
               alt="АБМ — Академия Банного Мастерства"
-              className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-contain block group-hover:scale-105 transition-transform duration-300"
             />
           </div>
           <div className="flex flex-col">
