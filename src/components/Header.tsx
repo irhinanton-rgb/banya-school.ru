@@ -30,6 +30,8 @@ interface HeaderProps {
   onOpenClub: () => void;
   activeTab: 'quest' | 'simulators' | 'handbook' | 'forum';
   setActiveTab: (tab: 'quest' | 'simulators' | 'handbook' | 'forum') => void;
+  onGoToHome?: () => void;
+  onStartLearning?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -44,6 +46,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenClub,
   activeTab,
   setActiveTab,
+  onGoToHome,
+  onStartLearning,
 }) => {
   const { user } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -71,7 +75,13 @@ export const Header: React.FC<HeaderProps> = ({
         
         {/* Top left: Logo */}
         <button
-          onClick={() => setActiveTab('quest')}
+          onClick={() => {
+            if (onGoToHome) {
+              onGoToHome();
+            } else {
+              setActiveTab('quest');
+            }
+          }}
           className="flex items-center gap-3 text-left transition-opacity hover:opacity-90 group cursor-pointer"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-700/10 border border-amber-500/30 text-xl shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover:border-amber-400/50 transition-colors">
@@ -92,9 +102,15 @@ export const Header: React.FC<HeaderProps> = ({
           {/* 1. Карта Квеста */}
           <button
             onClick={() => {
-              setActiveTab('quest');
-              const el = document.getElementById('quest-roadmap-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
+              if (onStartLearning) {
+                onStartLearning();
+              } else {
+                setActiveTab('quest');
+              }
+              setTimeout(() => {
+                const el = document.getElementById('quest-roadmap-section') || document.getElementById('level-station-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }, 50);
             }}
             className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'quest'

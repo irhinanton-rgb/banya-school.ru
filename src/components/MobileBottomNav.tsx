@@ -8,6 +8,7 @@ interface MobileBottomNavProps {
   onOpenClub: () => void;
   onOpenProfile: () => void;
   onScrollToMap: () => void;
+  onOpenLesson?: () => void;
   progress: UserProgress;
 }
 
@@ -17,6 +18,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenClub,
   onOpenProfile,
   onScrollToMap,
+  onOpenLesson,
   progress,
 }) => {
   const isQuestActive = activeTab === 'quest';
@@ -33,7 +35,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         {/* Tab 1: Обучение */}
         <button
           onClick={() => {
-            setActiveTab('quest');
+            if (onOpenLesson) {
+              onOpenLesson();
+            } else {
+              setActiveTab('quest');
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${

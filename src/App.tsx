@@ -75,7 +75,7 @@ export default function App() {
   });
 
   const [activeTab, setActiveTab] = useState<'quest' | 'simulators' | 'handbook' | 'forum'>('quest');
-  const [showHero, setShowHero] = useState<boolean>(() => (progress?.completedLevels?.length ?? 0) === 0);
+  const [showHero, setShowHero] = useState<boolean>(true);
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
   const [showExamModal, setShowExamModal] = useState<boolean>(false);
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
@@ -160,6 +160,7 @@ export default function App() {
   };
 
   const handleScrollToMap = () => {
+    setShowHero(false);
     setActiveTab('quest');
     setTimeout(() => {
       const el = document.getElementById('quest-roadmap-section');
@@ -397,6 +398,15 @@ export default function App() {
         onOpenClub={() => handleOpenClub('chat')}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        onGoToHome={() => {
+          setShowHero(true);
+          setActiveTab('quest');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onStartLearning={() => {
+          setShowHero(false);
+          setActiveTab('quest');
+        }}
       />
 
       {/* Main Content Viewport */}
@@ -404,87 +414,113 @@ export default function App() {
         {/* Tab 1: Quest Journey */}
         {activeTab === 'quest' && (
           <div className="space-y-8 sm:space-y-10">
-            {/* Mobile Horizontal Station Quick Selector */}
-            <MobileLevelQuickNav
-              activeLevelId={progress.activeLevelId}
-              onSelectLevel={handleSelectLevel}
-              progress={progress}
-            />
-
-            {/* Hero Prologue Banner with Cinematic Video (Always kept on main screen) */}
-            <HeroIntro
-              progress={progress}
-              onStartQuest={() => {
-                handleSelectLevel(1);
-                setTimeout(() => {
-                  const el = document.getElementById('quest-roadmap-section') || document.getElementById('level-station-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }, 50);
-              }}
-              onSelectLevel={handleSelectLevel}
-            />
-
-            {/* Level Viewer (Current Selected Station) */}
-            <LevelViewer
-              level={currentLevelData}
-              progress={progress}
-              onCompleteLevel={handleCompleteLevel}
-              onStartExam={() => setShowExamModal(true)}
-              soundEnabled={progress.soundEnabled}
-              onGrantXp={handleGrantXp}
-              onOpenPricing={() => setShowPricingModal(true)}
-            />
-
-            {/* Community Club & Live Hub Interactive Banner */}
-            <div className="rounded-2xl border border-stone-800 bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-stone-950 shadow-lg shrink-0">
-                  <span className="text-2xl">🌿</span>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-serif text-base sm:text-lg font-bold text-stone-100">
-                      Банный Клуб: Чат Сообщества & Онлайн-Эфиры
-                    </h3>
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-semibold">
-                      Live
-                    </span>
-                  </div>
-                  <p className="text-xs text-stone-400 mt-1 max-w-xl leading-relaxed">
-                    Единое окно: живое общение с учениками и наставником, субботние созвоны с разбором техники веников прямо в браузере и сдача видео-заданий.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                <button
-                  onClick={() => handleOpenClub('chat')}
-                  className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-all shadow-md cursor-pointer text-center"
-                >
-                  Общий Чат 💬
-                </button>
-                <button
-                  onClick={() => handleOpenClub('webinar')}
-                  className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800 text-xs font-semibold transition-colors cursor-pointer text-center"
-                >
-                  Видеокомната 📹
-                </button>
-              </div>
-            </div>
-
-            {/* Quest Roadmap Map */}
-            <div id="quest-roadmap-section" className="scroll-mt-20">
-              <QuestMap
+            {showHero ? (
+              /* Welcome first screen: ONLY the first block with visible background video and glowing start button */
+              <HeroIntro
                 progress={progress}
-                onSelectLevel={handleSelectLevel}
-                activeLevelId={progress.activeLevelId}
-                onOpenPricing={() => setShowPricingModal(true)}
+                onStartQuest={() => {
+                  setShowHero(false);
+                  handleSelectLevel(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onSelectLevel={(levelId) => {
+                  setShowHero(false);
+                  handleSelectLevel(levelId);
+                }}
               />
-            </div>
+            ) : (
+              /* Learning Workspace: station viewer, navigation, quest roadmap, club and trophies */
+              <div className="space-y-8 sm:space-y-10 animate-fadeIn">
+                {/* Back to welcome screen bar */}
+                <div className="flex items-center justify-between pb-2 border-b border-stone-800/80">
+                  <button
+                    onClick={() => {
+                      setShowHero(true);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="inline-flex items-center gap-2 text-xs font-mono text-stone-400 hover:text-amber-300 transition-colors py-1.5 px-3 rounded-xl bg-stone-900/70 hover:bg-stone-900 border border-stone-800 hover:border-amber-500/40 cursor-pointer shadow-sm"
+                  >
+                    <span>← На главный экран</span>
+                  </button>
+                  <div className="flex items-center gap-2 text-xs font-mono text-stone-400">
+                    <span>Станция {progress.activeLevelId} из 7</span>
+                    <span className="text-amber-500/60">•</span>
+                    <span className="text-amber-300 font-semibold">{currentLevelData.title}</span>
+                  </div>
+                </div>
 
-            {/* Badges / Trophies Shelf */}
-            <BadgesShowcase unlockedBadges={progress.unlockedBadges} />
+                {/* Mobile Horizontal Station Quick Selector */}
+                <MobileLevelQuickNav
+                  activeLevelId={progress.activeLevelId}
+                  onSelectLevel={handleSelectLevel}
+                  progress={progress}
+                />
+
+                {/* Level Viewer (Current Selected Station) */}
+                <div id="level-station-section">
+                  <LevelViewer
+                    level={currentLevelData}
+                    progress={progress}
+                    onCompleteLevel={handleCompleteLevel}
+                    onStartExam={() => setShowExamModal(true)}
+                    soundEnabled={progress.soundEnabled}
+                    onGrantXp={handleGrantXp}
+                    onOpenPricing={() => setShowPricingModal(true)}
+                  />
+                </div>
+
+                {/* Community Club & Live Hub Interactive Banner */}
+                <div className="rounded-2xl border border-stone-800 bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-stone-950 shadow-lg shrink-0">
+                      <span className="text-2xl">🌿</span>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-serif text-base sm:text-lg font-bold text-stone-100">
+                          Банный Клуб: Чат Сообщества & Онлайн-Эфиры
+                        </h3>
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-semibold">
+                          Live
+                        </span>
+                      </div>
+                      <p className="text-xs text-stone-400 mt-1 max-w-xl leading-relaxed">
+                        Единое окно: живое общение с учениками и наставником, субботние созвоны с разбором техники веников прямо в браузере и сдача видео-заданий.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                    <button
+                      onClick={() => handleOpenClub('chat')}
+                      className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-all shadow-md cursor-pointer text-center"
+                    >
+                      Общий Чат 💬
+                    </button>
+                    <button
+                      onClick={() => handleOpenClub('webinar')}
+                      className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800 text-xs font-semibold transition-colors cursor-pointer text-center"
+                    >
+                      Видеокомната 📹
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quest Roadmap Map */}
+                <div id="quest-roadmap-section" className="scroll-mt-20">
+                  <QuestMap
+                    progress={progress}
+                    onSelectLevel={handleSelectLevel}
+                    activeLevelId={progress.activeLevelId}
+                    onOpenPricing={() => setShowPricingModal(true)}
+                  />
+                </div>
+
+                {/* Badges / Trophies Shelf */}
+                <BadgesShowcase unlockedBadges={progress.unlockedBadges} />
+              </div>
+            )}
           </div>
         )}
 
@@ -710,6 +746,10 @@ export default function App() {
         onOpenClub={() => handleOpenClub('chat')}
         onOpenProfile={() => setShowProfileModal(true)}
         onScrollToMap={handleScrollToMap}
+        onOpenLesson={() => {
+          setShowHero(false);
+          setActiveTab('quest');
+        }}
         progress={progress}
       />
     </div>
