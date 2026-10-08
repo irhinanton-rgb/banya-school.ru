@@ -1,5 +1,19 @@
-import React from 'react';
-import { Sparkles, Trophy, Volume2, VolumeX, Award, BookOpen, Cloud, User as UserIcon, Users } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Sparkles,
+  Trophy,
+  Volume2,
+  VolumeX,
+  Award,
+  BookOpen,
+  User as UserIcon,
+  Users,
+  ChevronDown,
+  Flame,
+  FileText,
+  MessageSquare,
+  ShieldAlert,
+} from 'lucide-react';
 import { LevelId, UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
 
@@ -32,196 +46,248 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
 }) => {
   const { user } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const isAdmin = user?.email?.toLowerCase() === 'irhinanton@gmail.com' || Boolean(progress.isAdmin);
-  const completed = progress?.completedLevels ?? [];
-  const badges = progress?.unlockedBadges ?? [];
-  const hasCertificate = completed.includes(7) || badges.includes('master_crown');
   const isMasterPro = isAdmin || progress.isPaid || progress.tariff === 'master_pro';
   const displayAvatar = progress.avatarUrl || user?.photoURL;
   const displayName = progress.name || user?.displayName || (isAdmin ? 'Антон Ирхин' : 'Пармастер');
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-stone-800 bg-stone-950/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-stone-800/80 bg-stone-950/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Zone 1: Single text element wordmark */}
-        <button 
+        
+        {/* Top left: Logo */}
+        <button
           onClick={() => setActiveTab('quest')}
-          className="flex items-center gap-2.5 text-left transition-opacity hover:opacity-80"
+          className="flex items-center gap-3 text-left transition-opacity hover:opacity-90 group cursor-pointer"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-lg">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-700/10 border border-amber-500/30 text-xl shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover:border-amber-400/50 transition-colors">
             🌾
-          </span>
-          <div>
-            <span className="font-serif text-lg font-semibold tracking-wide text-amber-100 sm:text-xl">
+          </div>
+          <div className="flex flex-col">
+            <span className="font-serif text-base sm:text-lg font-bold tracking-wide text-stone-100 group-hover:text-amber-200 transition-colors">
               Квест Пармастера
+            </span>
+            <span className="text-[10px] font-mono tracking-wider uppercase text-amber-400/80 -mt-0.5">
+              Академия Банного Мастерства
             </span>
           </div>
         </button>
 
-        {/* Zone 2: Clean text navigation links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+        {/* Center: Simplified Clean Navigation */}
+        <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium">
+          {/* 1. Карта Квеста */}
           <button
-            onClick={() => setActiveTab('quest')}
+            onClick={() => {
+              setActiveTab('quest');
+              const el = document.getElementById('quest-roadmap-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
             className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'quest'
-                ? 'border-amber-500 text-amber-200'
+                ? 'border-amber-500 text-amber-300 font-semibold drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]'
                 : 'border-transparent text-stone-400 hover:text-stone-200'
             }`}
           >
             Карта Квеста
           </button>
-          <button
-            onClick={() => setActiveTab('simulators')}
-            className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'simulators'
-                ? 'border-amber-500 text-amber-200'
-                : 'border-transparent text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            <span>Тренажеры и Симуляторы</span>
-            {completed.length === 0 && !isMasterPro && (
-              <span className="text-[10px] text-amber-400 font-mono">🔒</span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('handbook')}
-            className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer ${
-              activeTab === 'handbook'
-                ? 'border-amber-500 text-amber-200'
-                : 'border-transparent text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            Банный Справочник
-          </button>
-          <button
-            onClick={() => setActiveTab('forum')}
-            className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'forum'
-                ? 'border-amber-500 text-amber-200'
-                : 'border-transparent text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            <span>Форум Мастеров</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono font-semibold">
-              new
-            </span>
-          </button>
-        </nav>
 
-        {/* Zone 3: 1-2 primary actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Single Community Club & Live Hub Button */}
-          <button
-            onClick={onOpenClub}
-            title="Банный Клуб: Чат сообщества, Видеоэфиры и Проверка ДЗ"
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold whitespace-nowrap transition-all shadow-sm cursor-pointer active:scale-95"
-          >
-            <Users className="h-3.5 w-3.5 text-emerald-400" />
-            <span>Банный Клуб & Эфиры</span>
-          </button>
-
-          {/* XP counter */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-900 border border-stone-800 text-xs font-mono text-amber-300">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-            <span className="font-semibold tabular-nums">{progress.xp}</span>
-            <span className="text-stone-500">XP</span>
-          </div>
-
-          {/* Sound toggle */}
-          <button
-            onClick={onToggleSound}
-            title={progress.soundEnabled ? 'Выключить звук' : 'Включить звук пара и веников'}
-            className="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-amber-200 hover:border-stone-700 transition-colors"
-            aria-label="Переключить звук"
-          >
-            {progress.soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4 text-stone-600" />}
-          </button>
-
-          {/* Leaderboard (hidden on mobile, accessible via desk) */}
-          <button
-            onClick={onOpenLeaderboard}
-            title="Таблица рекордов"
-            className="hidden sm:flex p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-amber-200 hover:border-stone-700 transition-colors"
-            aria-label="Таблица рекордов"
-          >
-            <Trophy className="h-4 w-4" />
-          </button>
-
-          {/* Tariffs / Access Button */}
+          {/* 2. Тарифы */}
           <button
             onClick={onOpenPricing}
-            title={isMasterPro ? 'Полный доступ активен' : 'Открыть полный курс'}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shadow-sm cursor-pointer ${
-              isMasterPro
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
-                : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold'
-            }`}
+            className="transition-colors py-1 border-b-2 border-transparent text-stone-300 hover:text-amber-300 flex items-center gap-1.5 whitespace-nowrap cursor-pointer group"
           >
-            <span>{isMasterPro ? '👑 VIP' : '⭐ Тарифы'}</span>
+            <span>Тарифы</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-bold group-hover:bg-amber-500/25">
+              3 390 ₽
+            </span>
           </button>
 
-          {/* Certificate or Quick Action */}
-          <button
-            onClick={onOpenCertificate}
-            className={`hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shadow-sm ${
-              hasCertificate
-                ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold'
-                : 'bg-stone-800 hover:bg-stone-700 text-amber-200 border border-amber-500/30'
-            }`}
-          >
-            <Award className="h-3.5 w-3.5" />
-            <span>{hasCertificate ? 'Сертификат 👑' : 'Аттестация'}</span>
-          </button>
-
-          {/* User Auth / Cloud Profile Button */}
-          {user ? (
+          {/* 3. Dropdown "Ещё..." with hidden sections */}
+          <div className="relative" ref={dropdownRef}>
             <button
-              onClick={onOpenProfile}
-              title={`Личный кабинет: ${displayName} ${isAdmin ? '(Администратор)' : ''}`}
-              className={`flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-xl text-stone-200 text-xs font-medium transition-all shadow-sm group cursor-pointer ${
-                isAdmin
-                  ? 'bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/50 text-amber-200'
-                  : 'bg-stone-900 hover:bg-stone-800 border border-emerald-500/40'
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className={`flex items-center gap-1 py-1 text-sm font-medium transition-colors cursor-pointer ${
+                dropdownOpen || activeTab !== 'quest'
+                  ? 'text-amber-300'
+                  : 'text-stone-400 hover:text-stone-200'
               }`}
             >
-              {displayAvatar ? (
-                <img
-                  src={displayAvatar}
-                  alt={displayName}
-                  className={`h-6 w-6 rounded-lg object-cover ${isAdmin ? 'border border-amber-400' : 'border border-emerald-400/60'}`}
-                />
-              ) : (
-                <div className={`h-6 w-6 rounded-lg font-bold flex items-center justify-center text-[11px] ${
-                  isAdmin ? 'bg-amber-500 text-stone-950' : 'bg-emerald-500/20 text-emerald-300'
-                }`}>
-                  {isAdmin ? '👑' : displayName.slice(0, 1).toUpperCase()}
-                </div>
-              )}
-              <span className="hidden sm:inline max-w-[100px] truncate text-stone-200 group-hover:text-amber-300">
-                {isAdmin ? '👑 Антон И.' : displayName.split(' ')[0]}
-              </span>
-              <span className={`h-2 w-2 rounded-full ${isAdmin ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+              <span>Ещё...</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  dropdownOpen ? 'rotate-180 text-amber-400' : 'text-stone-400'
+                }`}
+              />
             </button>
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={onOpenProfile}
-                title="Личный кабинет банщика"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-300 text-xs font-medium transition-all cursor-pointer"
-              >
-                <UserIcon className="h-3.5 w-3.5 text-stone-400" />
-                <span>Кабинет</span>
-              </button>
-              <button
-                onClick={onOpenAuth}
-                title="Войти или зарегистрироваться для сохранения прогресса"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-medium transition-all shadow-sm cursor-pointer active:scale-95"
-              >
-                <Cloud className="h-3.5 w-3.5 text-amber-400" />
-                <span>Войти</span>
-              </button>
-            </div>
-          )}
+
+            {/* Dropdown Menu Modal */}
+            {dropdownOpen && (
+              <div className="absolute left-0 mt-2.5 w-64 rounded-2xl bg-stone-900 border border-stone-700/80 shadow-2xl p-2 z-50 animate-fadeIn backdrop-blur-xl">
+                <button
+                  onClick={() => {
+                    setActiveTab('simulators');
+                    setDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
+                    activeTab === 'simulators'
+                      ? 'bg-amber-500/20 text-amber-200'
+                      : 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                  }`}
+                >
+                  <Flame className="w-4 h-4 text-amber-400 shrink-0" />
+                  <div>
+                    <div className="font-semibold text-stone-100">Тренажеры и Симуляторы</div>
+                    <div className="text-[10px] text-stone-400">Ритмика, веники и ЧП в парной</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab('handbook');
+                    setDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
+                    activeTab === 'handbook'
+                      ? 'bg-amber-500/20 text-amber-200'
+                      : 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+                  <div>
+                    <div className="font-semibold text-stone-100">Банный Справочник</div>
+                    <div className="text-[10px] text-stone-400">Атлас 6 веников, травы, техкарты</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onOpenClub();
+                    setDropdownOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-emerald-300 hover:bg-emerald-950/40 hover:text-emerald-200 transition-colors text-left cursor-pointer"
+                >
+                  <Users className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div>
+                    <div className="font-semibold text-emerald-200">Банный Клуб & Эфиры</div>
+                    <div className="text-[10px] text-emerald-400/80">Чат мастеров и проверка ДЗ</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab('forum');
+                    setDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
+                    activeTab === 'forum'
+                      ? 'bg-amber-500/20 text-amber-200'
+                      : 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4 text-amber-400 shrink-0" />
+                  <div>
+                    <div className="font-semibold text-stone-100">Форум Мастеров</div>
+                    <div className="text-[10px] text-stone-400">Вопросы наставнику и обсуждения</div>
+                  </div>
+                </button>
+
+                <div className="my-1.5 border-t border-stone-800" />
+
+                <button
+                  onClick={() => {
+                    onOpenLeaderboard();
+                    setDropdownOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-stone-400 hover:bg-stone-800 hover:text-stone-200 transition-colors text-left cursor-pointer"
+                >
+                  <Trophy className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Таблица рекордов XP</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onOpenEmergency();
+                    setDropdownOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-rose-300 hover:bg-rose-950/40 transition-colors text-left cursor-pointer"
+                >
+                  <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>Протоколы ЧП в парной</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onOpenCertificate();
+                    setDropdownOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-stone-400 hover:bg-stone-800 hover:text-stone-200 transition-colors text-left cursor-pointer"
+                >
+                  <Award className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Именной Сертификат</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* Top right: XP balance icon & Prominent "Личный Кабинет" button */}
+        <div className="flex items-center gap-3">
+          
+          {/* XP Balance Icon */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-900/90 border border-amber-500/25 text-xs font-mono text-amber-300 shadow-inner">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <span className="font-bold tabular-nums">{progress.xp}</span>
+            <span className="text-stone-500 text-[10px]">XP</span>
+          </div>
+
+          {/* Sound toggle button */}
+          <button
+            onClick={onToggleSound}
+            title={progress.soundEnabled ? 'Выключить звук' : 'Включить атмосферный звук пара'}
+            className="hidden sm:flex p-2 rounded-xl bg-stone-900/80 border border-stone-800 text-stone-400 hover:text-amber-200 hover:border-stone-700 transition-colors cursor-pointer"
+            aria-label="Переключить звук"
+          >
+            {progress.soundEnabled ? (
+              <Volume2 className="h-4 w-4 text-amber-400/90" />
+            ) : (
+              <VolumeX className="h-4 w-4 text-stone-600" />
+            )}
+          </button>
+
+          {/* Prominent "Личный Кабинет" Button (Glows & Catches Attention) */}
+          <button
+            onClick={user ? onOpenProfile : onOpenAuth}
+            title={user ? `Личный Кабинет (${displayName})` : 'Войти в Личный Кабинет'}
+            className="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)] hover:shadow-[0_0_25px_rgba(245,158,11,0.55)] cursor-pointer active:scale-95 border border-amber-300/40"
+          >
+            {user && displayAvatar ? (
+              <img
+                src={displayAvatar}
+                alt={displayName}
+                className="h-5 w-5 rounded-lg object-cover border border-stone-950/40"
+              />
+            ) : (
+              <UserIcon className="h-4 w-4 text-stone-950" />
+            )}
+            <span className="whitespace-nowrap">
+              {user ? (displayName ? displayName.split(' ')[0] : 'Кабинет') : 'Личный Кабинет'}
+            </span>
+          </button>
+
         </div>
       </div>
     </header>

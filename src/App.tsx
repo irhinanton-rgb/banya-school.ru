@@ -378,7 +378,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col justify-between selection:bg-amber-600/30 selection:text-amber-200">
+    <div className="min-h-screen bg-[#0a0908] text-stone-100 flex flex-col justify-between selection:bg-amber-600/30 selection:text-amber-200 relative overflow-x-hidden">
+      {/* Warm sauna lamp directional ambient glow in top and corners */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-amber-500/[0.04] rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-amber-600/[0.03] rounded-full blur-[160px] pointer-events-none -z-10" />
+
       {/* Top Navigation Bar */}
       <Header
         progress={progress}
@@ -407,17 +411,18 @@ export default function App() {
               progress={progress}
             />
 
-            {/* Hero Prologue Banner */}
-            {showHero && (
-              <HeroIntro
-                progress={progress}
-                onStartQuest={() => {
-                  setShowHero(false);
-                  handleSelectLevel(1);
-                }}
-                onSelectLevel={handleSelectLevel}
-              />
-            )}
+            {/* Hero Prologue Banner with Cinematic Video (Always kept on main screen) */}
+            <HeroIntro
+              progress={progress}
+              onStartQuest={() => {
+                handleSelectLevel(1);
+                setTimeout(() => {
+                  const el = document.getElementById('quest-roadmap-section') || document.getElementById('level-station-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }, 50);
+              }}
+              onSelectLevel={handleSelectLevel}
+            />
 
             {/* Level Viewer (Current Selected Station) */}
             <LevelViewer
@@ -474,6 +479,7 @@ export default function App() {
                 progress={progress}
                 onSelectLevel={handleSelectLevel}
                 activeLevelId={progress.activeLevelId}
+                onOpenPricing={() => setShowPricingModal(true)}
               />
             </div>
 
