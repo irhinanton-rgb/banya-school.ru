@@ -388,25 +388,17 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
             <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-start gap-4">
-            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl sm:text-3xl shrink-0 shadow-inner">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl shrink-0 shadow-inner">
               🪵
             </div>
 
-            <div className="pr-8">
-              <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-wider mb-1">
-                <span className="text-amber-400">🔥 Интерактивная анатомия банной печи</span>
+            <div className="pr-10">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-mono uppercase tracking-wider">
+                <span className="text-amber-400 font-bold">🔥 Анатомия банной печи в разрезе</span>
                 <span className="text-stone-500">•</span>
-                <span className="text-stone-300">Физика огня, тяги и ИК-излучения</span>
+                <span className="text-stone-300">Физика огня, тяги и пара</span>
               </div>
-
-              <h2 className="text-xl sm:text-2xl font-serif font-bold text-amber-100">
-                Макет печи в разрезе: управление стихиями огня и пара
-              </h2>
-
-              <p className="text-xs sm:text-sm text-stone-300 mt-1 leading-relaxed max-w-3xl">
-                Наводи курсор на узлы печи для визуализации коротковолнового и длинноволнового ИК-излучения, дымовой тяги и циркуляции воздуха. Регулируй шибер, поддувало и конвекцию своими руками!
-              </p>
             </div>
           </div>
 
@@ -495,23 +487,6 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
           {activeTab === 'blueprint' && (
             <div className="space-y-5">
               
-              {/* Highlighted Interactive Guidance Banner */}
-              <div className="rounded-2xl bg-gradient-to-r from-amber-950/70 via-stone-900 to-rose-950/60 border border-amber-500/50 p-4 sm:p-4.5 shadow-lg">
-                <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-lg shrink-0 mt-0.5">
-                    💡
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-serif font-bold text-base sm:text-lg text-amber-200">
-                      Макет печи в разрезе: управление стихиями огня и пара
-                    </h3>
-                    <p className="text-xs sm:text-sm text-stone-200 leading-relaxed">
-                      Наводи курсор на узлы печи для визуализации коротковолнового и длинноволнового ИК-излучения, дымовой тяги и циркуляции воздуха. Регулируй шибер, поддувало и конвекцию своими руками!
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* Presets and Status Bar */}
               <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-stone-900/90 border border-stone-800">
                 <div className="flex items-center gap-3">
