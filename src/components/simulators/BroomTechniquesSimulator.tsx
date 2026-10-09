@@ -244,7 +244,7 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
         <div className="flex items-center gap-2.5">
           <span className="text-xl">🌿</span>
           <div className="text-stone-300">
-            <strong className="text-amber-300">Рабочий инструмент:</strong> Два кавказских дубовых веника (получены за Уровень 1). Отрабатывайте мягкую лиственную подушку, синхронность кистей и волновое движение от стоп.
+            <strong className="text-amber-300">Рабочий инструмент:</strong> Улучшение «Лёгкие веники» (возьмите 2 любых веника для отработки движений). Отрабатывайте мягкую лиственную подушку, синхронность кистей и волновое движение от стоп.
           </div>
         </div>
       </div>

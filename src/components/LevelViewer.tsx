@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Compass,
   Zap,
+  Info,
 } from 'lucide-react';
 
 interface LevelViewerProps {
@@ -98,14 +99,55 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
             </h2>
           </div>
 
-          {/* Reward preview badge */}
+          {/* Reward preview badge with interactive hover tooltip */}
           {badge && (
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-stone-950 border border-stone-800">
-              <span className="text-3xl">{badge.icon}</span>
-              <div className="text-left">
-                <div className="text-[10px] text-stone-400 font-mono uppercase">Награда за квест:</div>
-                <div className="text-xs font-bold text-amber-200">{badge.name}</div>
-                <div className="text-[11px] text-amber-400 font-mono">+{level.rewardXp} XP</div>
+            <div
+              className="relative group/reward cursor-pointer"
+              title={
+                level.id === 1
+                  ? 'Во втором уровне нам понадобится найти 2 веника для отработки движений'
+                  : badge.description
+              }
+            >
+              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-stone-950 border border-amber-500/40 hover:border-amber-400 hover:bg-stone-900 transition-all shadow-md">
+                <span className="text-3xl filter drop-shadow">{badge.icon}</span>
+                <div className="text-left">
+                  <div className="text-[10px] text-stone-400 font-mono uppercase flex items-center gap-1.5">
+                    <span>Награда за квест:</span>
+                    <Info className="w-3 h-3 text-amber-400/90 animate-pulse" />
+                  </div>
+                  <div className="text-xs font-bold text-amber-200 group-hover/reward:text-amber-300 transition-colors">
+                    {badge.name}
+                  </div>
+                  <div className="text-[11px] text-amber-400 font-mono font-bold">
+                    +{level.rewardXp} XP
+                  </div>
+                </div>
+              </div>
+
+              {/* Hover popup message */}
+              <div className="absolute right-0 top-full mt-2 z-40 w-72 sm:w-80 p-3.5 rounded-2xl bg-stone-900/98 border border-amber-500/60 shadow-2xl backdrop-blur-md opacity-0 pointer-events-none group-hover/reward:opacity-100 group-hover/reward:pointer-events-auto transition-all duration-200 transform translate-y-1 group-hover/reward:translate-y-0 text-left">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-2xl shrink-0">🌿</span>
+                  <div className="space-y-1.5">
+                    <div className="text-xs font-bold text-amber-300 flex items-center justify-between gap-2">
+                      <span>{badge.name}</span>
+                      <span className="text-[10px] text-emerald-400 font-mono">+{level.rewardXp} XP</span>
+                    </div>
+                    <p className="text-xs text-stone-200 leading-relaxed font-sans">
+                      {level.id === 1
+                        ? 'Во втором уровне нам понадобится найти 2 веника для отработки движений.'
+                        : badge.description}
+                    </p>
+                    {level.id === 1 && (
+                      <div className="p-2 rounded-lg bg-stone-950/80 border border-stone-800 text-[11px] text-stone-400 leading-snug">
+                        💡 Подготовьте любые 2 веника (дубовые, берёзовые или тренировочные) для практики на следующем шаге.
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Pointer arrow */}
+                <div className="absolute -top-1.5 right-6 w-3 h-3 bg-stone-900 border-t border-l border-amber-500/60 transform rotate-45" />
               </div>
             </div>
           )}
@@ -412,9 +454,19 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                 <ArrowRight className="h-4 w-4" />
               </button>
             ) : (
-              <div className="text-xs font-mono text-emerald-400 flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Награда получена · Переходите к следующему уровню</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full p-3.5 rounded-xl bg-stone-950/90 border border-emerald-500/30">
+                <div className="text-xs font-mono text-emerald-400 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <span className="font-semibold">
+                    Награда получена: +{level.rewardXp} XP · {badge ? badge.name : 'Трофей'}
+                  </span>
+                </div>
+                {level.id === 1 && (
+                  <div className="text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 rounded-lg flex items-center gap-2">
+                    <span>💡</span>
+                    <span>Во втором уровне нам понадобится найти 2 веника для отработки движений</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

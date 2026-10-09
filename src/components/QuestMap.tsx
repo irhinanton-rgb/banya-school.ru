@@ -87,14 +87,26 @@ export const QuestMap: React.FC<QuestMapProps> = ({
               </div>
             </div>
 
-            {/* Badge & Reward Snapshot */}
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-stone-950/80 border border-amber-500/40 shadow-inner">
-              <span className="text-2xl filter drop-shadow">🌾</span>
+            {/* Badge & Reward Snapshot with Hover Tooltip */}
+            <div
+              className="relative group/mapreward flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-stone-950/80 border border-amber-500/40 shadow-inner cursor-pointer"
+              title="Во втором уровне нам понадобится найти 2 веника для отработки движений"
+            >
+              <span className="text-2xl filter drop-shadow">🌿</span>
               <div className="text-right">
                 <span className="text-[10px] font-mono text-stone-400 uppercase block">Награда</span>
                 <span className="text-xs font-serif font-bold text-amber-300">
-                  Золотой веник +350 XP
+                  Лёгкие веники +150 XP
                 </span>
+              </div>
+
+              {/* Hover popup message */}
+              <div className="absolute right-0 top-full mt-2 z-30 w-64 p-3 rounded-xl bg-stone-900/95 border border-amber-500/50 shadow-2xl backdrop-blur-md opacity-0 pointer-events-none group-hover/mapreward:opacity-100 group-hover/mapreward:pointer-events-auto transition-all duration-200 transform translate-y-1 group-hover/mapreward:translate-y-0 text-left">
+                <div className="text-xs font-bold text-amber-300 mb-1">Улучшение: Лёгкие веники</div>
+                <p className="text-[11px] text-stone-200 leading-relaxed font-sans">
+                  Во втором уровне нам понадобится найти 2 веника для отработки движений.
+                </p>
+                <div className="text-[10px] text-amber-400 font-mono mt-1">+150 XP за Уровень 1</div>
               </div>
             </div>
           </div>
