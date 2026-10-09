@@ -30,6 +30,7 @@ import {
   playFireCrackle,
   playMetalLeverSound
 } from '../../utils/audio';
+import { COMBUSTION_MODES_INFO, CombustionModeDetails } from '../../data/combustionModesData';
 
 interface StoveEducationModalProps {
   isOpen: boolean;
@@ -183,6 +184,15 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
       setConvectionOpen(false);
       setFeedbackMessage('✨ Подготовка к парению: Конвекция перекрыта! Пирог пара не сдувается сквозняками, ядро держит 550°C.');
     }
+  // Combustion Mode Info Popup State
+  const [activeModePopup, setActiveModePopup] = useState<CombustionModeDetails | null>(null);
+
+  const handleSelectCombustionMode = (mode: FiringMode) => {
+    applyPresetMode(mode);
+    if (COMBUSTION_MODES_INFO[mode]) {
+      setActiveModePopup(COMBUSTION_MODES_INFO[mode]);
+    }
+  };
   };
 
   if (!isOpen) return null;
@@ -497,51 +507,55 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                   
                   <div className="flex flex-wrap items-center gap-1.5">
                     <button
-                      onClick={() => applyPresetMode('fast_burn')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      onClick={() => handleSelectCombustionMode('fast_burn')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                         currentMode === 'fast_burn'
                           ? 'bg-rose-500 text-white shadow-md'
                           : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
                       }`}
-                      title="Максимальный огонь: Шибер 100%, Поддувало 100%"
+                      title="Нажмите для включения и просмотра подробной информации о режиме"
                     >
-                      🔥 Быстрое горение
+                      <span>🔥 Быстрое горение</span>
+                      <Info className="w-3 h-3 text-rose-300/80 hover:text-white shrink-0" />
                     </button>
 
                     <button
-                      onClick={() => applyPresetMode('smoldering')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      onClick={() => handleSelectCombustionMode('smoldering')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                         currentMode === 'smoldering'
                           ? 'bg-amber-600 text-white shadow-md'
                           : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
                       }`}
-                      title="Экономичное тление: Шибер 30%, Поддувало 15%"
+                      title="Нажмите для включения и просмотра подробной информации о режиме"
                     >
-                      🪵 Режим тления
+                      <span>🪵 Режим тления</span>
+                      <Info className="w-3 h-3 text-amber-300/80 hover:text-white shrink-0" />
                     </button>
 
                     <button
-                      onClick={() => applyPresetMode('heat_up')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      onClick={() => handleSelectCombustionMode('heat_up')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                         currentMode === 'heat_up'
                           ? 'bg-cyan-600 text-white shadow-md'
                           : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
                       }`}
-                      title="Прогрев стен: Конвекция открыта, тяга высокая"
+                      title="Нажмите для включения и просмотра подробной информации о режиме"
                     >
-                      ♨️ Прогрев парной
+                      <span>♨️ Прогрев парной</span>
+                      <Info className="w-3 h-3 text-cyan-300/80 hover:text-white shrink-0" />
                     </button>
 
                     <button
-                      onClick={() => applyPresetMode('steaming')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      onClick={() => handleSelectCombustionMode('steaming')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                         currentMode === 'steaming'
                           ? 'bg-emerald-600 text-white shadow-md'
                           : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
                       }`}
-                      title="Парение вениками: Конвекция перекрыта, ядро 550°C"
+                      title="Нажмите для включения и просмотра подробной информации о режиме"
                     >
-                      ✨ Режим парения
+                      <span>✨ Режим парения</span>
+                      <Info className="w-3 h-3 text-emerald-300/80 hover:text-white shrink-0" />
                     </button>
                   </div>
                 </div>
@@ -1379,6 +1393,27 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                       <p className="text-xs text-stone-400 leading-relaxed">
                         {m.goal}
                       </p>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-stone-800/80">
+                        {(() => {
+                          const modeKey = m.id === 'mission_ignite' ? 'fast_burn' : m.id.replace('mission_', '');
+                          const modeInfo = COMBUSTION_MODES_INFO[modeKey];
+                          if (!modeInfo) return null;
+                          return (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                playWoodTap(soundEnabled);
+                                setActiveModePopup(modeInfo);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-amber-300 text-[11px] font-mono flex items-center gap-1.5 transition-all border border-amber-500/30 cursor-pointer shadow-sm"
+                            >
+                              <Info className="w-3.5 h-3.5 text-amber-400" />
+                              <span>Подробнее о режиме</span>
+                            </button>
+                          );
+                        })()}
+                      </div>
                     </div>
                   );
                 })}
@@ -1725,6 +1760,161 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                   Понятно
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* COMBUSTION MODE DETAILS POPUP MODAL */}
+        {activeModePopup && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-3 sm:p-5 animate-fade-in">
+            <div className={`max-w-2xl w-full bg-stone-900 border-2 ${activeModePopup.colorScheme.borderColor} rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]`}>
+              
+              {/* Header */}
+              <div className={`p-5 bg-gradient-to-r ${activeModePopup.colorScheme.bgGradient} border-b border-stone-800 relative flex items-start justify-between gap-4`}>
+                <div className="flex items-start gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-stone-950/80 border border-stone-700 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                    {activeModePopup.icon}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${activeModePopup.colorScheme.badgeClass}`}>
+                        {activeModePopup.badge}
+                      </span>
+                    </div>
+                    <h3 className="font-serif font-bold text-xl sm:text-2xl text-stone-100">
+                      {activeModePopup.title}
+                    </h3>
+                    <p className="text-xs text-stone-300 mt-1 leading-relaxed">
+                      {activeModePopup.summary}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setActiveModePopup(null)}
+                  className="p-2 rounded-xl bg-stone-950/60 hover:bg-stone-950 text-stone-400 hover:text-stone-100 border border-stone-800 transition-all cursor-pointer shrink-0"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
+                
+                {/* HOW TO ACHIEVE THIS MODE */}
+                <div className="rounded-2xl bg-stone-950 border border-stone-800 p-4 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+                    <span className="font-serif font-bold text-sm text-amber-300 flex items-center gap-2">
+                      <Sliders className="w-4 h-4 text-amber-400" />
+                      <span>⚙️ КАК ЭТОГО ДОСТИЧЬ (НАСТРОЙКИ ПЕЧИ)</span>
+                    </span>
+                    <span className="font-mono text-[10px] text-stone-400">Параметры рычагов</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Damper */}
+                    <div className="p-3 rounded-xl bg-stone-900/90 border border-stone-800 space-y-1">
+                      <div className="text-[11px] font-mono text-stone-400">Шибер дымохода (Тяга):</div>
+                      <div className="font-bold text-amber-400 text-xs">
+                        {activeModePopup.howToAchieve.damper}
+                      </div>
+                    </div>
+
+                    {/* Ash Pit */}
+                    <div className="p-3 rounded-xl bg-stone-900/90 border border-stone-800 space-y-1">
+                      <div className="text-[11px] font-mono text-stone-400">Поддувало / Приток O₂:</div>
+                      <div className="font-bold text-rose-400 text-xs">
+                        {activeModePopup.howToAchieve.ashPit}
+                      </div>
+                    </div>
+
+                    {/* Convection */}
+                    <div className="p-3 rounded-xl bg-stone-900/90 border border-stone-800 space-y-1">
+                      <div className="text-[11px] font-mono text-stone-400">Конвекционные дверцы:</div>
+                      <div className="font-bold text-cyan-300 text-xs">
+                        {activeModePopup.howToAchieve.convection}
+                      </div>
+                    </div>
+
+                    {/* Temps */}
+                    <div className="p-3 rounded-xl bg-stone-900/90 border border-stone-800 space-y-1">
+                      <div className="text-[11px] font-mono text-stone-400">Температурный режим:</div>
+                      <div className="font-bold text-emerald-300 text-xs">
+                        {activeModePopup.howToAchieve.temperatures}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-stone-900/60 border border-stone-800/80 text-stone-300 text-[11px] flex items-center gap-2">
+                    <Flame className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span><strong>Характер пламени:</strong> {activeModePopup.howToAchieve.flameDescription}</span>
+                  </div>
+                </div>
+
+                {/* WHY IT IS NEEDED */}
+                <div className="rounded-2xl bg-stone-950 border border-stone-800 p-4 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+                    <span className="font-serif font-bold text-sm text-amber-300 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-amber-400" />
+                      <span>🎯 ДЛЯ ЧЕГО ОН НУЖЕН (НАЗНАЧЕНИЕ И ФИЗИКА)</span>
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <div className="p-3 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                      <span className="font-semibold text-amber-400 block mb-1">Главная цель режима:</span>
+                      <p className="text-stone-200 leading-relaxed">{activeModePopup.whyNeeded.mainGoal}</p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                      <span className="font-semibold text-cyan-400 block mb-1">Физика процесса в печи и парной:</span>
+                      <p className="text-stone-300 leading-relaxed">{activeModePopup.whyNeeded.physicsProcess}</p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-stone-900/80 border border-stone-800/80 space-y-1.5">
+                      <span className="font-semibold text-emerald-400 block">Плюсы и результаты использования:</span>
+                      <ul className="space-y-1">
+                        {activeModePopup.whyNeeded.benefits.map((b, i) => (
+                          <li key={i} className="flex items-start gap-2 text-stone-300">
+                            <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                            <span>{b}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-500/40 text-amber-200 space-y-1">
+                      <span className="font-bold text-amber-300 flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
+                        💡 Совет и секрет Пармастера:
+                      </span>
+                      <p className="text-stone-200 leading-relaxed">{activeModePopup.whyNeeded.proTip}</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-stone-950 border-t border-stone-800 flex flex-wrap items-center justify-between gap-3">
+                <button
+                  onClick={() => {
+                    applyPresetMode(activeModePopup.id);
+                    setActiveModePopup(null);
+                  }}
+                  className="flex-1 min-w-[200px] py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs uppercase tracking-wide transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Применить настройки печи</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveModePopup(null)}
+                  className="py-2.5 px-5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold text-xs transition-all border border-stone-700 cursor-pointer"
+                >
+                  Понятно
+                </button>
+              </div>
+
             </div>
           </div>
         )}
