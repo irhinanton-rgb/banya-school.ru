@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowRight, Volume2, VolumeX, Play, Pause } from 'lucide-react';
+import { Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import { UserProgress, LevelId } from '../types/banya';
 
 interface HeroIntroProps {
@@ -133,14 +133,13 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
               {/* Pulsating Glowing Amber CTA Button */}
               <button
                 onClick={onStartQuest}
-                className="relative group px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-sm sm:text-base uppercase tracking-wider transition-all duration-300 shadow-[0_0_35px_rgba(245,158,11,0.6)] hover:shadow-[0_0_50px_rgba(245,158,11,0.9)] cursor-pointer active:scale-95 flex items-center justify-center gap-3 border border-amber-300/60"
+                className="relative group px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-sm sm:text-base uppercase tracking-wider transition-all duration-300 shadow-[0_0_35px_rgba(245,158,11,0.6)] hover:shadow-[0_0_50px_rgba(245,158,11,0.9)] cursor-pointer active:scale-95 flex items-center justify-center text-center border border-amber-300/60"
               >
                 {/* Glowing pulsating outer halo ring */}
                 <span className="absolute -inset-1 rounded-2xl bg-amber-500/30 blur-md group-hover:bg-amber-400/50 transition-all animate-pulse pointer-events-none" />
-                <span className="relative font-bold tracking-wide">
-                  {completedCount > 0 ? 'ПРОДОЛЖИТЬ ОБУЧЕНИЕ →' : 'НАЧАТЬ ОБУЧЕНИЕ →'}
+                <span className="relative font-bold tracking-wide text-center">
+                  {completedCount > 0 ? 'ПРОДОЛЖИТЬ ОБУЧЕНИЕ' : 'НАЧАТЬ ОБУЧЕНИЕ'}
                 </span>
-                <ArrowRight className="h-5 w-5 relative transition-transform group-hover:translate-x-1" />
               </button>
 
               {/* Adjacent Progress Counter */}
