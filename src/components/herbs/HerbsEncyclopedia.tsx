@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { HERBS_LIBRARY, HerbLibraryItem } from '../../data/herbsLibraryData';
 import { playWoodTap, playSteamSound } from '../../utils/audio';
+import { HerbIllustration } from './HerbIllustration';
+import { FitotekaMasterModal } from './FitotekaMasterModal';
 import {
   Search,
   BookOpen,
@@ -33,6 +35,7 @@ export const HerbsEncyclopedia: React.FC<HerbsEncyclopediaProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedHerb, setSelectedHerb] = useState<HerbLibraryItem | null>(null);
   const [readItems, setReadItems] = useState<Set<string>>(new Set());
+  const [showMasterAtlas, setShowMasterAtlas] = useState<boolean>(false);
 
   // Filter herbs based on search query and category
   const filteredHerbs = useMemo(() => {
@@ -100,6 +103,15 @@ export const HerbsEncyclopedia: React.FC<HerbsEncyclopediaProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setShowMasterAtlas(true)}
+            className="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+            title="Открыть генеральный сводный атлас Фитотеки (22 растения)"
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline">Сводный атлас</span>
+            <span>(22 растения)</span>
+          </button>
           <div className="px-3.5 py-2 rounded-xl bg-stone-900 border border-stone-800 text-center">
             <div className="text-[10px] text-stone-400 uppercase font-mono">Изучено</div>
             <div className="text-sm font-bold text-emerald-400">
@@ -171,9 +183,21 @@ export const HerbsEncyclopedia: React.FC<HerbsEncyclopediaProps> = ({
             >
               {/* Card Header */}
               <div>
+                {/* Botanical Illustration Panel */}
+                <div className="mb-3">
+                  <HerbIllustration
+                    id={herb.id}
+                    name={herb.name}
+                    botanicalName={herb.botanicalName}
+                    categoryTitle={herb.categoryTitle}
+                    imageUrl={herb.imageUrl}
+                    onOpenDetails={() => handleOpenHerb(herb)}
+                  />
+                </div>
+
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-3xl p-1 rounded-xl bg-stone-950 border border-stone-800 shadow-inner group-hover:scale-110 transition-transform">
+                    <span className="text-2xl p-1 rounded-xl bg-stone-950 border border-stone-800 shadow-inner group-hover:scale-110 transition-transform">
                       {herb.icon}
                     </span>
                     <div>
@@ -279,6 +303,18 @@ export const HerbsEncyclopedia: React.FC<HerbsEncyclopediaProps> = ({
               >
                 <X className="w-5 h-5" />
               </button>
+            </div>
+
+            {/* Botanical Illustration Display */}
+            <div className="relative rounded-2xl overflow-hidden border border-stone-800 bg-black/80 flex items-center justify-center p-3 shadow-inner">
+              <img
+                src={selectedHerb.imageUrl || `/images/herbs/herb-${selectedHerb.id}.jpg`}
+                alt={selectedHerb.name}
+                className="max-h-60 sm:max-h-72 w-auto object-contain rounded-xl shadow-2xl"
+              />
+              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-stone-950/90 border border-stone-800 backdrop-blur-md text-[11px] font-mono text-amber-300 shadow-md">
+                Ботаническая иллюстрация из Фитотеки
+              </div>
             </div>
 
             {/* Aroma Bar */}
@@ -406,6 +442,12 @@ export const HerbsEncyclopedia: React.FC<HerbsEncyclopediaProps> = ({
           </div>
         </div>
       )}
+
+      {/* Full Master Atlas Modal */}
+      <FitotekaMasterModal
+        isOpen={showMasterAtlas}
+        onClose={() => setShowMasterAtlas(false)}
+      />
     </div>
   );
 };

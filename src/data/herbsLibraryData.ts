@@ -13,12 +13,14 @@ export interface HerbLibraryItem {
   originAndLegends: string;
   masterBrewingSecret: string;
   contraindications?: string;
+  imageUrl?: string;
   synergyTags: string[];
 }
 
 export const HERBS_LIBRARY: HerbLibraryItem[] = [
   {
     id: 'helichrysum',
+    imageUrl: '/images/herbs/herb-helichrysum.jpg',
     name: 'Бессмертник песчаный (Цмин)',
     botanicalName: 'Helichrysum arenarium',
     category: 'herbs',
@@ -36,6 +38,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'sweet_clover',
+    imageUrl: '/images/herbs/herb-sweet_clover.jpg',
     name: 'Донник лекарственный (Жёлтый)',
     botanicalName: 'Melilotus officinalis',
     category: 'herbs',
@@ -53,6 +56,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'tansy',
+    imageUrl: '/images/herbs/herb-tansy.jpg',
     name: 'Пижма обыкновенная (Дикая рябинка)',
     botanicalName: 'Tanacetum vulgare',
     category: 'herbs',
@@ -70,6 +74,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'ledum',
+    imageUrl: '/images/herbs/herb-ledum.jpg',
     name: 'Багульник болотный',
     botanicalName: 'Ledum palustre (Rhododendron tomentosum)',
     category: 'conifers',
@@ -87,6 +92,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'siberian_fir',
+    imageUrl: '/images/herbs/herb-siberian_fir.jpg',
     name: 'Пихта сибирская',
     botanicalName: 'Abies sibirica',
     category: 'conifers',
@@ -104,6 +110,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'juniper',
+    imageUrl: '/images/herbs/herb-juniper.jpg',
     name: 'Можжевельник обыкновенный (Верес)',
     botanicalName: 'Juniperus communis',
     category: 'conifers',
@@ -121,6 +128,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'siberian_cedar',
+    imageUrl: '/images/herbs/herb-siberian_cedar.jpg',
     name: 'Кедр сибирский (Сосна кедровая)',
     botanicalName: 'Pinus sibirica',
     category: 'conifers',
@@ -138,6 +146,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'narrow_eucalyptus',
+    imageUrl: '/images/herbs/herb-narrow_eucalyptus.jpg',
     name: 'Эвкалипт узколистный (Прутовидный)',
     botanicalName: 'Eucalyptus viminalis',
     category: 'eucalyptus',
@@ -155,6 +164,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'round_eucalyptus',
+    imageUrl: '/images/herbs/herb-round_eucalyptus.jpg',
     name: 'Эвкалипт круглый (Шаровидный / Серебристый)',
     botanicalName: 'Eucalyptus globulus',
     category: 'eucalyptus',
@@ -172,6 +182,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'oak_pedunculate',
+    imageUrl: '/images/herbs/herb-oak_pedunculate.jpg',
     name: 'Дуб черешчатый / кавказский',
     botanicalName: 'Quercus robur / Quercus petraea',
     category: 'brooms',
@@ -189,6 +200,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'canadian_oak',
+    imageUrl: '/images/herbs/herb-canadian_oak.jpg',
     name: 'Дуб канадский (Красный)',
     botanicalName: 'Quercus rubra',
     category: 'brooms',
@@ -206,6 +218,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'silver_birch',
+    imageUrl: '/images/herbs/herb-silver_birch.jpg',
     name: 'Берёза повислая (Кудрявая)',
     botanicalName: 'Betula pendula',
     category: 'brooms',
@@ -223,6 +236,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'linden',
+    imageUrl: '/images/herbs/herb-linden.jpg',
     name: 'Липа мелколистная (Сердцевидная)',
     botanicalName: 'Tilia cordata',
     category: 'brooms',
@@ -240,6 +254,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'wormwood_bitter',
+    imageUrl: '/images/herbs/herb-wormwood_bitter.jpg',
     name: 'Полынь горькая и таврическая',
     botanicalName: 'Artemisia absinthium',
     category: 'herbs',
@@ -257,6 +272,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'thyme',
+    imageUrl: '/images/herbs/herb-thyme.jpg',
     name: 'Чабрец (Тимьян / Богородская трава)',
     botanicalName: 'Thymus serpyllum',
     category: 'herbs',
@@ -274,6 +290,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'meadowsweet',
+    imageUrl: '/images/herbs/herb-meadowsweet.jpg',
     name: 'Лабазник (Таволга вязолистная)',
     botanicalName: 'Filipendula ulmaria',
     category: 'herbs',
@@ -291,6 +308,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'peppermint',
+    imageUrl: '/images/herbs/herb-peppermint.jpg',
     name: 'Мята перечная / Мелисса',
     botanicalName: 'Mentha piperita / Melissa officinalis',
     category: 'herbs',
@@ -308,6 +326,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'sage_officinalis',
+    imageUrl: '/images/herbs/herb-sage_officinalis.jpg',
     name: 'Шалфей лекарственный',
     botanicalName: 'Salvia officinalis',
     category: 'herbs',
@@ -325,6 +344,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'st_johns_wort',
+    imageUrl: '/images/herbs/herb-st_johns_wort.jpg',
     name: 'Зверобой продырявленный',
     botanicalName: 'Hypericum perforatum',
     category: 'herbs',
@@ -342,6 +362,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'chamomile_matricaria',
+    imageUrl: '/images/herbs/herb-chamomile_matricaria.jpg',
     name: 'Ромашка аптечная',
     botanicalName: 'Matricaria chamomilla',
     category: 'herbs',
@@ -359,6 +380,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'ivan_tea',
+    imageUrl: '/images/herbs/herb-ivan_tea.jpg',
     name: 'Иван-чай (Кипрей узколистный)',
     botanicalName: 'Chamaenerion angustifolium',
     category: 'herbs',
@@ -376,6 +398,7 @@ export const HERBS_LIBRARY: HerbLibraryItem[] = [
   },
   {
     id: 'stinging_nettle',
+    imageUrl: '/images/herbs/herb-stinging_nettle.jpg',
     name: 'Крапива двудомная',
     botanicalName: 'Urtica dioica',
     category: 'herbs',

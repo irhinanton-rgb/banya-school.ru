@@ -10,6 +10,8 @@ import {
 import { HERBS_LIBRARY } from '../data/herbsLibraryData';
 import { BROOM_TECHNIQUES } from '../data/referenceData';
 import { BroomIllustration } from './BroomIllustration';
+import { HerbIllustration } from './herbs/HerbIllustration';
+import { FitotekaMasterModal } from './herbs/FitotekaMasterModal';
 import {
   BookOpen,
   Search,
@@ -32,6 +34,7 @@ export const HandbookView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedGlossaryCategory, setSelectedGlossaryCategory] = useState<string>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showFitotekaAtlas, setShowFitotekaAtlas] = useState<boolean>(false);
 
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -398,15 +401,52 @@ export const HandbookView: React.FC = () => {
       {/* SECTION 3: HERBS & AROMATHERAPY */}
       {activeTab === 'herbs' && (
         <div className="space-y-6">
+          {/* Master Fitoteka Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-stone-900 to-amber-950/30 border border-emerald-500/20 shadow-md">
+            <div className="flex items-center gap-3.5">
+              <span className="text-3xl p-2 rounded-xl bg-stone-950 border border-stone-800 shadow-inner">
+                🌿
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                    Ботаническая Фитотека
+                  </span>
+                  <span className="text-xs text-stone-400 font-mono">22 растения</span>
+                </div>
+                <h3 className="font-serif text-base sm:text-lg font-bold text-stone-100 mt-0.5">
+                  Генеральный Атлас Банных Трав & Растений
+                </h3>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowFitotekaAtlas(true)}
+              className="px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+            >
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Открыть полный атлас Фитотеки</span>
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredHerbs.map((herb) => (
               <div
                 key={herb.id}
-                className="rounded-2xl border border-stone-800 bg-stone-900/90 p-6 space-y-4 shadow-md flex flex-col justify-between hover:border-amber-500/40 transition-all"
+                className="rounded-2xl border border-stone-800 bg-stone-900/90 p-5 space-y-4 shadow-md flex flex-col justify-between hover:border-amber-500/40 transition-all"
               >
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{herb.icon}</span>
+                  {/* Botanical Illustration Panel */}
+                  <HerbIllustration
+                    id={herb.id}
+                    name={herb.name}
+                    botanicalName={herb.botanicalName}
+                    categoryTitle={herb.categoryTitle}
+                    imageUrl={herb.imageUrl}
+                  />
+
+                  <div className="flex items-center gap-3 pt-1">
+                    <span className="text-2xl">{herb.icon}</span>
                     <div>
                       <h3 className="font-serif text-lg font-bold text-stone-100">
                         {herb.name}
@@ -707,6 +747,12 @@ export const HandbookView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Full Fitoteka Master Atlas Modal */}
+      <FitotekaMasterModal
+        isOpen={showFitotekaAtlas}
+        onClose={() => setShowFitotekaAtlas(false)}
+      />
     </div>
   );
 };

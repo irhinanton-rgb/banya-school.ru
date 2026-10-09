@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowRight, Volume2, VolumeX, Play, Pause, Sparkles } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import { UserProgress, LevelId } from '../types/banya';
 
 interface HeroIntroProps {
@@ -113,12 +113,6 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
           
           {/* Left Column: Headlines & Call-to-Action (7 Cols on desktop) */}
           <div className="lg:col-span-7 space-y-6">
-            
-            {/* Category Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono uppercase tracking-wider backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>Школа Банного Мастерства</span>
-            </div>
 
             {/* Main Headline */}
             <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-stone-100 leading-[1.12] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
@@ -130,7 +124,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
 
             {/* Sub-headline */}
             <p className="text-base sm:text-lg text-stone-200/90 leading-relaxed font-sans max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              Интерактивная программа от первого пара до уверенного мастера. Без скучной теории.
+              Интерактивная программа от первого пара до уверенного мастера.
             </p>
 
             {/* CTA Button + Adjacent Progress Counter Block */}
@@ -155,25 +149,6 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
                 <span>
                   Шаг {currentStepNum} из 7 · <strong className="text-amber-300 font-semibold">{currentStepTitle}</strong>
                 </span>
-              </div>
-            </div>
-
-            {/* Life is a Game — Learn Playfully Banner (replaces 4 squares) */}
-            <div className="rounded-2xl bg-gradient-to-r from-amber-950/50 via-stone-900/85 to-stone-950/90 border border-amber-500/40 p-4 sm:p-5 backdrop-blur-md shadow-xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-              <div className="flex items-center gap-3.5 sm:gap-4 relative z-10">
-                <div className="h-11 w-11 sm:h-13 sm:w-13 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-2xl sm:text-3xl shrink-0 shadow-lg">
-                  🎮
-                </div>
-                <div className="space-y-1">
-                  <div className="font-serif text-sm sm:text-base font-bold text-amber-200 tracking-wide flex items-center gap-2">
-                    <span>Жизнь — игра, учись играючи</span>
-                    <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                  </div>
-                  <p className="text-xs sm:text-sm text-stone-300 leading-relaxed font-sans">
-                    Осваивай банное мастерство через живой опыт, интерактивные симуляторы и удовольствие от каждого пара.
-                  </p>
-                </div>
               </div>
             </div>
 
