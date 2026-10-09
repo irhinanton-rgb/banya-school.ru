@@ -192,29 +192,11 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
         </div>
 
         {/* Action Controls Inside Canvas */}
-        <div className="relative z-10 flex flex-wrap items-center gap-3">
-          <button
-            onClick={handlePourWater}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer"
-            title="Поддать пар"
-          >
-            <Droplets className="h-4 w-4" />
-            <span>Поддать пар</span>
-          </button>
-
-          <button
-            onClick={() => setIsStoveModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-900/90 hover:bg-stone-800 text-amber-300 text-xs font-semibold transition-all border border-amber-600/40 cursor-pointer active:scale-95"
-            title="Интерактивный макет устройства печи, физика пара и ИК-волны"
-          >
-            <Sparkles className="h-4 w-4 text-amber-400" />
-            <span>Макет печи в разрезе 🪵</span>
-          </button>
-
+        <div className="relative z-10 flex flex-wrap items-center justify-end gap-3">
           <button
             onClick={handleVentilate}
             disabled={ventilationOpen}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-800/90 hover:bg-stone-700 active:scale-95 text-stone-200 text-xs font-medium transition-all border border-stone-700 cursor-pointer disabled:opacity-50 ml-auto"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-800/90 hover:bg-stone-700 active:scale-95 text-stone-200 text-xs font-medium transition-all border border-stone-700 cursor-pointer disabled:opacity-50"
           >
             <Wind className="h-4 w-4 text-cyan-400" />
             <span>{ventilationOpen ? 'Проветривание...' : 'Залповое проветривание'}</span>
