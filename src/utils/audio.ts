@@ -163,3 +163,66 @@ export function playSuccessChime(enabled = true): void {
     // Silent fallback
   }
 }
+
+export function playFireCrackle(enabled = true): void {
+  if (!enabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    // A subtle burst of clicks/pops simulating firewood crackle
+    for (let i = 0; i < 4; i++) {
+      const delay = Math.random() * 0.15;
+      const bufferSize = Math.floor(ctx.sampleRate * 0.03);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let j = 0; j < bufferSize; j++) {
+        data[j] = (Math.random() * 2 - 1) * Math.exp(-j / (bufferSize * 0.3));
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 1800 + Math.random() * 1200;
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.04, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + 0.04);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      noise.start(ctx.currentTime + delay);
+    }
+  } catch {
+    // Silent fallback
+  }
+}
+
+export function playMetalLeverSound(enabled = true): void {
+  if (!enabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(320, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.07);
+
+    gain.gain.setValueAtTime(0.09, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.09);
+  } catch {
+    // Silent fallback
+  }
+}
+

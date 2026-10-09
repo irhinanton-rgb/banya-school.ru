@@ -32,6 +32,62 @@ body {
   animation: float-steam 7s ease-in-out infinite;
 }
 
+/* Stove physics animations */
+@keyframes flame-flutter {
+  0% { transform: scaleY(0.96) scaleX(1) skewX(-1deg); filter: brightness(0.95); }
+  25% { transform: scaleY(1.04) scaleX(0.98) skewX(2deg); filter: brightness(1.1); }
+  50% { transform: scaleY(0.98) scaleX(1.02) skewX(-2deg); filter: brightness(1.02); }
+  75% { transform: scaleY(1.06) scaleX(0.97) skewX(1deg); filter: brightness(1.15); }
+  100% { transform: scaleY(0.96) scaleX(1) skewX(-1deg); filter: brightness(0.95); }
+}
+
+@keyframes smoke-draft {
+  0% { stroke-dashoffset: 40; opacity: 0.3; }
+  50% { opacity: 0.85; }
+  100% { stroke-dashoffset: 0; opacity: 0.3; }
+}
+
+@keyframes air-cycle {
+  0% { stroke-dashoffset: 60; opacity: 0.4; }
+  50% { opacity: 0.95; }
+  100% { stroke-dashoffset: 0; opacity: 0.4; }
+}
+
+@keyframes ir-shortwave-pulse {
+  0% { transform: scale(0.98); opacity: 0.6; stroke-width: 1.5; }
+  50% { transform: scale(1.06); opacity: 0.95; stroke-width: 2.5; }
+  100% { transform: scale(0.98); opacity: 0.6; stroke-width: 1.5; }
+}
+
+@keyframes ir-longwave-pulse {
+  0% { transform: scale(0.95); opacity: 0.3; stroke-width: 1; }
+  50% { transform: scale(1.04); opacity: 0.7; stroke-width: 2; }
+  100% { transform: scale(0.95); opacity: 0.3; stroke-width: 1; }
+}
+
+.animate-flame {
+  transform-origin: bottom center;
+  animation: flame-flutter 1.4s ease-in-out infinite;
+}
+
+.animate-smoke-flow {
+  animation: smoke-draft 2.2s linear infinite;
+}
+
+.animate-air-flow {
+  animation: air-cycle 2.4s linear infinite;
+}
+
+.animate-ir-short {
+  transform-origin: center;
+  animation: ir-shortwave-pulse 1.8s ease-in-out infinite;
+}
+
+.animate-ir-long {
+  transform-origin: center;
+  animation: ir-longwave-pulse 3.2s ease-in-out infinite;
+}
+
 /* Subtle scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
