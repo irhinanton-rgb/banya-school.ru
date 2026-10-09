@@ -81,6 +81,17 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   // Intro dialog state (shown when opened with inactive background)
   const [showIntroPopup, setShowIntroPopup] = useState<boolean>(true);
 
+  // Combustion Mode Info Popup State
+  const [activeModePopup, setActiveModePopup] = useState<CombustionModeDetails | null>(null);
+
+  // Reset intro popup whenever modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setShowIntroPopup(true);
+      setActiveModePopup(null);
+    }
+  }, [isOpen]);
+
   // Visual effects
   const [steamAnimation, setSteamAnimation] = useState<'closed' | 'open' | 'herbal' | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -184,15 +195,13 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
       setConvectionOpen(false);
       setFeedbackMessage('✨ Подготовка к парению: Конвекция перекрыта! Пирог пара не сдувается сквозняками, ядро держит 550°C.');
     }
-  // Combustion Mode Info Popup State
-  const [activeModePopup, setActiveModePopup] = useState<CombustionModeDetails | null>(null);
+  };
 
   const handleSelectCombustionMode = (mode: FiringMode) => {
     applyPresetMode(mode);
     if (COMBUSTION_MODES_INFO[mode]) {
       setActiveModePopup(COMBUSTION_MODES_INFO[mode]);
     }
-  };
   };
 
   if (!isOpen) return null;
