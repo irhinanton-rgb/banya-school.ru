@@ -196,10 +196,10 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
           <button
             onClick={handlePourWater}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer"
-            title="Поддать пар (Открыть интерактивный макет печи в разрезе)"
+            title="Поддать пар"
           >
             <Droplets className="h-4 w-4" />
-            <span>Поддать пар (Макет печи)</span>
+            <span>Поддать пар</span>
           </button>
 
           <button

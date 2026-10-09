@@ -77,6 +77,9 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   const [activeMission, setActiveMission] = useState<MissionId | null>('mission_ignite');
   const [missionToast, setMissionToast] = useState<string | null>(null);
 
+  // Intro dialog state (shown when opened with inactive background)
+  const [showIntroPopup, setShowIntroPopup] = useState<boolean>(true);
+
   // Visual effects
   const [steamAnimation, setSteamAnimation] = useState<'closed' | 'open' | 'herbal' | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -484,7 +487,9 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+        <div className={`flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 transition-all duration-300 ${
+          showIntroPopup ? 'filter blur-[2px] opacity-40 pointer-events-none select-none' : ''
+        }`}>
 
           {/* TAB 1: INTERACTIVE BLUEPRINT */}
           {activeTab === 'blueprint' && (
@@ -1690,7 +1695,9 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
         </div>
 
         {/* Modal Bottom Footer */}
-        <div className="bg-stone-900/95 border-t border-stone-800 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+        <div className={`bg-stone-900/95 border-t border-stone-800 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 transition-all duration-300 ${
+          showIntroPopup ? 'filter blur-[1px] opacity-40 pointer-events-none select-none' : ''
+        }`}>
           <div className="flex items-center gap-2 text-xs text-stone-400">
             <span>💡 Поддувало управляет огнем, шибер регулирует тягу дымохода, заслонки конвекции греют парную.</span>
           </div>
@@ -1714,6 +1721,38 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
             </button>
           </div>
         </div>
+
+        {/* INFORMATIVE INTRO MODAL OVER INACTIVE STOVE BLUEPRINT */}
+        {showIntroPopup && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+            <div className="relative w-full max-w-lg rounded-3xl border-2 border-amber-500/70 bg-stone-950 p-6 sm:p-7 shadow-2xl text-center space-y-5 animate-scale-up">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-3xl shadow-inner">
+                🪵
+              </div>
+
+              <div className="space-y-3">
+                <div className="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[11px] font-bold uppercase tracking-wider">
+                  Сердце русской бани
+                </div>
+                <h3 className="font-serif text-xl sm:text-2xl font-bold text-amber-100 leading-snug">
+                  В парной кнопок нет. Давай разберемся с устройством печи!
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed text-balance">
+                  «Наводи курсор на узлы печи для визуализации коротковолнового и длинноволнового ИК-излучения, дымовой тяги и циркуляции воздуха. Регулируй шибер, поддувало и конвекцию своими руками!»
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => setShowIntroPopup(false)}
+                  className="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 text-stone-950 font-bold text-sm uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 cursor-pointer"
+                >
+                  Понятно
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
