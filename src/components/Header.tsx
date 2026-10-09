@@ -88,19 +88,17 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           className="flex items-center gap-3 text-left transition-opacity hover:opacity-95 group cursor-pointer"
         >
-          <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 aspect-square items-center justify-center rounded-xl overflow-hidden bg-black border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all shrink-0">
+          <div className="relative flex h-11 w-11 sm:h-12 sm:w-12 aspect-square items-center justify-center rounded-2xl overflow-hidden bg-stone-900/90 border border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all shrink-0 p-1">
             <img
-              src="/images/abm3-icon.png"
+              src="/images/PQ.png"
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
-                if (!target.src.includes('abm3-logo.png')) {
-                  target.src = '/images/abm3-logo.png';
-                } else if (!target.src.includes('%D0%90%D0%91%D0%9C3.png')) {
-                  target.src = '/images/%D0%90%D0%91%D0%9C3.png';
+                if (!target.src.includes('abm3-icon.png')) {
+                  target.src = '/images/abm3-icon.png';
                 }
               }}
               alt="Пармастер Квест — Школа Банного Мастерства"
-              className="w-full h-full object-contain block group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-contain block group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
             />
           </div>
           <div className="flex flex-col">
