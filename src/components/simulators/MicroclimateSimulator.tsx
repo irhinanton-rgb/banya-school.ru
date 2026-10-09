@@ -195,12 +195,11 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
         <div className="relative z-10 flex flex-wrap items-center gap-3">
           <button
             onClick={handlePourWater}
-            disabled={isSteaming}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-50"
-            title="Подать ковшик на камни"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer"
+            title="Поддать пар (Открыть интерактивный макет печи в разрезе)"
           >
             <Droplets className="h-4 w-4" />
-            <span>{isSteaming ? 'Шипение пара...' : 'Подать ковшик на камни'}</span>
+            <span>Поддать пар (Макет печи)</span>
           </button>
 
           <button

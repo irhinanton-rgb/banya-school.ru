@@ -490,6 +490,23 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
           {activeTab === 'blueprint' && (
             <div className="space-y-5">
               
+              {/* Highlighted Interactive Guidance Banner */}
+              <div className="rounded-2xl bg-gradient-to-r from-amber-950/70 via-stone-900 to-rose-950/60 border border-amber-500/50 p-4 sm:p-4.5 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-lg shrink-0 mt-0.5">
+                    💡
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-serif font-bold text-base sm:text-lg text-amber-200">
+                      Макет печи в разрезе: управление стихиями огня и пара
+                    </h3>
+                    <p className="text-xs sm:text-sm text-stone-200 leading-relaxed">
+                      Наводи курсор на узлы печи для визуализации коротковолнового и длинноволнового ИК-излучения, дымовой тяги и циркуляции воздуха. Регулируй шибер, поддувало и конвекцию своими руками!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Presets and Status Bar */}
               <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-stone-900/90 border border-stone-800">
                 <div className="flex items-center gap-3">
@@ -687,7 +704,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                       </defs>
 
                       {/* --- LONG-WAVE INFRARED WAVES (from Sarcophagus) --- */}
-                      {/* Radiates outside when hovering or selected */}
+                      {/* Radiates outside only when hovering or selected */}
                       {(hoveredElement === 'sarcophagus' || selectedPart === 'sarcophagus') && (
                         <g className="animate-ir-long pointer-events-none">
                           <circle cx="220" cy="310" r="215" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="10 8" opacity="0.6" />
@@ -698,9 +715,6 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                           </text>
                         </g>
                       )}
-
-                      {/* Default subtle IR halo */}
-                      <circle cx="220" cy="310" r="200" fill="none" stroke="#f59e0b" strokeWidth="1" strokeDasharray="6 6" opacity="0.25" />
 
                       {/* --- 1. CHIMNEY WITH DAMPER (ШИБЕР) & ECONOMIZER --- */}
                       <g
@@ -1085,22 +1099,6 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                         <text x="165" y="485" fill="#a8a29e" fontSize="10">
                           Поддувало: {ashPitPos}% O₂
                         </text>
-                      </g>
-
-                      {/* --- PINS --- */}
-                      <g className="cursor-pointer" onClick={() => { playWoodTap(soundEnabled); setSelectedPart('chimney_economizer'); }}>
-                        <circle cx="220" cy="85" r="9" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" className="animate-ping opacity-60" />
-                        <circle cx="220" cy="85" r="7" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
-                      </g>
-
-                      <g className="cursor-pointer" onClick={() => { playWoodTap(soundEnabled); setSelectedPart('closed_chamber'); }}>
-                        <circle cx="220" cy="245" r="10" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" className="animate-ping opacity-70" />
-                        <circle cx="220" cy="245" r="8" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
-                      </g>
-
-                      <g className="cursor-pointer" onClick={() => { playWoodTap(soundEnabled); setSelectedPart('firebox'); }}>
-                        <circle cx="220" cy="380" r="10" fill="#ef4444" stroke="#ffffff" strokeWidth="2" className="animate-ping opacity-75" />
-                        <circle cx="220" cy="380" r="7" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
                       </g>
                     </svg>
                   </div>
