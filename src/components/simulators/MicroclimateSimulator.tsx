@@ -118,10 +118,6 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
     <div className="rounded-2xl border border-stone-800 bg-stone-900/90 p-5 sm:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800 pb-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-            <span>🔬</span>
-            <span>Интерактивная Лаборатория Микроклимата</span>
-          </div>
           <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mt-1">
             Парная: Температура, Влажность и Точка Росы
           </h3>
@@ -201,10 +197,10 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
             onClick={handlePourWater}
             disabled={isSteaming}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-50"
-            title="Подать ковшик на камни (В парной кнопок нет 😉)"
+            title="Подать ковшик на камни"
           >
             <Droplets className="h-4 w-4" />
-            <span>{isSteaming ? 'Шипение пара...' : 'Подать ковшик на камни (В парной кнопок нет 😉)'}</span>
+            <span>{isSteaming ? 'Шипение пара...' : 'Подать ковшик на камни'}</span>
           </button>
 
           <button
