@@ -100,6 +100,24 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [quizSubmitted, setQuizSubmitted] = useState<boolean>(false);
 
+  // Steam Type Simulator State (Мелкодисперсный vs Крупный пар)
+  const [steamSimMode, setSteamSimMode] = useState<'closed' | 'open'>('closed');
+  const [steamSimPoured, setSteamSimPoured] = useState<boolean>(false);
+
+  // Infrared Simulator State (Короткие vs Длинные ИК-волны)
+  const [irSimMode, setIrSimMode] = useState<'sarcophagus' | 'bare_metal'>('sarcophagus');
+
+  const handleTestSteamPour = (target: 'closed' | 'open') => {
+    setSteamSimMode(target);
+    setSteamSimPoured(true);
+    if (target === 'closed') {
+      playExplosiveSteamSound(soundEnabled);
+    } else {
+      playSteamSound(soundEnabled);
+    }
+    setTimeout(() => setSteamSimPoured(false), 3200);
+  };
+
   // Derived physics
   // Draft depends on damper (шибер) and ash pit (поддувало)
   const draftPercent = Math.round((damperPos * 0.6) + (ashPitPos * 0.4));
@@ -498,9 +516,8 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
               {/* Presets and Status Bar */}
               <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-stone-900/90 border border-stone-800">
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono text-stone-400 flex items-center gap-1.5">
-                    <Gauge className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Быстрые режимы:</span>
+                  <span className="text-xs font-bold text-amber-300 uppercase tracking-wider font-mono">
+                    Режимы работы печи:
                   </span>
                   
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -619,12 +636,12 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                   {/* Dynamic Hover Indicator */}
                   <div className="w-full py-1.5 px-3 my-1 rounded-lg bg-stone-950/80 border border-stone-800 text-[11px] font-mono flex items-center justify-between text-stone-300">
                     <span>
-                      {hoveredElement === 'core' && '🔍 Наведено на ЯДРО: Мелкое жесткое коротковолновое ИК-излучение (λ < 2 мкм), запертое внутри!'}
-                      {hoveredElement === 'sarcophagus' && '🔍 Наведено на САРКОФАГ: Мягкое биорезонансное длинноволновое ИК-тепло (λ = 8–14 мкм)!'}
+                      {hoveredElement === 'core' && '🔍 Наведено на ЯДРО: Закрытая каменка с раскаленными камнями (450–600°C) для легкого пара!'}
+                      {hoveredElement === 'sarcophagus' && '🔍 Наведено на САРКОФАГ: Каменная облицовка для защиты парной от перегрева и накопления тепла!'}
                       {hoveredElement === 'chimney' && `🔍 Наведено на ДЫМОХОД: Дым из топки уходит через шибер (тяга ${draftPercent}%).`}
                       {hoveredElement === 'convection' && (convectionOpen ? '🔍 Заслонки конвекции ОТКРЫТЫ: Холодный воздух с пола прогревается и взмывает вверх!' : '🔍 Заслонки конвекции ЗАКРЫТЫ: Циркуляция остановлена, паровой пирог в безопасности!')}
                       {hoveredElement === 'firebox' && `🔍 Наведено на ТОПКУ: Пламя ${flameIntensity}%, приток O₂ регулируется поддувалом!`}
-                      {!hoveredElement && 'Наведите на ядро, саркофаг, трубу или заслонки для просмотра физики'}
+                      {!hoveredElement && 'Наведите на ядро, саркофаг, трубу или заслонки для просмотра физики печи'}
                     </span>
                     <span className="text-amber-400 font-bold shrink-0 ml-2">
                       Пламя: {flameIntensity}%
@@ -677,19 +694,6 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                           <polygon points="0 6, 3 0, 6 6" fill="#fb923c" />
                         </marker>
                       </defs>
-
-                      {/* --- LONG-WAVE INFRARED WAVES (from Sarcophagus) --- */}
-                      {/* Radiates outside only when hovering or selected */}
-                      {(hoveredElement === 'sarcophagus' || selectedPart === 'sarcophagus') && (
-                        <g className="animate-ir-long pointer-events-none">
-                          <circle cx="220" cy="310" r="215" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="10 8" opacity="0.6" />
-                          <circle cx="220" cy="310" r="190" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="8 6" opacity="0.75" />
-                          <circle cx="220" cy="310" r="165" fill="none" stroke="#fef08a" strokeWidth="1" strokeDasharray="6 4" opacity="0.9" />
-                          <text x="70" y="115" fill="#f59e0b" fontSize="11" fontWeight="bold" fontFamily="monospace">
-                            ДЛИННОВОЛНОВОЕ МЯГКОЕ ИК (λ = 8–14 мкм)
-                          </text>
-                        </g>
-                      )}
 
                       {/* --- 1. CHIMNEY WITH DAMPER (ШИБЕР) & ECONOMIZER --- */}
                       <g
@@ -982,18 +986,6 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                           stroke={selectedPart === 'closed_chamber' ? '#ffffff' : '#f59e0b'}
                           strokeWidth={selectedPart === 'closed_chamber' ? 3.5 : 2}
                         />
-
-                        {/* SHORT-WAVE INFRARED RADIATION (Visible when hovered on Core) */}
-                        {(hoveredElement === 'core' || selectedPart === 'closed_chamber') && (
-                          <g className="animate-ir-short pointer-events-none">
-                            {/* Sharp, fast, tight jagged waves depicting short-wavelength IR (λ < 2 µm) */}
-                            <rect x="120" y="175" width="200" height="135" rx="14" fill="none" stroke="#ef4444" strokeWidth="2" strokeDasharray="4 3" opacity="0.9" />
-                            <rect x="110" y="165" width="220" height="155" rx="18" fill="none" stroke="#fca5a5" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.7" />
-                            <text x="145" y="175" fill="#ef4444" fontSize="9" fontWeight="bold" fontFamily="monospace">
-                              КОРОТКОВОЛНОВОЕ ЖЕСТКОЕ ИК (λ &lt; 2 мкм)
-                            </text>
-                          </g>
-                        )}
 
                         {/* Glowing Red-Hot Rocks & Cast Iron Core */}
                         <circle cx="158" cy="214" r="14" fill="#991b1b" stroke="#fca5a5" strokeWidth="1" />
@@ -1406,9 +1398,345 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
           {/* TAB 3: STEAM TYPES */}
           {activeTab === 'steamTypes' && (
             <div className="space-y-6">
-              <div className="rounded-2xl bg-amber-950/20 border border-amber-500/20 p-4 text-xs sm:text-sm text-stone-300 leading-relaxed">
-                <span className="font-bold text-amber-400">«С легким паром!»</span> — это не просто тост, а физическое состояние воды в воздухе.
-                Пар бывает принципиально разным по размеру водяных капель, температуре и влиянию на легкие.
+              <div className="rounded-2xl bg-amber-950/20 border border-amber-500/20 p-4 text-xs sm:text-sm text-stone-300 leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="font-bold text-amber-400 font-serif text-base block mb-0.5">«С легким паром!» — Физика дисперсности пара</span>
+                  <span>Пар бывает принципиально разным по размеру водяных капель, температуре и влиянию на организм. Проверьте поведение пара на интерактивном макете печи:</span>
+                </div>
+              </div>
+
+              {/* INTERACTIVE STOVE STEAM SIMULATOR MOCKUP */}
+              <div className="rounded-3xl bg-stone-950 border border-stone-800 p-5 space-y-5 shadow-2xl">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-stone-800">
+                  <div className="flex items-center gap-2">
+                    <Droplets className="w-5 h-5 text-cyan-400" />
+                    <span className="font-serif font-bold text-base text-stone-100">
+                      Интерактивный макет печи: Симуляция рождения пара
+                    </span>
+                  </div>
+
+                  {/* Mode Toggles */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => handleTestSteamPour('closed')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
+                        steamSimMode === 'closed'
+                          ? 'bg-emerald-500 text-stone-950 border-emerald-400 shadow-md font-bold'
+                          : 'bg-stone-900 text-stone-300 border-stone-800 hover:bg-stone-800'
+                      }`}
+                    >
+                      <span>💥 Закрытая каменка (550°C)</span>
+                      <span className="text-[10px] opacity-80">Легкий пар</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleTestSteamPour('open')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
+                        steamSimMode === 'open'
+                          ? 'bg-rose-500 text-white border-rose-400 shadow-md font-bold'
+                          : 'bg-stone-900 text-stone-300 border-stone-800 hover:bg-stone-800'
+                      }`}
+                    >
+                      <span>♨️ Открытые камни (180°C)</span>
+                      <span className="text-[10px] opacity-80">Сырой пар</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Simulator Display Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                  
+                  {/* Simplified Stove SVG Graphic */}
+                  <div className="lg:col-span-6 flex flex-col items-center">
+                    <div className="w-full max-w-[360px] aspect-[4/5] relative bg-stone-900/60 rounded-2xl border border-stone-800 p-4 flex flex-col items-center justify-between overflow-hidden shadow-inner">
+                      
+                      {/* Ceiling / Steam Zone Tag */}
+                      <div className="w-full py-1 px-3 rounded-lg bg-stone-950/80 border border-stone-800/80 flex items-center justify-between text-[11px] font-mono z-10">
+                        <span className="text-stone-400">Зона под потолком (Купол):</span>
+                        <span className={`font-bold ${steamSimMode === 'closed' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {steamSimMode === 'closed' ? 'Паровой пирог (чистый купол)' : 'Сырой оседающий туман'}
+                        </span>
+                      </div>
+
+                      {/* SVG Canvas */}
+                      <svg viewBox="0 0 320 360" className="w-full h-full my-auto select-none overflow-visible">
+                        <defs>
+                          <radialGradient id="simCoreRadial" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor="#fef08a" />
+                            <stop offset="40%" stopColor="#f59e0b" />
+                            <stop offset="80%" stopColor="#dc2626" />
+                            <stop offset="100%" stopColor="#7f1d1d" />
+                          </radialGradient>
+
+                          <linearGradient id="simSarcophagusGrad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#292524" />
+                            <stop offset="50%" stopColor="#44403c" />
+                            <stop offset="100%" stopColor="#292524" />
+                          </linearGradient>
+
+                          <linearGradient id="simOpenStonesGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#78716c" />
+                            <stop offset="100%" stopColor="#57534e" />
+                          </linearGradient>
+                        </defs>
+
+                        {/* Ceiling Line */}
+                        <line x1="20" y1="25" x2="300" y2="25" stroke="#44403c" strokeWidth="2" strokeDasharray="4 4" />
+                        <text x="30" y="20" fill="#78716c" fontSize="9" fontFamily="monospace">ПОТОЛОК ПАРНОЙ</text>
+
+                        {/* --- DYNAMIC STEAM CLOUD SIMULATION --- */}
+                        {steamSimMode === 'closed' ? (
+                          /* Microdispersed Fine Steam (Invisible, rising rapidly to ceiling, slight shimmers) */
+                          <g className={steamSimPoured ? 'animate-pulse' : ''}>
+                            {/* Fine Shimmer Vapor Cushion under ceiling */}
+                            <ellipse cx="160" cy="55" rx="130" ry="24" fill="#10b981" fillOpacity={steamSimPoured ? '0.25' : '0.12'} />
+                            <ellipse cx="160" cy="52" rx="100" ry="16" fill="#34d399" fillOpacity={steamSimPoured ? '0.35' : '0.18'} />
+
+                            {/* Rising vapor particles streams from closed core nozzle */}
+                            <path
+                              d="M160 135 Q145 90 120 60"
+                              fill="none"
+                              stroke="#6ee7b7"
+                              strokeWidth="2"
+                              strokeDasharray="4 3"
+                              strokeOpacity={steamSimPoured ? '0.9' : '0.6'}
+                            />
+                            <path
+                              d="M160 135 Q160 85 160 55"
+                              fill="none"
+                              stroke="#a7f3d0"
+                              strokeWidth="2.5"
+                              strokeDasharray="6 4"
+                              strokeOpacity={steamSimPoured ? '1' : '0.7'}
+                            />
+                            <path
+                              d="M160 135 Q175 90 200 60"
+                              fill="none"
+                              stroke="#6ee7b7"
+                              strokeWidth="2"
+                              strokeDasharray="4 3"
+                              strokeOpacity={steamSimPoured ? '0.9' : '0.6'}
+                            />
+
+                            {/* Sparkle micro-droplets */}
+                            <circle cx="130" cy="52" r="2" fill="#ecfdf5" opacity="0.9" />
+                            <circle cx="160" cy="46" r="2.5" fill="#ffffff" opacity="1" />
+                            <circle cx="190" cy="54" r="2" fill="#ecfdf5" opacity="0.9" />
+                            <circle cx="230" cy="50" r="1.5" fill="#a7f3d0" opacity="0.8" />
+                            <circle cx="90" cy="52" r="1.5" fill="#a7f3d0" opacity="0.8" />
+
+                            <text x="160" y="55" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                              ЛЕГКИЙ КУПОЛ (ПИРОГ ПАРА)
+                            </text>
+                          </g>
+                        ) : (
+                          /* Coarse Heavy Wet Steam (Dense white thick fog cloud, dropping down) */
+                          <g className={steamSimPoured ? 'animate-bounce' : ''}>
+                            {/* Heavy foggy cloud over open stones */}
+                            <ellipse cx="160" cy="115" rx="110" ry="35" fill="#f87171" fillOpacity={steamSimPoured ? '0.45' : '0.25'} />
+                            <ellipse cx="160" cy="120" rx="90" ry="28" fill="#ffffff" fillOpacity={steamSimPoured ? '0.75' : '0.5'} />
+                            <ellipse cx="120" cy="135" rx="55" ry="25" fill="#fca5a5" fillOpacity="0.4" />
+                            <ellipse cx="200" cy="135" rx="55" ry="25" fill="#fca5a5" fillOpacity="0.4" />
+
+                            {/* Heavy Droplet Circles */}
+                            <circle cx="115" cy="130" r="4.5" fill="#ffffff" stroke="#ef4444" strokeWidth="1" />
+                            <circle cx="140" cy="122" r="5" fill="#ffffff" stroke="#ef4444" strokeWidth="1" />
+                            <circle cx="170" cy="124" r="6" fill="#ffffff" stroke="#ef4444" strokeWidth="1.5" />
+                            <circle cx="195" cy="132" r="4" fill="#ffffff" stroke="#ef4444" strokeWidth="1" />
+                            <circle cx="160" cy="142" r="5" fill="#ffffff" stroke="#ef4444" strokeWidth="1" />
+
+                            <text x="160" y="122" textAnchor="middle" fill="#991b1b" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                              СЫРОЙ БЕЛЫЙ ТУМАН (ОСЕДАЕТ ВНИЗ)
+                            </text>
+                          </g>
+                        )}
+
+                        {/* --- STOVE STRUCTURE --- */}
+                        {/* Chimney Pipe */}
+                        <rect x="145" y="45" width="30" height="95" fill="#57534e" stroke="#78716c" strokeWidth="1.5" rx="3" />
+
+                        {/* Outer Stone Sarcophagus Casing */}
+                        <rect x="70" y="140" width="180" height="190" rx="16" fill="url(#simSarcophagusGrad)" stroke="#57534e" strokeWidth="2" />
+
+                        {/* Open Top Stone Tray (Открытая каменка) */}
+                        <g
+                          className="cursor-pointer"
+                          onClick={() => handleTestSteamPour('open')}
+                        >
+                          <rect
+                            x="85"
+                            y="148"
+                            width="150"
+                            height="34"
+                            rx="8"
+                            fill={steamSimMode === 'open' ? '#451a03' : 'url(#simOpenStonesGrad)'}
+                            stroke={steamSimMode === 'open' ? '#f87171' : '#78716c'}
+                            strokeWidth={steamSimMode === 'open' ? 2 : 1}
+                          />
+                          {/* Open Stones representation */}
+                          <circle cx="105" cy="165" r="9" fill="#78716c" stroke="#57534e" />
+                          <circle cx="125" cy="163" r="10" fill="#a8a29e" stroke="#57534e" />
+                          <circle cx="145" cy="166" r="8" fill="#78716c" stroke="#57534e" />
+                          <circle cx="165" cy="162" r="11" fill="#a8a29e" stroke="#57534e" />
+                          <circle cx="185" cy="165" r="9" fill="#78716c" stroke="#57534e" />
+                          <circle cx="205" cy="163" r="10" fill="#a8a29e" stroke="#57534e" />
+                          <text x="160" y="158" textAnchor="middle" fill="#fed7aa" fontSize="8" fontWeight="bold" fontFamily="monospace">
+                            ОТКРЫТЫЕ КАМНИ (180°C)
+                          </text>
+                        </g>
+
+                        {/* Steam Funnel / Gun into Core */}
+                        <path d="M152 140 L168 140 L163 195 L157 195 Z" fill="#94a3b8" stroke="#cbd5e1" strokeWidth="1" />
+                        <ellipse cx="160" cy="140" rx="8" ry="3" fill="#cbd5e1" />
+
+                        {/* Closed Superheated Core (Закрытая каменка) */}
+                        <g
+                          className="cursor-pointer"
+                          onClick={() => handleTestSteamPour('closed')}
+                        >
+                          <rect
+                            x="95"
+                            y="190"
+                            width="130"
+                            height="85"
+                            rx="12"
+                            fill="url(#simCoreRadial)"
+                            stroke={steamSimMode === 'closed' ? '#34d399' : '#f59e0b'}
+                            strokeWidth={steamSimMode === 'closed' ? 3 : 1.5}
+                            className={steamSimMode === 'closed' ? 'filter drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]' : ''}
+                          />
+
+                          {/* Glowing rocks inside core */}
+                          <circle cx="120" cy="225" r="12" fill="#b91c1c" stroke="#fef08a" strokeWidth="1.5" />
+                          <circle cx="145" cy="220" r="14" fill="#ea580c" stroke="#fef08a" strokeWidth="1.5" />
+                          <circle cx="175" cy="223" r="13" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
+                          <circle cx="200" cy="226" r="11" fill="#dc2626" stroke="#fef08a" strokeWidth="1" />
+                          <circle cx="135" cy="250" r="13" fill="#ea580c" stroke="#fef08a" strokeWidth="1.5" />
+                          <circle cx="165" cy="252" r="15" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
+                          <circle cx="190" cy="248" r="12" fill="#b91c1c" stroke="#fef08a" strokeWidth="1.5" />
+
+                          <text x="160" y="210" textAnchor="middle" fill="#ffffff" fontSize="9" fontWeight="bold" fontFamily="monospace">
+                            ЗАКРЫТОЕ ЯДРО (550°C)
+                          </text>
+                        </g>
+
+                        {/* Firebox below */}
+                        <rect x="105" y="285" width="110" height="35" rx="6" fill="#1c1917" stroke="#44403c" strokeWidth="1.5" />
+                        <text x="160" y="306" textAnchor="middle" fill="#f87171" fontSize="9" fontWeight="bold">
+                          ТОПКА (ДРОВА)
+                        </text>
+
+                        {/* Water Ladle Splash Action Indicator */}
+                        {steamSimPoured && (
+                          <g className="animate-fade-in">
+                            <text
+                              x="160"
+                              y={steamSimMode === 'closed' ? 185 : 145}
+                              textAnchor="middle"
+                              fill="#38bdf8"
+                              fontSize="12"
+                              fontWeight="bold"
+                            >
+                              💧 ПОДАЧА ВОДЫ!
+                            </text>
+                          </g>
+                        )}
+                      </svg>
+
+                      {/* Interactive Test Button */}
+                      <button
+                        onClick={() => handleTestSteamPour(steamSimMode)}
+                        disabled={steamSimPoured}
+                        className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${
+                          steamSimMode === 'closed'
+                            ? 'bg-emerald-500 hover:bg-emerald-400 text-stone-950 active:scale-95'
+                            : 'bg-rose-500 hover:bg-rose-400 text-white active:scale-95'
+                        } disabled:opacity-50`}
+                      >
+                        <Droplets className="w-4 h-4" />
+                        <span>
+                          {steamSimPoured ? 'Испарение воды...' : `Подать ковш (${steamSimMode === 'closed' ? 'В закрытое ядро' : 'На открытые камни'})`}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Physics & Telemetry Dashboard */}
+                  <div className="lg:col-span-6 space-y-3.5">
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Stat 1: Droplet size */}
+                      <div className={`p-3.5 rounded-2xl border transition-all ${
+                        steamSimMode === 'closed'
+                          ? 'bg-emerald-950/30 border-emerald-500/40'
+                          : 'bg-rose-950/30 border-rose-500/40'
+                      }`}>
+                        <div className="text-[10px] font-mono text-stone-400 uppercase">Размер микрокапли:</div>
+                        <div className={`text-xl font-bold font-mono mt-0.5 ${
+                          steamSimMode === 'closed' ? 'text-emerald-300' : 'text-rose-400'
+                        }`}>
+                          {steamSimMode === 'closed' ? '< 0.5 — 1 мкм' : '15 — 30+ мкм'}
+                        </div>
+                        <div className="text-[11px] text-stone-300 mt-1">
+                          {steamSimMode === 'closed' ? 'Невидимый газообразный пар' : 'Крупная взвесь капель тумана'}
+                        </div>
+                      </div>
+
+                      {/* Stat 2: Core Temp */}
+                      <div className={`p-3.5 rounded-2xl border transition-all ${
+                        steamSimMode === 'closed'
+                          ? 'bg-emerald-950/30 border-emerald-500/40'
+                          : 'bg-rose-950/30 border-rose-500/40'
+                      }`}>
+                        <div className="text-[10px] font-mono text-stone-400 uppercase">Температура камней:</div>
+                        <div className={`text-xl font-bold font-mono mt-0.5 ${
+                          steamSimMode === 'closed' ? 'text-emerald-300' : 'text-rose-400'
+                        }`}>
+                          {steamSimMode === 'closed' ? '500°C — 600°C' : '160°C — 200°C'}
+                        </div>
+                        <div className="text-[11px] text-stone-300 mt-1">
+                          {steamSimMode === 'closed' ? 'Раскаленное ядро закрытой каменки' : 'Остывшие наружные камни'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Behavior Description */}
+                    <div className="p-4 rounded-2xl bg-stone-900 border border-stone-800 space-y-2 text-xs">
+                      <div className="font-semibold text-amber-300 flex items-center gap-1.5 text-xs">
+                        <span>🔬 Физика поведения в парной:</span>
+                      </div>
+                      <p className="text-stone-300 leading-relaxed">
+                        {steamSimMode === 'closed' ? (
+                          <span>
+                            Вода мгновенно взрывается в раскаленном ядре и выходит наружу в виде перегретого ультрамелкого пара. 
+                            Он стрелой взмывает к потолку и формирует плотный, сухой <strong className="text-emerald-400">паровой купол (пирог)</strong>. Внизу у полка атмосфера остается прозрачной и свежей, дышать легко.
+                          </span>
+                        ) : (
+                          <span>
+                            Вода медленно шипит на остывших камнях, кипит крупными брызгами и выбрасывает тяжелый <strong className="text-rose-400">сырой туман</strong>. 
+                            Крупные капли не могут подняться в купол и оседают на коже обжигающей мокрой пленкой, затрудняя потоотделение и обжигая носоглотку.
+                          </span>
+                        )}
+                      </p>
+                    </div>
+
+                    {/* Sensory effect on human body */}
+                    <div className={`p-3.5 rounded-2xl border text-xs leading-relaxed ${
+                      steamSimMode === 'closed'
+                        ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200'
+                        : 'bg-rose-950/20 border-rose-500/30 text-rose-200'
+                    }`}>
+                      <span className="font-bold block mb-1">
+                        {steamSimMode === 'closed' ? '✅ Ощущения гостя: Абсолютное блаженство' : '⚠️ Ощущения гостя: Обжигающий дискомфорт'}
+                      </span>
+                      {steamSimMode === 'closed' ? (
+                        <span>Шелковистое бархатное тепло. Веник захватывает пар из-под потолка и опускает на тело мягкой целебной волной без жжения.</span>
+                      ) : (
+                        <span>Эффект «мокрой бани» или «вареного рака»: горячо ушам, тяжело легким, хочется немедленно упасть на пол или выбежать.</span>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1454,7 +1782,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                       <h3 className="font-serif font-bold text-lg text-rose-300">
                         Крупнодисперсный («Сырой / Тяжелый») пар
                       </h3>
-                      <div className="text-xs font-mono text-rose-400">Размер частиц: более 5 — 15 микрон</div>
+                      <div className="text-xs font-mono text-rose-400">Размер частиц: более 15 — 30 микрон</div>
                     </div>
                   </div>
 
@@ -1478,9 +1806,266 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
           {/* TAB 4: INFRARED */}
           {activeTab === 'infrared' && (
             <div className="space-y-6">
-              <div className="rounded-2xl bg-amber-950/20 border border-amber-500/20 p-4 text-xs sm:text-sm text-stone-300 leading-relaxed">
-                Почему в одной бане голова звенит и тяжело дышать, а в другой ты словно перерождаешься? 
-                Ответ в <strong className="text-amber-400">спектре инфракрасного излучения</strong> от печи!
+              <div className="rounded-2xl bg-amber-950/20 border border-amber-500/20 p-4 text-xs sm:text-sm text-stone-300 leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="font-bold text-amber-400 font-serif text-base block mb-0.5">Спектр ИК-излучения печи</span>
+                  <span>Почему в одной бане голова звенит и тяжело дышать, а в другой ты словно перерождаешься? Исследуйте разницу между голой металлической печью и каменным саркофагом на интерактивном макете:</span>
+                </div>
+              </div>
+
+              {/* INTERACTIVE STOVE INFRARED SIMULATOR MOCKUP */}
+              <div className="rounded-3xl bg-stone-950 border border-stone-800 p-5 space-y-5 shadow-2xl">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-stone-800">
+                  <div className="flex items-center gap-2">
+                    <Radio className="w-5 h-5 text-amber-400" />
+                    <span className="font-serif font-bold text-base text-stone-100">
+                      Интерактивный макет печи: Симуляция ИК-излучения
+                    </span>
+                  </div>
+
+                  {/* Mode Toggles */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => setIrSimMode('sarcophagus')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
+                        irSimMode === 'sarcophagus'
+                          ? 'bg-amber-500 text-stone-950 border-amber-400 shadow-md font-bold'
+                          : 'bg-stone-900 text-stone-300 border-stone-800 hover:bg-stone-800'
+                      }`}
+                    >
+                      <span>🟡 Каменный саркофаг (65°C)</span>
+                      <span className="text-[10px] opacity-80">Мягкое ИК</span>
+                    </button>
+
+                    <button
+                      onClick={() => setIrSimMode('bare_metal')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
+                        irSimMode === 'bare_metal'
+                          ? 'bg-rose-500 text-white border-rose-400 shadow-md font-bold'
+                          : 'bg-stone-900 text-stone-300 border-stone-800 hover:bg-stone-800'
+                      }`}
+                    >
+                      <span>🔴 Голый металл (320°C)</span>
+                      <span className="text-[10px] opacity-80">Жесткое ИК</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Simulator Display Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                  
+                  {/* Simplified Stove SVG Graphic with IR wave propagation */}
+                  <div className="lg:col-span-6 flex flex-col items-center">
+                    <div className="w-full max-w-[360px] aspect-[4/5] relative bg-stone-900/60 rounded-2xl border border-stone-800 p-4 flex flex-col items-center justify-between overflow-hidden shadow-inner">
+                      
+                      {/* Radiation Status Tag */}
+                      <div className="w-full py-1 px-3 rounded-lg bg-stone-950/80 border border-stone-800/80 flex items-center justify-between text-[11px] font-mono z-10">
+                        <span className="text-stone-400">Характер излучения:</span>
+                        <span className={`font-bold ${irSimMode === 'sarcophagus' ? 'text-amber-400' : 'text-rose-400'}`}>
+                          {irSimMode === 'sarcophagus' ? 'Длинноволновое (λ = 8–14 мкм)' : 'Коротковолновое (λ < 2.5 мкм)'}
+                        </span>
+                      </div>
+
+                      {/* SVG Canvas */}
+                      <svg viewBox="0 0 320 360" className="w-full h-full my-auto select-none overflow-visible">
+                        <defs>
+                          <radialGradient id="irGlowHot" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.8" />
+                            <stop offset="70%" stopColor="#b91c1c" stopOpacity="0.4" />
+                            <stop offset="100%" stopColor="#7f1d1d" stopOpacity="0" />
+                          </radialGradient>
+
+                          <radialGradient id="irGlowSoft" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.6" />
+                            <stop offset="60%" stopColor="#d97706" stopOpacity="0.3" />
+                            <stop offset="100%" stopColor="#78350f" stopOpacity="0" />
+                          </radialGradient>
+                        </defs>
+
+                        {/* --- DYNAMIC IR WAVE ANIMATION --- */}
+                        {irSimMode === 'sarcophagus' ? (
+                          /* Soft Long-wave IR: Broad, harmonic golden undulating arcs enveloping the space */
+                          <g className="animate-pulse">
+                            <circle cx="160" cy="220" r="145" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="10 8" opacity="0.5" />
+                            <circle cx="160" cy="220" r="120" fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeDasharray="8 6" opacity="0.7" />
+                            <circle cx="160" cy="220" r="95" fill="none" stroke="#fef08a" strokeWidth="2" strokeDasharray="6 4" opacity="0.85" />
+                            
+                            {/* Gentle radiation aura */}
+                            <circle cx="160" cy="220" r="110" fill="url(#irGlowSoft)" />
+
+                            {/* Wavelength wave diagram */}
+                            <path
+                              d="M210 200 Q235 185 260 200 T310 200"
+                              fill="none"
+                              stroke="#fbbf24"
+                              strokeWidth="2.5"
+                            />
+                            <text x="260" y="180" textAnchor="middle" fill="#fde68a" fontSize="8" fontWeight="bold" fontFamily="monospace">
+                              λ = 9.4 мкм (Биорезонанс)
+                            </text>
+                          </g>
+                        ) : (
+                          /* Harsh Short-wave IR: Sharp, fast jagged red spikes striking outward violently */
+                          <g className="animate-pulse">
+                            {/* Fast sharp jagged wave rectangles */}
+                            <rect x="50" y="125" width="220" height="190" rx="14" fill="none" stroke="#ef4444" strokeWidth="3" strokeDasharray="5 3" opacity="0.9" />
+                            <rect x="35" y="110" width="250" height="220" rx="20" fill="none" stroke="#dc2626" strokeWidth="2" strokeDasharray="4 4" opacity="0.75" />
+                            <rect x="20" y="95" width="280" height="250" rx="26" fill="none" stroke="#f87171" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
+
+                            {/* Aggressive heat aura */}
+                            <circle cx="160" cy="220" r="115" fill="url(#irGlowHot)" />
+
+                            {/* Jagged high-frequency spike wave diagram */}
+                            <path
+                              d="M210 200 L220 185 L230 215 L240 185 L250 215 L260 185 L270 200"
+                              fill="none"
+                              stroke="#ef4444"
+                              strokeWidth="2"
+                            />
+                            <text x="260" y="175" textAnchor="middle" fill="#fca5a5" fontSize="8" fontWeight="bold" fontFamily="monospace">
+                              λ &lt; 2.5 мкм (Жгучее ИК)
+                            </text>
+                          </g>
+                        )}
+
+                        {/* --- STOVE GRAPHIC BODY --- */}
+                        {/* Chimney Pipe */}
+                        <rect x="145" y="45" width="30" height="95" fill={irSimMode === 'bare_metal' ? '#b91c1c' : '#57534e'} stroke={irSimMode === 'bare_metal' ? '#ef4444' : '#78716c'} strokeWidth="1.5" rx="3" />
+                        {irSimMode === 'bare_metal' && (
+                          <text x="160" y="95" textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="bold">
+                            РАСКАЛЕНАЯ ТРУБА (400°C)
+                          </text>
+                        )}
+
+                        {irSimMode === 'sarcophagus' ? (
+                          /* Stone Sarcophagus cladding */
+                          <g>
+                            <rect x="75" y="140" width="170" height="175" rx="14" fill="#292524" stroke="#d97706" strokeWidth="3" />
+                            {/* Stone Tile Texture lines */}
+                            <line x1="75" y1="195" x2="245" y2="195" stroke="#44403c" strokeWidth="1.5" />
+                            <line x1="75" y1="250" x2="245" y2="250" stroke="#44403c" strokeWidth="1.5" />
+                            <line x1="160" y1="140" x2="160" y2="195" stroke="#44403c" strokeWidth="1.5" />
+                            <line x1="120" y1="195" x2="120" y2="250" stroke="#44403c" strokeWidth="1.5" />
+                            <line x1="200" y1="195" x2="200" y2="250" stroke="#44403c" strokeWidth="1.5" />
+                            
+                            <text x="160" y="170" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                              КАМЕННЫЙ САРКОФАГ
+                            </text>
+                            <text x="160" y="225" textAnchor="middle" fill="#d6d3d1" fontSize="9">
+                              Талькохлорит / Жадеит
+                            </text>
+                            <text x="160" y="280" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="bold">
+                              Температура стенки: 65°C
+                            </text>
+                          </g>
+                        ) : (
+                          /* Bare Metal Stove casing (Red-hot thin sheet metal) */
+                          <g>
+                            <rect x="80" y="140" width="160" height="175" rx="6" fill="#991b1b" stroke="#ef4444" strokeWidth="3" />
+                            <rect x="90" y="150" width="140" height="155" rx="4" fill="#7f1d1d" stroke="#f87171" strokeWidth="1" strokeDasharray="3 3" />
+                            
+                            <text x="160" y="175" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                              ГОЛЫЙ СТАЛЬНОЙ КОРПУС
+                            </text>
+                            <text x="160" y="225" textAnchor="middle" fill="#fca5a5" fontSize="9">
+                              Без каменной защиты
+                            </text>
+                            <text x="160" y="280" textAnchor="middle" fill="#fef08a" fontSize="10" fontWeight="bold">
+                              Температура стенки: 320°C!
+                            </text>
+                          </g>
+                        )}
+                      </svg>
+
+                      {/* Mode Switch Button */}
+                      <button
+                        onClick={() => setIrSimMode(irSimMode === 'sarcophagus' ? 'bare_metal' : 'sarcophagus')}
+                        className="w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 active:scale-95"
+                      >
+                        <Radio className="w-4 h-4 text-amber-400" />
+                        <span>
+                          {irSimMode === 'sarcophagus' ? 'Переключить на голую сталь (320°C)' : 'Одеть печь в каменный саркофаг'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Physics & Medical Telemetry Dashboard */}
+                  <div className="lg:col-span-6 space-y-3.5">
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Metric 1: Wavelength */}
+                      <div className={`p-3.5 rounded-2xl border transition-all ${
+                        irSimMode === 'sarcophagus'
+                          ? 'bg-amber-950/30 border-amber-500/40'
+                          : 'bg-rose-950/30 border-rose-500/40'
+                      }`}>
+                        <div className="text-[10px] font-mono text-stone-400 uppercase">Длина волны излучения (λ):</div>
+                        <div className={`text-xl font-bold font-mono mt-0.5 ${
+                          irSimMode === 'sarcophagus' ? 'text-amber-300' : 'text-rose-400'
+                        }`}>
+                          {irSimMode === 'sarcophagus' ? '8 — 14 мкм' : '< 2.5 мкм'}
+                        </div>
+                        <div className="text-[11px] text-stone-300 mt-1">
+                          {irSimMode === 'sarcophagus' ? 'Длинноволновый биорезонанс' : 'Коротковолновый жесткий спектр'}
+                        </div>
+                      </div>
+
+                      {/* Metric 2: Penetration Depth */}
+                      <div className={`p-3.5 rounded-2xl border transition-all ${
+                        irSimMode === 'sarcophagus'
+                          ? 'bg-amber-950/30 border-amber-500/40'
+                          : 'bg-rose-950/30 border-rose-500/40'
+                      }`}>
+                        <div className="text-[10px] font-mono text-stone-400 uppercase">Глубина прогрева тканей:</div>
+                        <div className={`text-xl font-bold font-mono mt-0.5 ${
+                          irSimMode === 'sarcophagus' ? 'text-amber-300' : 'text-rose-400'
+                        }`}>
+                          {irSimMode === 'sarcophagus' ? '30 — 45 мм' : 'менее 1 мм'}
+                        </div>
+                        <div className="text-[11px] text-stone-300 mt-1">
+                          {irSimMode === 'sarcophagus' ? 'Прямо в мышцы, фасции и связки' : 'Ожог только рогового слоя кожи'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Physics explanation */}
+                    <div className="p-4 rounded-2xl bg-stone-900 border border-stone-800 space-y-2 text-xs">
+                      <div className="font-semibold text-amber-300 flex items-center gap-1.5 text-xs">
+                        <span>🔬 Закон смещения Вина и физика тепла:</span>
+                      </div>
+                      <p className="text-stone-300 leading-relaxed">
+                        {irSimMode === 'sarcophagus' ? (
+                          <span>
+                            Стенки из талькохлорита или жадеита нагреты всего до 60–75°C. Чем ниже температура излучателя, тем <strong className="text-amber-300">длиннее волна</strong>. 
+                            Длина 9.4 мкм совпадает с собственной тепловой волной человека. Организм принимает это тепло без защитного стресса: капилляры расширяются, давление плавно нормализуется.
+                          </span>
+                        ) : (
+                          <span>
+                            Раскаленный до 300°C+ металл испускает высокоэнергетические короткие волны. 
+                            Они не проникают вглубь, а бомбардируют болевые терморецепторы кожи (эффект сковороды). В ответ организм спазмирует сосуды, поднимается пульс, начинает болеть затылок.
+                          </span>
+                        )}
+                      </p>
+                    </div>
+
+                    {/* Impact on Guest */}
+                    <div className={`p-3.5 rounded-2xl border text-xs leading-relaxed ${
+                      irSimMode === 'sarcophagus'
+                        ? 'bg-amber-950/20 border-amber-500/30 text-amber-200'
+                        : 'bg-rose-950/20 border-rose-500/30 text-rose-200'
+                    }`}>
+                      <span className="font-bold block mb-1">
+                        {irSimMode === 'sarcophagus' ? '💛 Физиология: Полная релаксация и оздоровление' : '🚫 Физиология: Тепловой шок и спазм'}
+                      </span>
+                      {irSimMode === 'sarcophagus' ? (
+                        <span>Возле печи тепло, мягко и уютно. Гость может спокойно лежать на полке 15–20 минут, наслаждаясь глубоким прогревом и обильным целебным потоотделением.</span>
+                      ) : (
+                        <span>К печи страшно подойти ближе 1 метра. У полка воздух обжигает лицо, пересыхают губы, а внизу у пола остается холодно из-за паразитной конвекции.</span>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
