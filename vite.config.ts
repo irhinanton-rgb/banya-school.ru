@@ -3,19 +3,23 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig, Plugin } from "vite";
 
-function yookassaDevPlugin(): Plugin {
+function apiDevPlugin(): Plugin {
   return {
-    name: "yookassa-dev-api",
+    name: "api-dev-handlers",
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (req.url?.startsWith("/api/create-payment") && req.method === "POST") {
+        if (!req.url?.startsWith("/api/")) {
+          return next();
+        }
+
+        const handleApi = async (modulePath: string) => {
           let body = "";
           req.on("data", (chunk) => {
             body += chunk;
           });
           req.on("end", async () => {
             try {
-              const { default: handler } = await import("./api/create-payment.js");
+              const { default: handler } = await import(modulePath);
               (req as any).body = JSON.parse(body || "{}");
               await handler(req, res);
             } catch (err: any) {
@@ -24,8 +28,20 @@ function yookassaDevPlugin(): Plugin {
               res.end(JSON.stringify({ error: err.message }));
             }
           });
-          return;
+        };
+
+        if (req.url.startsWith("/api/create-payment") && req.method === "POST") {
+          return handleApi("./api/create-payment.js");
         }
+
+        if (req.url.startsWith("/api/admin-notification") && req.method === "POST") {
+          return handleApi("./api/admin-notification.js");
+        }
+
+        if (req.url.startsWith("/api/assistant-ai") && req.method === "POST") {
+          return handleApi("./api/assistant-ai.js");
+        }
+
         next();
       });
     },
@@ -34,7 +50,7 @@ function yookassaDevPlugin(): Plugin {
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss(), yookassaDevPlugin()],
+    plugins: [react(), tailwindcss(), apiDevPlugin()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "."),
@@ -53,7 +69,7 @@ export default defineConfig(() => {
         output: {
           entryFileNames: "assets/[name]-[hash].js",
           chunkFileNames: "assets/[name]-[hash].js",
-          assetFileNames: "assets/[name]-[hash].[ext]",
+          assetFileNames: "assets/[name].[ext]",
         },
       },
     },

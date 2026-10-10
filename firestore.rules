@@ -57,6 +57,17 @@ service cloud.firestore {
         && (!('authorRole' in data) || (data.authorRole is string && data.authorRole.size() <= 32));
     }
 
+    function isValidAdminMessage(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.type is string && (data.type == 'question' || data.type == 'bug' || data.type == 'feedback')
+        && data.message is string && data.message.size() >= 1 && data.message.size() <= 2000
+        && data.createdAt is string && data.createdAt.size() <= 64
+        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128))
+        && (!('userName' in data) || (data.userName is string && data.userName.size() <= 100))
+        && (!('userEmail' in data) || (data.userEmail is string && data.userEmail.size() <= 150))
+        && (!('referralSource' in data) || (data.referralSource is string && data.referralSource.size() <= 100))
+        && (!('status' in data) || (data.status is string && data.status.size() <= 32));
+    }
     // User profile document
     match /users/{userId} {
       allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
@@ -80,6 +91,13 @@ service cloud.firestore {
       allow get, list: if true;
       allow create: if isSignedIn() && isValidId(messageId) && incoming().authorId == request.auth.uid && isValidCommunityMessage(incoming());
       allow update, delete: if isSignedIn() && isValidId(messageId) && existing().authorId == request.auth.uid;
+    }
+
+    // User questions, bug reports, and feedback directed to admin
+    match /admin_messages/{messageId} {
+      allow get, list: if isSignedIn();
+      allow create: if isValidId(messageId) && isValidAdminMessage(incoming());
+      allow update, delete: if isSignedIn();
     }
   }
 }

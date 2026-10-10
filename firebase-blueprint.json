@@ -5,50 +5,182 @@
       "description": "User profile information",
       "type": "object",
       "properties": {
-        "uid": { "type": "string", "maxLength": 128 },
-        "displayName": { "type": "string", "maxLength": 100 },
-        "email": { "type": "string", "maxLength": 150 },
-        "phoneNumber": { "type": "string", "maxLength": 32 },
-        "photoURL": { "type": "string", "maxLength": 500 },
-        "createdAt": { "type": "string" }
+        "uid": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 150
+        },
+        "phoneNumber": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string"
+        }
       },
-      "required": ["uid", "displayName"]
+      "required": [
+        "uid",
+        "displayName"
+      ]
     },
     "UserProgress": {
       "title": "UserProgress",
       "description": "Progress of the student in Banya Master School",
       "type": "object",
       "properties": {
-        "userId": { "type": "string", "maxLength": 128 },
-        "name": { "type": "string", "maxLength": 100 },
-        "xp": { "type": "number" },
-        "completedLevels": { "type": "array" },
-        "unlockedBadges": { "type": "array" },
-        "activeLevelId": { "type": "number" },
-        "examScore": { "type": "number" },
-        "certifiedDate": { "type": "string", "maxLength": 64 },
-        "tariff": { "type": "string", "maxLength": 32 },
-        "isPaid": { "type": "boolean" },
-        "paidAt": { "type": "string", "maxLength": 64 },
-        "orderId": { "type": "string", "maxLength": 64 },
-        "updatedAt": { "type": "string" }
+        "userId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "xp": {
+          "type": "number"
+        },
+        "completedLevels": {
+          "type": "array"
+        },
+        "unlockedBadges": {
+          "type": "array"
+        },
+        "activeLevelId": {
+          "type": "number"
+        },
+        "examScore": {
+          "type": "number"
+        },
+        "certifiedDate": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "tariff": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "isPaid": {
+          "type": "boolean"
+        },
+        "paidAt": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "orderId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string"
+        }
       },
-      "required": ["userId", "name", "xp"]
+      "required": [
+        "userId",
+        "name",
+        "xp"
+      ]
     },
     "CommunityMessage": {
       "title": "CommunityMessage",
       "description": "Messages posted in the public banya academy chat",
       "type": "object",
       "properties": {
-        "id": { "type": "string", "maxLength": 128 },
-        "authorId": { "type": "string", "maxLength": 128 },
-        "authorName": { "type": "string", "maxLength": 100 },
-        "authorAvatar": { "type": "string", "maxLength": 500 },
-        "authorRole": { "type": "string", "maxLength": 32 },
-        "text": { "type": "string", "maxLength": 1000 },
-        "createdAt": { "type": "string", "maxLength": 64 }
+        "id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "authorId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "authorName": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "authorAvatar": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "authorRole": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 64
+        }
       },
-      "required": ["id", "authorId", "authorName", "text", "createdAt"]
+      "required": [
+        "id",
+        "authorId",
+        "authorName",
+        "text",
+        "createdAt"
+      ]
+    },
+    "AdminMessage": {
+      "title": "AdminMessage",
+      "description": "Inquiries, bug reports, and feedback submitted to admin",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "type": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "userName": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "userEmail": {
+          "type": "string",
+          "maxLength": 150
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "referralSource": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "message",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
@@ -63,6 +195,10 @@
     "/community_messages/{messageId}": {
       "schema": "CommunityMessage",
       "description": "Real-time messages from students and mentors"
+    },
+    "/admin_messages/{messageId}": {
+      "schema": "AdminMessage",
+      "description": "Support, bug reports and feedback from users"
     }
   }
 }

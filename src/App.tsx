@@ -6,6 +6,9 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { HeroIntro } from './components/HeroIntro';
+import { ArtifactIntroModal } from './components/ArtifactIntroModal';
+import { OwlAssistantModal } from './components/OwlAssistantModal';
+import { FloatingBellButton } from './components/FloatingBellButton';
 import { QuestMap } from './components/QuestMap';
 import { LevelViewer } from './components/LevelViewer';
 import { BadgesShowcase } from './components/BadgesShowcase';
@@ -77,6 +80,15 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'quest' | 'simulators' | 'handbook' | 'forum'>('quest');
   const [questViewMode, setQuestViewMode] = useState<'map' | 'lesson'>('map');
   const [showHero, setShowHero] = useState<boolean>(true);
+  const [hasStartedLearning, setHasStartedLearning] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('pq_has_started_learning') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [showArtifactModal, setShowArtifactModal] = useState<boolean>(false);
+  const [showOwlAssistantModal, setShowOwlAssistantModal] = useState<boolean>(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
   const [showExamModal, setShowExamModal] = useState<boolean>(false);
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
@@ -436,7 +448,16 @@ export default function App() {
               <HeroIntro
                 progress={progress}
                 onStartQuest={() => {
+                  const isFirstStart = !hasStartedLearning && (!progress.completedLevels || progress.completedLevels.length === 0);
                   setShowHero(false);
+                  setHasStartedLearning(true);
+                  try {
+                    localStorage.setItem('pq_has_started_learning', 'true');
+                  } catch (e) {}
+
+                  if (isFirstStart) {
+                    setShowArtifactModal(true);
+                  }
                   handleSelectLevel(1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
@@ -692,6 +713,30 @@ export default function App() {
         onClose={() => setShowLegalModal(false)}
         initialTab={legalInitialTab}
       />
+
+      {/* Artifact Introduction Modal (triggered upon starting learning) */}
+      <ArtifactIntroModal
+        isOpen={showArtifactModal}
+        onClose={() => setShowArtifactModal(false)}
+        onOpenAssistant={() => {
+          setShowArtifactModal(false);
+          setShowOwlAssistantModal(true);
+        }}
+      />
+
+      {/* Owl Assistant Modal (PQ owl helper, questions, bug report, feedback) */}
+      <OwlAssistantModal
+        isOpen={showOwlAssistantModal}
+        onClose={() => setShowOwlAssistantModal(false)}
+        progress={progress}
+      />
+
+      {/* Floating Bell Button: only visible after user has started learning */}
+      {hasStartedLearning && !showHero && (
+        <FloatingBellButton
+          onClick={() => setShowOwlAssistantModal(true)}
+        />
+      )}
 
       {/* Community Club Modal (Single hub with Chat, Video Webroom, and Homework Review) */}
       <CommunityClubModal

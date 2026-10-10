@@ -1,20 +1,30 @@
-import React, { useState, useRef } from 'react';
-import { Volume2, VolumeX, Play, Pause } from 'lucide-react';
-import { UserProgress, LevelId } from '../types/banya';
+import React, { useState, useRef, useEffect } from 'react';
+import { Play, Pause, Volume2, VolumeX, Sparkles, BookOpen, Award, Flame, Users, ChevronRight } from 'lucide-react';
+import { UserProgress } from '../types/banya';
 
 interface HeroIntroProps {
   progress: UserProgress;
   onStartQuest: () => void;
-  onSelectLevel: (levelId: LevelId) => void;
+  onSelectLevel: (levelId: any) => void;
 }
 
 export const HeroIntro: React.FC<HeroIntroProps> = ({
   progress,
   onStartQuest,
+  onSelectLevel,
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Autoplay policy prevented playback
+        setIsPlaying(false);
+      });
+    }
+  }, []);
 
   const togglePlay = () => {
     if (!videoRef.current) return;
@@ -29,24 +39,24 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
 
   const toggleSound = () => {
     if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
+    const newMuted = !isMuted;
+    videoRef.current.muted = newMuted;
+    setIsMuted(newMuted);
   };
 
-  // Determine current active step title
-  const completedCount = progress?.completedLevels?.length || 0;
-  const currentStepNum = Math.min(completedCount + 1, 7);
+  const completedCount = progress.completedLevels ? progress.completedLevels.length : 0;
+  const currentStepNum = progress.activeLevelId || 1;
   const currentStepTitle =
     currentStepNum === 1
       ? 'Вход в Банное Дело'
       : currentStepNum === 2
-      ? 'Анатомия и Первый Контакт'
+      ? 'Анатомия Пара и Веники'
       : currentStepNum === 3
-      ? 'Симфония Веников'
+      ? 'Банная Фармакопея'
       : currentStepNum === 4
-      ? 'Фитотерапия и Аромамагия'
+      ? 'Диагностика и Безопасность'
       : currentStepNum === 5
-      ? 'Температурные Контрасты'
+      ? 'Сервис и Ритуалы'
       : currentStepNum === 6
       ? 'Безопасность и ЧП'
       : 'Финальная Аттестация';
@@ -66,17 +76,13 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
           className="w-full h-full object-cover object-center pointer-events-none transition-transform duration-1000"
           style={{ filter: 'brightness(0.74) contrast(1.10) saturate(1.15)' }}
         />
-
         {/* Scrim Layers: Guarantees 100% Crisp Text Legibility while video is clearly visible */}
         {/* Layer 1: Base translucent veil */}
         <div className="absolute inset-0 bg-[#0a0908]/45" />
-
         {/* Layer 2: Reading gradient from deep charcoal on left to translucent on right */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a0908]/95 via-[#0a0908]/75 sm:via-[#0a0908]/55 to-transparent" />
-
         {/* Layer 3: Vertical edge vignette */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0908]/85 via-transparent to-[#0a0908]/60" />
-
         {/* Layer 4: Warm amber sauna lamp directional radial glow */}
         <div
           className="absolute inset-0 pointer-events-none opacity-35 mix-blend-screen"
@@ -97,7 +103,6 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
           {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5 text-amber-400" />}
           <span className="hidden sm:inline">{isMuted ? 'Звук' : 'Звук парной'}</span>
         </button>
-
         <button
           onClick={togglePlay}
           title={isPlaying ? 'Пауза видео' : 'Воспроизвести'}
@@ -113,7 +118,6 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
           
           {/* Left Column: Headlines & Call-to-Action (7 Cols on desktop) */}
           <div className="lg:col-span-7 space-y-6">
-
             {/* Main Headline */}
             <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-stone-100 leading-[1.12] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
               Пармастер Квест: <br />
@@ -137,6 +141,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
               >
                 {/* Glowing pulsating outer halo ring */}
                 <span className="absolute -inset-1 rounded-2xl bg-amber-500/30 blur-md group-hover:bg-amber-400/50 transition-all animate-pulse pointer-events-none" />
+                
                 <span className="relative font-bold tracking-wide text-center">
                   {completedCount > 0 ? 'ПРОДОЛЖИТЬ ОБУЧЕНИЕ' : 'НАЧАТЬ ОБУЧЕНИЕ'}
                 </span>
@@ -151,64 +156,58 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
               </div>
             </div>
 
+            {/* Micro Trust Indicators */}
+            <div className="pt-2 flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-stone-300/80 font-mono">
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>7 интерактивных станций</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-amber-400" />
+                <span>Именной сертификат мастера</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Flame className="w-3.5 h-3.5 text-amber-400" />
+                <span>Симуляторы и тесты</span>
+              </span>
+            </div>
           </div>
 
-          {/* Right Column: Professional Profile Portrait Card of Anton Irkhin (5 Cols on desktop) */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end">
-            <div className="w-full max-w-sm rounded-3xl bg-stone-950/90 sm:bg-gradient-to-b sm:from-stone-900/95 sm:via-stone-950 sm:to-stone-900/95 border border-amber-500/40 p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-xl space-y-4 relative overflow-hidden group hover:border-amber-400/60 transition-all">
-              
-              {/* Warm decorative sauna glow inside card */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-              {/* Anton Irkhin Header Info */}
-              <div className="flex items-center gap-4">
-                <div className="relative shrink-0">
-                  <img
-                    src="/images/anton-irkhin-avatar.jpg"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = '/images/anton-irkhin.jpg';
-                    }}
-                    alt="Антон Ирхин"
-                    className="h-20 w-20 rounded-2xl object-cover object-top border-2 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.35)] group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-lg bg-amber-500 text-stone-950 text-xs font-bold shadow-md">
-                    👑
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-serif text-lg sm:text-xl font-bold text-stone-100 leading-tight">
+          {/* Right Column: Founder & Author Stamp (Anton Irkhin) */}
+          <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center">
+            <div className="w-full max-w-sm rounded-2xl bg-stone-900/80 border border-stone-800/80 p-5 backdrop-blur-md shadow-2xl space-y-4">
+              <div className="flex items-center gap-3.5">
+                <img
+                  src="/images/anton-irkhin-avatar.jpg"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    if (!target.src.includes('anton-irkhin.jpg')) {
+                      target.src = '/images/anton-irkhin.jpg';
+                    }
+                  }}
+                  alt="Антон Ирхин"
+                  className="w-14 h-14 rounded-2xl object-cover border-2 border-amber-500/50 shadow-md shrink-0"
+                />
+                <div>
+                  <div className="text-stone-100 font-serif font-bold text-base leading-tight">
                     Антон Ирхин
-                  </h3>
-                  <div className="text-xs font-medium text-amber-300 leading-snug">
-                    Автор курса · Мастер-наставник
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-mono">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Онлайн на платформе</span>
+                  <div className="text-amber-400 text-xs font-mono mt-0.5">
+                    Основатель школы & Наставник
+                  </div>
+                  <div className="text-[11px] text-stone-400 mt-0.5">
+                    Судья банных чемпионатов
                   </div>
                 </div>
               </div>
 
-              {/* 7 лет в банной практике · 5000+ парений */}
-              <div className="grid grid-cols-2 gap-2.5 pt-1">
-                <div className="px-3.5 py-2.5 rounded-2xl bg-stone-900/90 border border-stone-800/90 text-center shadow-inner">
-                  <div className="font-serif text-amber-300 font-bold text-base sm:text-lg leading-tight">7 лет</div>
-                  <div className="text-[10px] text-stone-400 leading-snug mt-0.5">в банной практике</div>
-                </div>
-                <div className="px-3.5 py-2.5 rounded-2xl bg-stone-900/90 border border-stone-800/90 text-center shadow-inner">
-                  <div className="font-serif text-amber-300 font-bold text-base sm:text-lg leading-tight">5000+</div>
-                  <div className="text-[10px] text-stone-400 leading-snug mt-0.5">парений</div>
-                </div>
-              </div>
+              <p className="text-xs text-stone-300 leading-relaxed italic border-t border-stone-800/80 pt-3">
+                «Наша миссия — передать чистое ремесло пара: без суеты, с глубоким уважением к физиологии и банным традициям.»
+              </p>
 
-              {/* Quote */}
-              <div className="relative p-3.5 rounded-2xl bg-stone-950/90 border border-stone-800/90">
-                <div className="text-amber-500/40 text-3xl font-serif leading-none absolute -top-1 left-2 font-bold">
-                  “
-                </div>
-                <p className="text-xs sm:text-sm font-serif italic text-amber-100/90 leading-relaxed pl-3">
-                  «Пар должен быть мягким, целительным и ласковым. Здесь вы научитесь парить так, чтобы гости возвращались к вам снова и снова.»
-                </p>
+              <div className="flex items-center justify-between text-[11px] font-mono text-stone-400 pt-1 border-t border-stone-800/50">
+                <span>г. Краснодар / Онлайн</span>
+                <span className="text-amber-300 font-semibold">★ 4.98 рейтинг</span>
               </div>
             </div>
           </div>
