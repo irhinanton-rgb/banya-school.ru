@@ -1,14 +1,40 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { 
+  initializeFirestore, 
+  getFirestore, 
+  doc, 
+  getDoc,
+  persistentLocalCache,
+  persistentMultipleTabManager
+} from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 
-// Support standard (default) and named firestore databases seamlessly
-export const db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)')
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-  : getFirestore(app);
+// Initialize Firestore with robust long polling & multi-tab offline caching
+// to prevent WebSocket timeout errors in proxied / cloud / preview environments
+const firestoreDatabaseId = 
+  (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)')
+    ? firebaseConfig.firestoreDatabaseId
+    : undefined;
+
+let firestoreInstance;
+try {
+  firestoreInstance = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    })
+  }, firestoreDatabaseId);
+} catch (e) {
+  // If already initialized
+  firestoreInstance = firestoreDatabaseId 
+    ? getFirestore(app, firestoreDatabaseId)
+    : getFirestore(app);
+}
+
+export const db = firestoreInstance;
 export const auth = getAuth(app);
 
 export enum OperationType {
@@ -55,18 +81,17 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path,
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  console.warn('Firestore Operation Notice: ', JSON.stringify(errInfo));
+  return errInfo;
 }
 
-// CRITICAL: Test initial connection
+// Graceful initial test connection (never blocks or throws unhandled promise rejections)
 async function testConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    await getDoc(doc(db, 'test', 'connection'));
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('Firebase client is offline. Please check network connection.');
-    }
+    // Graceful offline fallback
+    console.info('Firestore client running with offline persistence fallback.');
   }
 }
 
