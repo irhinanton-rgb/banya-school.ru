@@ -138,7 +138,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               className="relative group/reward cursor-pointer"
               title={
                 level.id === 1
-                  ? 'Во втором уровне нам понадобится найти 2 веника для отработки движений'
+                  ? 'Во втором уровне понадобится два веника для отработки движений'
                   : badge.description
               }
             >
@@ -169,7 +169,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                     </div>
                     <p className="text-xs text-stone-200 leading-relaxed font-sans">
                       {level.id === 1
-                        ? 'Во втором уровне нам понадобится найти 2 веника для отработки движений.'
+                        ? 'Во втором уровне понадобится два веника для отработки движений.'
                         : badge.description}
                     </p>
                     {level.id === 1 && (
@@ -649,14 +649,18 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
 
             {/* Level 1 specific tip for level 2 */}
             {level.id === 1 && (
-              <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/50 text-left space-y-1 shadow-inner">
-                <div className="flex items-center gap-2 text-xs font-serif font-bold text-amber-300">
-                  <span>💡</span>
-                  <span>Важная подсказка для 2-го уровня:</span>
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/60 via-stone-900 to-amber-950/60 border-2 border-amber-500/60 text-left space-y-2 shadow-xl ring-1 ring-amber-500/20">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-serif font-bold text-amber-300">
+                  <span className="text-base sm:text-lg">🌿</span>
+                  <span>Подготовка ко 2-му уровню:</span>
                 </div>
-                <p className="text-xs text-amber-100/90 leading-relaxed font-mono">
-                  Во втором уровне нам понадобится найти 2 веника для отработки движений!
+                <p className="text-xs sm:text-sm text-stone-100 font-semibold leading-relaxed">
+                  Во втором уровне понадобится <span className="text-amber-300 underline decoration-amber-400 font-extrabold">два веника для отработки движений</span>!
                 </p>
+                <div className="text-[11px] text-stone-400 font-mono flex items-center gap-1.5 pt-0.5">
+                  <span>💡</span>
+                  <span>Подготовьте любые два банных веника (дубовые, берёзовые или тренировочные) для практики 8 фундаментальных приёмов.</span>
+                </div>
               </div>
             )}
 

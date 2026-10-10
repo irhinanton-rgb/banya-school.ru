@@ -226,3 +226,43 @@ export function playMetalLeverSound(enabled = true): void {
   }
 }
 
+export function playWindSound(enabled = true): void {
+  if (!enabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const bufferSize = ctx.sampleRate * 1.5;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(300, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.6);
+    filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1.4);
+    filter.Q.value = 2.0;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.4);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.45);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start();
+    noise.stop(ctx.currentTime + 1.5);
+  } catch {
+    // Silent fallback
+  }
+}
+
+

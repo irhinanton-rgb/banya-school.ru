@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Flame, Droplets, AlertTriangle, Wind, Info, Sparkles, BookOpen } from 'lucide-react';
 import { playSteamSound, playExplosiveSteamSound } from '../../utils/audio';
 import { StoveEducationModal } from './StoveEducationModal';
+import { VentilationEducationModal } from './VentilationEducationModal';
 
 interface MicroclimateSimulatorProps {
   soundEnabled: boolean;
@@ -18,7 +19,7 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
   const [steamLadles, setSteamLadles] = useState<number>(0);
   const [ventilationOpen, setVentilationOpen] = useState<boolean>(false);
   const [isStoveModalOpen, setIsStoveModalOpen] = useState<boolean>(false);
-  const [showVentilationTooltip, setShowVentilationTooltip] = useState<boolean>(false);
+  const [isVentilationModalOpen, setIsVentilationModalOpen] = useState<boolean>(false);
 
   // Dew point approximation (Magnus formula approximation)
   // Td = T - ((100 - RH)/5)
@@ -193,78 +194,26 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
         </div>
 
         {/* Action Controls Inside Canvas */}
-        <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
-          {/* Stretched and enlarged button: Поддать пар */}
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          {/* Button 1: Поддать пар */}
           <button
             onClick={handlePourWater}
-            className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-400 hover:to-amber-500 active:scale-[0.98] text-stone-950 font-extrabold text-sm sm:text-base uppercase tracking-wider shadow-xl shadow-amber-950/60 transition-all cursor-pointer border-2 border-amber-300/50 select-none group"
-            title="Поддать ковш горячей воды на каменку для увеличения влажности (+8%)"
+            className="w-full flex items-center justify-center gap-2.5 px-6 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-400 hover:to-amber-500 active:scale-[0.98] text-stone-950 font-extrabold text-sm sm:text-base uppercase tracking-wider shadow-xl shadow-amber-950/60 transition-all cursor-pointer border-2 border-amber-300/50 select-none group"
+            title="Открыть анатомию печи и симуляцию пара"
           >
             <Droplets className="h-5 w-5 text-stone-950 fill-stone-950 shrink-0 group-hover:scale-110 transition-transform" />
-            <span>Поддать пар (+8% влажности)</span>
+            <span>Поддать пар</span>
           </button>
 
-          {/* Ventilation button with hover information card */}
-          <div
-            className="relative"
-            onMouseEnter={() => setShowVentilationTooltip(true)}
-            onMouseLeave={() => setShowVentilationTooltip(false)}
+          {/* Button 2: Залповое проветривание */}
+          <button
+            onClick={() => setIsVentilationModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2.5 px-6 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 hover:from-cyan-500 hover:to-cyan-600 active:scale-[0.98] text-cyan-50 font-extrabold text-sm sm:text-base uppercase tracking-wider shadow-xl shadow-cyan-950/60 transition-all cursor-pointer border-2 border-cyan-400/50 select-none group"
+            title="Важность проветривания парной и запуск залпового сброса"
           >
-            <button
-              onClick={handleVentilate}
-              disabled={ventilationOpen}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3.5 sm:py-4 rounded-2xl bg-stone-900/95 hover:bg-stone-800 active:scale-95 text-stone-100 text-xs sm:text-sm font-semibold transition-all border border-cyan-500/40 hover:border-cyan-400 cursor-pointer disabled:opacity-50 select-none shadow-lg"
-            >
-              <Wind className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 shrink-0 animate-pulse" />
-              <span>{ventilationOpen ? 'Проветривание...' : 'Залповое проветривание'}</span>
-              <Info className="h-3.5 w-3.5 text-cyan-300/80 ml-0.5 shrink-0" />
-            </button>
-
-            {/* Hover Floating Information Popup */}
-            {showVentilationTooltip && (
-              <div className="absolute right-0 bottom-full mb-3 w-[300px] sm:w-[380px] p-4 rounded-2xl bg-stone-950/95 backdrop-blur-md border border-cyan-500/50 shadow-2xl text-stone-100 text-xs space-y-3 z-50 animate-fade-in pointer-events-none sm:pointer-events-auto">
-                <div className="flex items-center gap-2 pb-2 border-b border-stone-800">
-                  <Wind className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span className="font-serif font-bold text-sm text-cyan-300">
-                    Важность проветривания парной
-                  </span>
-                </div>
-
-                <div className="space-y-2.5 leading-relaxed text-stone-300">
-                  <div className="p-2.5 rounded-xl bg-stone-900/80 border border-stone-800/80 space-y-1">
-                    <span className="font-bold text-amber-300 flex items-center gap-1.5 text-[11px] uppercase tracking-wide">
-                      🚪 1. До процедур (Перед парением):
-                    </span>
-                    <p className="text-[11px] text-stone-300 leading-normal">
-                      Насытить парную свежим кислородом (O₂) и вытеснить застоявшийся угарный воздух. Парение без свежего воздуха провоцирует спазм сосудов и головную боль.
-                    </p>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-stone-900/80 border border-stone-800/80 space-y-1">
-                    <span className="font-bold text-cyan-300 flex items-center gap-1.5 text-[11px] uppercase tracking-wide">
-                      🌿 2. Во время процедур (В процессе):
-                    </span>
-                    <p className="text-[11px] text-stone-300 leading-normal">
-                      Микроприток («второе дыхание» или форточка под полком). Гость вдыхает уличный свежий воздух, пока тело прогревается вениками — голова ясная, пульс стабильный.
-                    </p>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-stone-900/80 border border-stone-800/80 space-y-1">
-                    <span className="font-bold text-emerald-300 flex items-center gap-1.5 text-[11px] uppercase tracking-wide">
-                      💨 3. После процедур (Залповый сброс):
-                    </span>
-                    <p className="text-[11px] text-stone-300 leading-normal">
-                      Открыть дверь и окно настежь на 2–3 минуты. Сбросить отработанный пар, CO₂ и запах пота. Затем закрыть — печь досушит дерево до звона, защищая от плесени.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-1 text-[10px] text-amber-400/90 font-mono italic border-t border-stone-800">
-                  💡 Главный враг гостя в парной — не температура, а гипоксия (нехватка кислорода)!
-                </div>
-              </div>
-            )}
-          </div>
+            <Wind className="h-5 w-5 text-cyan-200 shrink-0 group-hover:scale-110 group-hover:rotate-12 transition-transform" />
+            <span>Залповое проветривание</span>
+          </button>
         </div>
       </div>
 
@@ -343,6 +292,15 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
         isOpen={isStoveModalOpen}
         onClose={() => setIsStoveModalOpen(false)}
         onApplySteam={handleApplySteamFromStove}
+        soundEnabled={soundEnabled}
+      />
+
+      {/* Interactive Ventilation Educational Modal */}
+      <VentilationEducationModal
+        isOpen={isVentilationModalOpen}
+        onClose={() => setIsVentilationModalOpen(false)}
+        onVentilate={handleVentilate}
+        isVentilating={ventilationOpen}
         soundEnabled={soundEnabled}
       />
     </div>

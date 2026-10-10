@@ -23,6 +23,7 @@ interface BadgesShowcaseProps {
   onNavigateToLevel?: (levelId: LevelId) => void;
   onUnlockBadge?: (badgeId: BadgeId, xp: number) => void;
   soundEnabled?: boolean;
+  isLevel2Active?: boolean;
 }
 
 export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
@@ -30,6 +31,7 @@ export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
   onNavigateToLevel,
   onUnlockBadge,
   soundEnabled = true,
+  isLevel2Active = false,
 }) => {
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [isChestModalOpen, setIsChestModalOpen] = useState<boolean>(false);
@@ -166,7 +168,7 @@ export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-mono uppercase font-bold tracking-wider">
-                  Секретные Знания
+                  {isLevel2Active ? '⭐ Открыто на Уровне 2' : 'Секретные Знания'}
                 </span>
                 {hasGoldenKey ? (
                   <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
@@ -181,11 +183,21 @@ export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
                 )}
               </div>
 
-              <h4 className="font-serif text-lg sm:text-xl font-bold text-stone-100">
-                Кованый Сундук Тайных Знаний
+              <h4 className="font-serif text-lg sm:text-xl font-bold text-stone-100 flex items-center gap-2">
+                <span>Кованый Сундук Тайных Знаний</span>
+                {isLevel2Active && (
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-normal">
+                    Награда 2-го уровня
+                  </span>
+                )}
               </h4>
 
               <p className="text-xs text-stone-300 max-w-xl leading-relaxed">
+                {isLevel2Active && (
+                  <strong className="text-amber-300 font-medium block mb-1">
+                    🔓 Доступ открыт со 2-го уровня!
+                  </strong>
+                )}
                 Внутри хранятся 4 закрытых свитка: секретный рецепт Царского взвара из 12 дикоросов, чек-лист идеальной парной от Антона Ирхина, техника Ледяного Дыхания и матрица золотой кривой пара 60/60.
               </p>
             </div>

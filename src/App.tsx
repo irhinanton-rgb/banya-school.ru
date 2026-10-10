@@ -532,51 +532,57 @@ export default function App() {
                   />
                 </div>
 
-                {/* Community Club & Live Hub Interactive Banner */}
-                <div className="rounded-2xl border border-stone-800 bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-stone-950 shadow-lg shrink-0">
-                      <span className="text-2xl">🌿</span>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-serif text-base sm:text-lg font-bold text-stone-100">
-                          Банный Клуб: Чат Сообщества & Онлайн-Эфиры
-                        </h3>
-                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-semibold">
-                          Live
-                        </span>
+                {/* Информация ниже мини-теста скрыта на 1-м уровне, но сохранена в коде; сундук перенесен во 2-й уровень */}
+                {currentLevelData.id !== 1 && (
+                  <>
+                    {/* Community Club & Live Hub Interactive Banner */}
+                    <div className="rounded-2xl border border-stone-800 bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-stone-950 shadow-lg shrink-0">
+                          <span className="text-2xl">🌿</span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-serif text-base sm:text-lg font-bold text-stone-100">
+                              Банный Клуб: Чат Сообщества & Онлайн-Эфиры
+                            </h3>
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-semibold">
+                              Live
+                            </span>
+                          </div>
+                          <p className="text-xs text-stone-400 mt-1 max-w-xl leading-relaxed">
+                            Единое окно: живое общение с учениками и наставником, субботние созвоны с разбором техники веников прямо в браузере и сдача видео-заданий.
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-xs text-stone-400 mt-1 max-w-xl leading-relaxed">
-                        Единое окно: живое общение с учениками и наставником, субботние созвоны с разбором техники веников прямо в браузере и сдача видео-заданий.
-                      </p>
+
+                      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                        <button
+                          onClick={() => handleOpenClub('chat')}
+                          className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-all shadow-md cursor-pointer text-center"
+                        >
+                          Общий Чат 💬
+                        </button>
+                        <button
+                          onClick={() => handleOpenClub('webinar')}
+                          className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800 text-xs font-semibold transition-colors cursor-pointer text-center"
+                        >
+                          Видеокомната 📹
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                    <button
-                      onClick={() => handleOpenClub('chat')}
-                      className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-all shadow-md cursor-pointer text-center"
-                    >
-                      Общий Чат 💬
-                    </button>
-                    <button
-                      onClick={() => handleOpenClub('webinar')}
-                      className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800 text-xs font-semibold transition-colors cursor-pointer text-center"
-                    >
-                      Видеокомната 📹
-                    </button>
-                  </div>
-                </div>
-
-                {/* Badges / Trophies Shelf & Secret Chest */}
-                <BadgesShowcase
-                  unlockedBadges={progress.unlockedBadges}
-                  onNavigateToLevel={handleSelectLevel}
-                  onUnlockBadge={handleGrantBadge}
-                  soundEnabled={progress.soundEnabled}
-                />
+                    {/* Badges / Trophies Shelf & Secret Chest (активен со 2-го уровня) */}
+                    <BadgesShowcase
+                      unlockedBadges={progress.unlockedBadges}
+                      onNavigateToLevel={handleSelectLevel}
+                      onUnlockBadge={handleGrantBadge}
+                      soundEnabled={progress.soundEnabled}
+                      isLevel2Active={currentLevelData.id === 2}
+                    />
+                  </>
+                )}
               </div>
             )}
           </div>
