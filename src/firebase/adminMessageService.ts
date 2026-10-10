@@ -1,16 +1,10 @@
 import { 
-  collection, 
   doc, 
   setDoc, 
-  serverTimestamp, 
-  getDocs, 
-  query, 
-  orderBy, 
-  limit 
 } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from './config';
+import { db } from './config';
 
-export type AdminMessageType = 'question' | 'bug' | 'feedback';
+export type AdminMessageType = 'question' | 'bug' | 'feedback' | 'payment';
 
 export interface AdminMessagePayload {
   type: AdminMessageType;
@@ -19,6 +13,10 @@ export interface AdminMessagePayload {
   userName?: string;
   userEmail?: string;
   referralSource?: string;
+  orderId?: string;
+  amount?: string | number;
+  answer?: string;
+  currentLevel?: number;
 }
 
 export interface AdminMessageRecord extends AdminMessagePayload {
@@ -28,7 +26,7 @@ export interface AdminMessageRecord extends AdminMessagePayload {
 }
 
 /**
- * Send inquiry, bug report, or feedback directly to admin (Firestore + Telegram notification)
+ * Send inquiry, bug report, feedback, or payment notification directly to Telegram bot & Firestore
  */
 export async function sendAdminMessage(payload: AdminMessagePayload): Promise<boolean> {
   const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
@@ -40,19 +38,23 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
     await setDoc(docRef, {
       id: messageId,
       type: payload.type,
-      message: payload.message.trim(),
+      message: (payload.message || '').trim(),
       userId: payload.userId || 'guest',
       userName: payload.userName || 'Гость курса',
       userEmail: payload.userEmail || '',
       referralSource: payload.referralSource || '',
+      orderId: payload.orderId || null,
+      amount: payload.amount || null,
+      answer: payload.answer || null,
+      currentLevel: payload.currentLevel || null,
       status: 'new',
       createdAt: nowIso,
     });
   } catch (err) {
-    console.warn('Could not save message to firestore (will still try Telegram notification):', err);
+    console.warn('Could not save message to firestore (will still deliver Telegram notification):', err);
   }
 
-  // 2. Also send real-time notification to admin via API endpoint (which pushes to Telegram)
+  // 2. Also send real-time notification to Telegram bot
   try {
     const res = await fetch('/api/admin-notification', {
       method: 'POST',
@@ -64,7 +66,11 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
         userName: payload.userName,
         userEmail: payload.userEmail,
         referralSource: payload.referralSource,
-        createdAt: nowIso,
+        orderId: payload.orderId,
+        amount: payload.amount,
+        answer: payload.answer,
+        currentLevel: payload.currentLevel,
+        createdAt: new Date().toLocaleString('ru-RU'),
       }),
     });
     if (!res.ok) {
@@ -75,4 +81,23 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
   }
 
   return true;
+}
+
+/**
+ * Send Course Purchase Notification to Telegram Bot
+ */
+export async function sendCoursePurchaseNotification(params: {
+  orderId: string;
+  amount?: string | number;
+  userName?: string;
+  userEmail?: string;
+}): Promise<boolean> {
+  return sendAdminMessage({
+    type: 'payment',
+    message: `Оплата курса успешно подтверждена (Заказ #${params.orderId})`,
+    orderId: params.orderId,
+    amount: params.amount || '3390.00',
+    userName: params.userName || 'Ученик',
+    userEmail: params.userEmail || '',
+  });
 }

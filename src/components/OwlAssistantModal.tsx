@@ -123,6 +123,8 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
       sendAdminMessage({
         type: 'question',
         message: question,
+        answer: reply,
+        currentLevel: progress.activeLevelId || 1,
         userId: user?.uid || 'guest',
         userName: userName || progress.name || 'Гость курса',
         userEmail: userContact || user?.email || '',

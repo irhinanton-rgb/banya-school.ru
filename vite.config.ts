@@ -49,14 +49,9 @@ function apiDevPlugin(): Plugin {
           });
         };
 
-        if (req.url.startsWith("/api/create-payment") && req.method === "POST") {
-          return handleApi("api/create-payment.js");
-        }
-        if (req.url.startsWith("/api/admin-notification") && req.method === "POST") {
-          return handleApi("api/admin-notification.js");
-        }
-        if (req.url.startsWith("/api/assistant-ai") && req.method === "POST") {
-          return handleApi("api/assistant-ai.js");
+        const urlPath = (req.url || "").split("?")[0].replace(/^\/api\//, "");
+        if (urlPath) {
+          return handleApi(`api/${urlPath}.js`);
         }
 
         next();

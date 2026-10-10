@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { broadcastToAdmins, escapeHtml } from './telegram-notifier.js';
 
 const apiKey = process.env.GEMINI_API_KEY;
 
@@ -19,16 +20,30 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const { question, currentLevel, studentName } = body;
+    const { question, currentLevel, studentName, userEmail } = body;
 
     if (!question || typeof question !== 'string') {
       return res.status(400).json({ error: 'Вопрос не указан' });
     }
 
     if (!apiKey) {
-      return res.status(200).json({
-        answer: 'Приветствую, банный ученик! Я твой мудрый наставник Сова PQ. Твой вопрос принят и передан Антону Ирхину. Изучай теорию станций квеста, пробуй симуляторы и держи кондиции 60/60!'
-      });
+      const fallbackAnswer = 'Приветствую, банный ученик! Я твой мудрый наставник Сова PQ. Твой вопрос принят и передан Антону Ирхину. Изучай теорию станций квеста, пробуй симуляторы и держи кондиции 60/60!';
+      
+      // Notify Telegram
+      broadcastToAdmins(
+        [
+          `🦉 <b>[Сова PQ] Вопрос ученика по квесту</b>`,
+          ``,
+          `👤 <b>Ученик:</b> ${escapeHtml(studentName || 'Ученик')} (Станция ${currentLevel || 1})`,
+          userEmail ? `📧 <b>Email:</b> ${escapeHtml(userEmail)}` : null,
+          `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
+          ``,
+          `❓ <b>Вопрос:</b>`,
+          escapeHtml(question),
+        ].filter(Boolean).join('\n')
+      ).catch((e) => console.warn('TG broadcast warning:', e));
+
+      return res.status(200).json({ answer: fallbackAnswer });
     }
 
     const ai = new GoogleGenAI({
@@ -76,13 +91,54 @@ export default async function handler(req, res) {
       }
     });
 
+    const generatedAnswer = response.text || 'Отличный вопрос! Сохраняй спокойствие и продолжай движение по станциям квеста.';
+
+    // Broadcast student question and Owl's answer directly to Anton's Telegram bot!
+    broadcastToAdmins(
+      [
+        `🦉 <b>[Сова PQ] Вопрос ученика по квесту</b>`,
+        ``,
+        `👤 <b>Ученик:</b> ${escapeHtml(studentName || 'Ученик')} (Станция ${currentLevel || 1})`,
+        userEmail ? `📧 <b>Email:</b> ${escapeHtml(userEmail)}` : null,
+        `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
+        ``,
+        `❓ <b>Вопрос ученика:</b>`,
+        escapeHtml(question),
+        ``,
+        `💡 <b>Ответ Совы PQ:</b>`,
+        escapeHtml(generatedAnswer),
+      ].filter(Boolean).join('\n')
+    ).catch((e) => console.warn('TG broadcast warning:', e));
+
     return res.status(200).json({
-      answer: response.text || 'Отличный вопрос! Сохраняй спокойствие и продолжай движение по станциям квеста.'
+      answer: generatedAnswer
     });
   } catch (error) {
     console.error('Gemini Assistant Error:', error);
+    const fallbackAnswer = 'Твой вопрос принят мудрой Совой! Передала его лично Антону Ирхину. Двигайся дальше по станциям квеста, пробуй симуляторы и держи лёгкий пар!';
+
+    // Still notify Telegram about the student's question even on error
+    try {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      if (body.question) {
+        broadcastToAdmins(
+          [
+            `🦉 <b>[Сова PQ] Вопрос ученика по квесту</b>`,
+            ``,
+            `👤 <b>Ученик:</b> ${escapeHtml(body.studentName || 'Ученик')}`,
+            `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
+            ``,
+            `❓ <b>Вопрос:</b>`,
+            escapeHtml(body.question),
+          ].join('\n')
+        ).catch(() => {});
+      }
+    } catch {
+      // ignore
+    }
+
     return res.status(200).json({
-      answer: 'Твой вопрос принят мудрой Совой! Передала его лично Антону Ирхину. Двигайся дальше по станциям квеста, пробуй симуляторы и держи лёгкий пар!'
+      answer: fallbackAnswer
     });
   }
 }

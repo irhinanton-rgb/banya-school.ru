@@ -37,6 +37,7 @@ import {
   fetchProgressFromCloud,
   mergeUserProgress,
 } from './firebase/progressSync';
+import { sendCoursePurchaseNotification } from './firebase/adminMessageService';
 
 const STORAGE_KEY = 'banya_quest_master_progress_v1';
 
@@ -132,9 +133,18 @@ export default function App() {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.get('payment') === 'success') {
         const orderId = searchParams.get('orderId') || `YOOKASSA-${Date.now()}`;
+        const amount = searchParams.get('amount') || '3390.00';
         setSuccessfulOrderId(orderId);
         setShowPaymentSuccessModal(true);
         handleActivatePaidTier(orderId);
+
+        // Send instant notification to Telegram bot
+        sendCoursePurchaseNotification({
+          orderId,
+          amount: Number(amount) === 10 ? '10 ₽ (тестовая)' : '3 390 ₽',
+          userName: progress.name || user?.displayName || 'Ученик',
+          userEmail: user?.email || '',
+        }).catch((err) => console.warn('Payment telegram notification warning:', err));
 
         try {
           confetti({

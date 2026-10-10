@@ -1,15 +1,4 @@
-import https from 'https';
-
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7992502826:AAFaVxzLifwnqRGnV1q3OhUmx4Ykz2C5OBU';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_ADMIN_CHAT_ID || process.env.TELEGRAM_CHAT_ID || '@BatyaVBane';
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
+import { broadcastToAdmins, escapeHtml } from './telegram-notifier.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -28,70 +17,97 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const { type, message, userName, userEmail, referralSource, createdAt } = body;
+    const { 
+      type, 
+      message, 
+      userName, 
+      userEmail, 
+      referralSource, 
+      createdAt, 
+      orderId, 
+      amount, 
+      answer, 
+      currentLevel 
+    } = body;
 
-    let icon = '📩';
-    let typeLabel = 'Сообщение';
-    if (type === 'question') {
-      icon = '🦉';
-      typeLabel = 'Вопрос по квесту помощнику PQ';
+    let textLines = [];
+
+    if (type === 'payment') {
+      // Course Purchase Celebration Notification
+      const displayAmount = amount ? (typeof amount === 'number' ? `${amount} ₽` : `${amount}`) : '3 390 ₽';
+      textLines = [
+        `🎉 <b>[ОПЛАТА КУРСА] Новый студент «Мастер Пара PRO»!</b>`,
+        ``,
+        `🎓 <b>Тариф:</b> «Мастер Пара PRO» (Полный доступ к курсу)`,
+        `💰 <b>Сумма оплаты:</b> ${displayAmount}`,
+        `👤 <b>Ученик:</b> ${escapeHtml(userName || 'Ученик')}`,
+        userEmail ? `📧 <b>Email:</b> ${escapeHtml(userEmail)}` : null,
+        orderId ? `🧾 <b>Номер заказа:</b> <code>${escapeHtml(orderId)}</code>` : null,
+        `🕒 <b>Время:</b> ${escapeHtml(createdAt || new Date().toLocaleString('ru-RU'))}`,
+        ``,
+        `👑 <i>Доступ ко всем 7 станциям квеста, симуляторам и аттестации успешно активирован на banya-school.ru!</i>`,
+      ];
+    } else if (type === 'question') {
+      // Student Question to Owl PQ / Mentor
+      textLines = [
+        `🦉 <b>[Сова PQ] Вопрос ученика по квесту</b>`,
+        ``,
+        `👤 <b>Ученик:</b> ${escapeHtml(userName || 'Гость курса')}${currentLevel ? ` (Станция ${currentLevel})` : ''}`,
+        userEmail ? `📧 <b>Контакт:</b> ${escapeHtml(userEmail)}` : null,
+        referralSource ? `🔍 <b>Источник:</b> ${escapeHtml(referralSource)}` : null,
+        `🕒 <b>Время:</b> ${escapeHtml(createdAt || new Date().toLocaleString('ru-RU'))}`,
+        ``,
+        `❓ <b>Вопрос ученика:</b>`,
+        escapeHtml(message || ''),
+      ];
+
+      if (answer) {
+        textLines.push(``, `💡 <b>Ответ Совы PQ:</b>`, escapeHtml(answer));
+      }
     } else if (type === 'bug') {
-      icon = '🐞';
-      typeLabel = 'Отчёт об ошибке / Баге';
+      // Bug Report
+      textLines = [
+        `🐞 <b>[Баг-репорт] Сообщение об ошибке</b>`,
+        ``,
+        `👤 <b>От кого:</b> ${escapeHtml(userName || 'Гость курса')}`,
+        userEmail ? `📧 <b>Контакт:</b> ${escapeHtml(userEmail)}` : null,
+        `🕒 <b>Время:</b> ${escapeHtml(createdAt || new Date().toLocaleString('ru-RU'))}`,
+        ``,
+        `💬 <b>Описание ошибки / неполадки:</b>`,
+        escapeHtml(message || ''),
+      ];
     } else if (type === 'feedback') {
-      icon = '⭐';
-      typeLabel = 'Впечатления & Отзыв';
+      // Review & Feedback
+      textLines = [
+        `⭐ <b>[Отзыв] Впечатления ученика о квесте</b>`,
+        ``,
+        `👤 <b>От кого:</b> ${escapeHtml(userName || 'Гость курса')}`,
+        userEmail ? `📧 <b>Контакт:</b> ${escapeHtml(userEmail)}` : null,
+        referralSource ? `🔍 <b>Откуда узнали о нас:</b> ${escapeHtml(referralSource)}` : null,
+        `🕒 <b>Время:</b> ${escapeHtml(createdAt || new Date().toLocaleString('ru-RU'))}`,
+        ``,
+        `💬 <b>Впечатления:</b>`,
+        escapeHtml(message || ''),
+      ];
+    } else {
+      // General Inquiry
+      textLines = [
+        `📩 <b>Новое обращение с сайта banya-school.ru</b>`,
+        ``,
+        `👤 <b>От кого:</b> ${escapeHtml(userName || 'Гость курса')}`,
+        userEmail ? `📧 <b>Контакт:</b> ${escapeHtml(userEmail)}` : null,
+        referralSource ? `🔍 <b>Источник:</b> ${escapeHtml(referralSource)}` : null,
+        `🕒 <b>Время:</b> ${escapeHtml(createdAt || new Date().toLocaleString('ru-RU'))}`,
+        ``,
+        `💬 <b>Сообщение:</b>`,
+        escapeHtml(message || ''),
+      ];
     }
 
-    const textLines = [
-      `${icon} <b>${typeLabel} (banya-school.ru)</b>`,
-      '',
-      `👤 <b>От кого:</b> ${escapeHtml(userName || 'Гость курса')}`,
-      userEmail ? `📧 <b>Email / Контакт:</b> ${escapeHtml(userEmail)}` : null,
-      referralSource ? `🔍 <b>Откуда узнали о нас:</b> ${escapeHtml(referralSource)}` : null,
-      createdAt ? `🕒 <b>Время:</b> ${escapeHtml(createdAt)}` : null,
-      '',
-      `💬 <b>Текст обращения:</b>`,
-      escapeHtml(message || ''),
-    ].filter(Boolean).join('\n');
+    const fullMessage = textLines.filter(Boolean).join('\n');
+    const tgResults = await broadcastToAdmins(fullMessage);
 
-    const payload = JSON.stringify({
-      chat_id: TELEGRAM_CHAT_ID,
-      text: textLines,
-      parse_mode: 'HTML',
-      disable_web_page_preview: true,
-    });
-
-    const tgRes = await new Promise((resolve) => {
-      const request = https.request(
-        {
-          hostname: 'api.telegram.org',
-          port: 443,
-          path: `/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(payload),
-          },
-        },
-        (resp) => {
-          let data = '';
-          resp.on('data', (c) => { data += c; });
-          resp.on('end', () => {
-            try {
-              resolve(JSON.parse(data));
-            } catch (e) {
-              resolve({ ok: false, error: e.message });
-            }
-          });
-        }
-      );
-      request.on('error', (e) => resolve({ ok: false, error: e.message }));
-      request.write(payload);
-      request.end();
-    });
-
-    return res.status(200).json({ success: true, telegram: tgRes });
+    return res.status(200).json({ success: true, telegram: tgResults });
   } catch (err) {
     console.error('Error in /api/admin-notification:', err);
     return res.status(500).json({ error: err.message || 'Server error' });
