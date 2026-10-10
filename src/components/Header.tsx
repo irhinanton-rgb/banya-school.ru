@@ -15,13 +15,11 @@ import {
   Lock,
   Menu,
   X,
-  Compass,
-  AlertTriangle,
-  Bot,
   CreditCard,
   FileText,
-  ShieldCheck,
-  CheckCircle2,
+  AlertTriangle,
+  Bot,
+  Hammer,
 } from 'lucide-react';
 import { LevelId, UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
@@ -39,6 +37,8 @@ export interface HeaderProps {
   onOpenClub: () => void;
   onOpenAssistant?: () => void;
   onOpenLegal?: (tab: 'offer' | 'privacy' | 'requisites') => void;
+  onShowInDevelopment?: (featureName: string) => void;
+  onRequireLevel3?: (featureName: string) => void;
   activeTab: 'quest' | 'simulators' | 'handbook' | 'forum';
   setActiveTab: (tab: 'quest' | 'simulators' | 'handbook' | 'forum') => void;
   onGoToHome?: () => void;
@@ -59,6 +59,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenClub,
   onOpenAssistant,
   onOpenLegal,
+  onShowInDevelopment,
+  onRequireLevel3,
   activeTab,
   setActiveTab,
   onGoToHome,
@@ -81,6 +83,61 @@ export const Header: React.FC<HeaderProps> = ({
     completedCount >= 7;
   const displayAvatar = progress.avatarUrl || user?.photoURL;
   const displayName = progress.name || user?.displayName || (isAdmin ? 'Антон Ирхин' : 'Пармастер');
+
+  // Level 3 requirement for Simulators and Handbook
+  const isLevel3Unlocked = Boolean(
+    isAdmin ||
+    progress.activeLevelId >= 3 ||
+    (progress.completedLevels && progress.completedLevels.some((l) => l >= 2))
+  );
+
+  const handleSimulatorsClick = () => {
+    if (!isLevel3Unlocked) {
+      if (onRequireLevel3) {
+        onRequireLevel3('Тренажеры и Симуляторы');
+      }
+      return;
+    }
+    setActiveTab('simulators');
+    setDropdownOpen(false);
+    setMobileDrawerOpen(false);
+  };
+
+  const handleHandbookClick = () => {
+    if (!isLevel3Unlocked) {
+      if (onRequireLevel3) {
+        onRequireLevel3('Банный Справочник');
+      }
+      return;
+    }
+    setActiveTab('handbook');
+    setDropdownOpen(false);
+    setMobileDrawerOpen(false);
+  };
+
+  const handleClubClick = () => {
+    if (!isAdmin) {
+      if (onShowInDevelopment) {
+        onShowInDevelopment('Банный Клуб & Эфиры');
+      }
+      return;
+    }
+    onOpenClub();
+    setDropdownOpen(false);
+    setMobileDrawerOpen(false);
+  };
+
+  const handleForumClick = () => {
+    if (!isAdmin) {
+      if (onShowInDevelopment) {
+        onShowInDevelopment('Форум Мастеров');
+      }
+      return;
+    }
+    setActiveTab('forum');
+    setDropdownOpen(false);
+    setMobileDrawerOpen(false);
+  };
 
   // Close desktop dropdown on outside click
   useEffect(() => {
@@ -197,7 +254,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className={`flex items-center gap-1 py-1 text-sm font-medium transition-colors cursor-pointer ${
-                  dropdownOpen || activeTab !== 'quest'
+                  dropdownOpen || (activeTab !== 'quest' && isLevel3Unlocked)
                     ? 'text-amber-300'
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
@@ -213,72 +270,124 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Desktop Dropdown Menu Modal */}
               {dropdownOpen && (
                 <div className="absolute left-0 mt-2.5 w-64 rounded-2xl bg-stone-900 border border-stone-700/80 shadow-2xl p-2 z-50 animate-fadeIn backdrop-blur-xl">
+                  {/* 1. Тренажеры (доступны с 3-го уровня) */}
                   <button
-                    onClick={() => {
-                      setActiveTab('simulators');
-                      setDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
+                    onClick={handleSimulatorsClick}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
                       activeTab === 'simulators'
                         ? 'bg-amber-500/20 text-amber-200'
-                        : 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                        : isLevel3Unlocked
+                        ? 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                        : 'text-stone-400 hover:bg-stone-800/80'
                     }`}
                   >
-                    <Flame className="w-4 h-4 text-amber-400 shrink-0" />
-                    <div>
-                      <div className="font-semibold text-stone-100">Тренажеры и Симуляторы</div>
-                      <div className="text-[10px] text-stone-400">Ритмика, веники и ЧП в парной</div>
+                    <div className="flex items-center gap-3">
+                      <Flame className={`w-4 h-4 shrink-0 ${isLevel3Unlocked ? 'text-amber-400' : 'text-stone-500'}`} />
+                      <div>
+                        <div className={`font-semibold ${isLevel3Unlocked ? 'text-stone-100' : 'text-stone-300'}`}>
+                          Тренажеры и Симуляторы
+                        </div>
+                        <div className="text-[10px] text-stone-400">
+                          {isLevel3Unlocked ? 'Ритмика, веники и ЧП в парной' : 'Откроются на 3-й станции'}
+                        </div>
+                      </div>
                     </div>
+                    {!isLevel3Unlocked && (
+                      <span className="flex items-center gap-1 text-[9px] font-mono text-amber-400/90 bg-stone-950 px-1.5 py-0.5 rounded border border-stone-800">
+                        <Lock className="w-2.5 h-2.5" />
+                        <span>3 ур.</span>
+                      </span>
+                    )}
                   </button>
 
+                  {/* 2. Справочник (доступен с 3-го уровня) */}
                   <button
-                    onClick={() => {
-                      setActiveTab('handbook');
-                      setDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
+                    onClick={handleHandbookClick}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
                       activeTab === 'handbook'
                         ? 'bg-amber-500/20 text-amber-200'
-                        : 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                        : isLevel3Unlocked
+                        ? 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                        : 'text-stone-400 hover:bg-stone-800/80'
                     }`}
                   >
-                    <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
-                    <div>
-                      <div className="font-semibold text-stone-100">Банный Справочник</div>
-                      <div className="text-[10px] text-stone-400">Атлас 6 веников, травы, техкарты</div>
+                    <div className="flex items-center gap-3">
+                      <BookOpen className={`w-4 h-4 shrink-0 ${isLevel3Unlocked ? 'text-amber-400' : 'text-stone-500'}`} />
+                      <div>
+                        <div className={`font-semibold ${isLevel3Unlocked ? 'text-stone-100' : 'text-stone-300'}`}>
+                          Банный Справочник
+                        </div>
+                        <div className="text-[10px] text-stone-400">
+                          {isLevel3Unlocked ? 'Атлас 6 веников, травы, техкарты' : 'Откроется на 3-й станции'}
+                        </div>
+                      </div>
                     </div>
+                    {!isLevel3Unlocked && (
+                      <span className="flex items-center gap-1 text-[9px] font-mono text-amber-400/90 bg-stone-950 px-1.5 py-0.5 rounded border border-stone-800">
+                        <Lock className="w-2.5 h-2.5" />
+                        <span>3 ур.</span>
+                      </span>
+                    )}
                   </button>
 
+                  {/* 3. Банный Клуб (не активен для обычных пользователей) */}
                   <button
-                    onClick={() => {
-                      onOpenClub();
-                      setDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-emerald-300 hover:bg-emerald-950/40 hover:text-emerald-200 transition-colors text-left cursor-pointer"
+                    onClick={handleClubClick}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
+                      isAdmin
+                        ? 'text-emerald-300 hover:bg-emerald-950/40 hover:text-emerald-200'
+                        : 'text-stone-400 hover:bg-stone-800/70'
+                    }`}
                   >
-                    <Users className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <div>
-                      <div className="font-semibold text-emerald-200">Банный Клуб & Эфиры</div>
-                      <div className="text-[10px] text-emerald-400/80">Чат мастеров и проверка ДЗ</div>
+                    <div className="flex items-center gap-3">
+                      <Users className={`w-4 h-4 shrink-0 ${isAdmin ? 'text-emerald-400' : 'text-stone-500'}`} />
+                      <div>
+                        <div className={`font-semibold ${isAdmin ? 'text-emerald-200' : 'text-stone-300'}`}>
+                          Банный Клуб & Эфиры
+                        </div>
+                        <div className="text-[10px] text-stone-400">
+                          {isAdmin ? 'Чат мастеров и проверка ДЗ' : 'Закрытый клуб мастеров'}
+                        </div>
+                      </div>
                     </div>
+                    {!isAdmin ? (
+                      <span className="flex items-center gap-1 text-[9px] font-mono text-stone-400 bg-stone-950 px-1.5 py-0.5 rounded border border-stone-800">
+                        <Hammer className="w-2.5 h-2.5 text-amber-400" />
+                        <span>В разработке</span>
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-emerald-400">Live</span>
+                    )}
                   </button>
 
+                  {/* 4. Форум Мастеров (не активен для обычных пользователей) */}
                   <button
-                    onClick={() => {
-                      setActiveTab('forum');
-                      setDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
-                      activeTab === 'forum'
+                    onClick={handleForumClick}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
+                      activeTab === 'forum' && isAdmin
                         ? 'bg-amber-500/20 text-amber-200'
-                        : 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                        : isAdmin
+                        ? 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                        : 'text-stone-400 hover:bg-stone-800/70'
                     }`}
                   >
-                    <MessageSquare className="w-4 h-4 text-amber-400 shrink-0" />
-                    <div>
-                      <div className="font-semibold text-stone-100">Форум Мастеров</div>
-                      <div className="text-[10px] text-stone-400">Вопросы наставнику и обсуждения</div>
+                    <div className="flex items-center gap-3">
+                      <MessageSquare className={`w-4 h-4 shrink-0 ${isAdmin ? 'text-amber-400' : 'text-stone-500'}`} />
+                      <div>
+                        <div className={`font-semibold ${isAdmin ? 'text-stone-100' : 'text-stone-300'}`}>
+                          Форум Мастеров
+                        </div>
+                        <div className="text-[10px] text-stone-400">
+                          {isAdmin ? 'Вопросы наставнику и темы' : 'Обсуждения и вопросы'}
+                        </div>
+                      </div>
                     </div>
+                    {!isAdmin && (
+                      <span className="flex items-center gap-1 text-[9px] font-mono text-stone-400 bg-stone-950 px-1.5 py-0.5 rounded border border-stone-800">
+                        <Hammer className="w-2.5 h-2.5 text-amber-400" />
+                        <span>В разработке</span>
+                      </span>
+                    )}
                   </button>
 
                   <div className="my-1.5 border-t border-stone-800" />
@@ -419,52 +528,82 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </button>
 
-            {/* 3. Тренажеры */}
+            {/* 3. Тренажеры (только с 3 уровня) */}
             <button
-              onClick={() => setActiveTab('simulators')}
+              onClick={handleSimulatorsClick}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap transition-all cursor-pointer text-xs ${
-                activeTab === 'simulators'
+                activeTab === 'simulators' && isLevel3Unlocked
                   ? 'bg-amber-500 text-stone-950 font-bold shadow-sm'
-                  : 'bg-stone-900/90 text-stone-300 border border-stone-800 hover:border-amber-500/40'
+                  : isLevel3Unlocked
+                  ? 'bg-stone-900/90 text-stone-300 border border-stone-800 hover:border-amber-500/40'
+                  : 'bg-stone-900/60 text-stone-400 border border-stone-850'
               }`}
             >
-              <Flame className="w-3.5 h-3.5 text-amber-400" />
+              {isLevel3Unlocked ? (
+                <Flame className="w-3.5 h-3.5 text-amber-400" />
+              ) : (
+                <Lock className="w-3 h-3 text-amber-400/80" />
+              )}
               <span>Тренажеры</span>
+              {!isLevel3Unlocked && (
+                <span className="text-[9px] font-mono text-amber-400/90 ml-0.5">3 ур.</span>
+              )}
             </button>
 
-            {/* 4. Справочник */}
+            {/* 4. Справочник (только с 3 уровня) */}
             <button
-              onClick={() => setActiveTab('handbook')}
+              onClick={handleHandbookClick}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap transition-all cursor-pointer text-xs ${
-                activeTab === 'handbook'
+                activeTab === 'handbook' && isLevel3Unlocked
                   ? 'bg-amber-500 text-stone-950 font-bold shadow-sm'
-                  : 'bg-stone-900/90 text-stone-300 border border-stone-800 hover:border-amber-500/40'
+                  : isLevel3Unlocked
+                  ? 'bg-stone-900/90 text-stone-300 border border-stone-800 hover:border-amber-500/40'
+                  : 'bg-stone-900/60 text-stone-400 border border-stone-850'
               }`}
             >
-              <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+              {isLevel3Unlocked ? (
+                <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+              ) : (
+                <Lock className="w-3 h-3 text-amber-400/80" />
+              )}
               <span>Справочник</span>
+              {!isLevel3Unlocked && (
+                <span className="text-[9px] font-mono text-amber-400/90 ml-0.5">3 ур.</span>
+              )}
             </button>
 
-            {/* 5. Клуб */}
+            {/* 5. Клуб (не активен для обычных пользователей) */}
             <button
-              onClick={onOpenClub}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap bg-stone-900/90 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/60 transition-all cursor-pointer text-xs font-medium"
-            >
-              <Users className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Банный Клуб</span>
-            </button>
-
-            {/* 6. Форум */}
-            <button
-              onClick={() => setActiveTab('forum')}
+              onClick={handleClubClick}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap transition-all cursor-pointer text-xs ${
-                activeTab === 'forum'
-                  ? 'bg-amber-500 text-stone-950 font-bold shadow-sm'
-                  : 'bg-stone-900/90 text-stone-300 border border-stone-800 hover:border-amber-500/40'
+                isAdmin
+                  ? 'bg-stone-900/90 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/60 font-medium'
+                  : 'bg-stone-900/50 text-stone-400 border border-stone-800/80'
               }`}
             >
-              <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+              <Users className={`w-3.5 h-3.5 ${isAdmin ? 'text-emerald-400' : 'text-stone-500'}`} />
+              <span>Банный Клуб</span>
+              {!isAdmin && (
+                <span className="text-[9px] font-mono text-stone-400 ml-0.5">🛠️</span>
+              )}
+            </button>
+
+            {/* 6. Форум (не активен для обычных пользователей) */}
+            <button
+              onClick={handleForumClick}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap transition-all cursor-pointer text-xs ${
+                isAdmin && activeTab === 'forum'
+                  ? 'bg-amber-500 text-stone-950 font-bold shadow-sm'
+                  : isAdmin
+                  ? 'bg-stone-900/90 text-stone-300 border border-stone-800 hover:border-amber-500/40'
+                  : 'bg-stone-900/50 text-stone-400 border border-stone-800/80'
+              }`}
+            >
+              <MessageSquare className={`w-3.5 h-3.5 ${isAdmin ? 'text-amber-400' : 'text-stone-500'}`} />
               <span>Форум</span>
+              {!isAdmin && (
+                <span className="text-[9px] font-mono text-stone-400 ml-0.5">🛠️</span>
+              )}
             </button>
 
             {/* 7. Рекорды */}
@@ -669,60 +808,80 @@ export const Header: React.FC<HeaderProps> = ({
                   </span>
                 </button>
 
-                {/* 3. Тренажеры & Симуляторы */}
+                {/* 3. Тренажеры & Симуляторы (с 3-го уровня) */}
                 <button
-                  onClick={() => {
-                    setMobileDrawerOpen(false);
-                    setActiveTab('simulators');
-                  }}
+                  onClick={handleSimulatorsClick}
                   className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    activeTab === 'simulators'
+                    activeTab === 'simulators' && isLevel3Unlocked
                       ? 'bg-amber-500/15 border-amber-500/50 text-amber-200'
-                      : 'bg-stone-900/60 border-stone-800/80 hover:bg-stone-900 text-stone-200'
+                      : isLevel3Unlocked
+                      ? 'bg-stone-900/60 border-stone-800/80 hover:bg-stone-900 text-stone-200'
+                      : 'bg-stone-900/40 border-stone-850 text-stone-400'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-stone-900 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                      <Flame className="w-4 h-4" />
+                      {isLevel3Unlocked ? (
+                        <Flame className="w-4 h-4" />
+                      ) : (
+                        <Lock className="w-4 h-4 text-amber-400/80" />
+                      )}
                     </div>
                     <div>
-                      <div className="font-semibold text-xs text-stone-100">
+                      <div className={`font-semibold text-xs ${isLevel3Unlocked ? 'text-stone-100' : 'text-stone-300'}`}>
                         Тренажеры & Симуляторы
                       </div>
                       <div className="text-[10px] text-stone-400">
-                        Ритмика, веники и ЧП в парной
+                        {isLevel3Unlocked ? 'Ритмика, веники и ЧП в парной' : 'Доступно с 3-го уровня'}
                       </div>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-stone-500" />
+                  {!isLevel3Unlocked ? (
+                    <span className="flex items-center gap-1 text-[10px] font-mono text-amber-400/90 bg-stone-950 px-2 py-0.5 rounded-full border border-stone-800">
+                      <Lock className="w-2.5 h-2.5" />
+                      <span>3 ур.</span>
+                    </span>
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-stone-500" />
+                  )}
                 </button>
 
-                {/* 4. Банный Справочник */}
+                {/* 4. Банный Справочник (с 3-го уровня) */}
                 <button
-                  onClick={() => {
-                    setMobileDrawerOpen(false);
-                    setActiveTab('handbook');
-                  }}
+                  onClick={handleHandbookClick}
                   className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    activeTab === 'handbook'
+                    activeTab === 'handbook' && isLevel3Unlocked
                       ? 'bg-amber-500/15 border-amber-500/50 text-amber-200'
-                      : 'bg-stone-900/60 border-stone-800/80 hover:bg-stone-900 text-stone-200'
+                      : isLevel3Unlocked
+                      ? 'bg-stone-900/60 border-stone-800/80 hover:bg-stone-900 text-stone-200'
+                      : 'bg-stone-900/40 border-stone-850 text-stone-400'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-stone-900 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                      <BookOpen className="w-4 h-4" />
+                      {isLevel3Unlocked ? (
+                        <BookOpen className="w-4 h-4" />
+                      ) : (
+                        <Lock className="w-4 h-4 text-amber-400/80" />
+                      )}
                     </div>
                     <div>
-                      <div className="font-semibold text-xs text-stone-100">
+                      <div className={`font-semibold text-xs ${isLevel3Unlocked ? 'text-stone-100' : 'text-stone-300'}`}>
                         Банный Справочник
                       </div>
                       <div className="text-[10px] text-stone-400">
-                        Атлас 6 веников, травы, техкарты
+                        {isLevel3Unlocked ? 'Атлас 6 веников, травы, техкарты' : 'Доступно с 3-го уровня'}
                       </div>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-stone-500" />
+                  {!isLevel3Unlocked ? (
+                    <span className="flex items-center gap-1 text-[10px] font-mono text-amber-400/90 bg-stone-950 px-2 py-0.5 rounded-full border border-stone-800">
+                      <Lock className="w-2.5 h-2.5" />
+                      <span>3 ур.</span>
+                    </span>
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-stone-500" />
+                  )}
                 </button>
               </div>
 
@@ -732,58 +891,80 @@ export const Header: React.FC<HeaderProps> = ({
                   Сообщество и Сертификация
                 </span>
 
-                {/* 5. Банный Клуб */}
+                {/* 5. Банный Клуб (не активен для обычных пользователей) */}
                 <button
-                  onClick={() => {
-                    setMobileDrawerOpen(false);
-                    onOpenClub();
-                  }}
-                  className="w-full flex items-center justify-between p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/30 hover:border-emerald-500/60 text-left transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
-                      <Users className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-xs text-emerald-200">
-                        Банный Клуб & Эфиры
-                      </div>
-                      <div className="text-[10px] text-stone-400">
-                        Чат мастеров и субботние разборы
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
-                    Live
-                  </span>
-                </button>
-
-                {/* 6. Форум Мастеров */}
-                <button
-                  onClick={() => {
-                    setMobileDrawerOpen(false);
-                    setActiveTab('forum');
-                  }}
+                  onClick={handleClubClick}
                   className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    activeTab === 'forum'
-                      ? 'bg-amber-500/15 border-amber-500/50 text-amber-200'
-                      : 'bg-stone-900/60 border-stone-800/80 hover:bg-stone-900 text-stone-200'
+                    isAdmin
+                      ? 'bg-emerald-950/20 border-emerald-500/30 hover:border-emerald-500/60'
+                      : 'bg-stone-900/40 border-stone-800/70 hover:bg-stone-900/60'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-stone-900 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                      <MessageSquare className="w-4 h-4" />
+                    <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${
+                      isAdmin
+                        ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400'
+                        : 'bg-stone-900 border-stone-800 text-stone-500'
+                    }`}>
+                      <Users className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="font-semibold text-xs text-stone-100">
-                        Форум Мастеров
+                      <div className={`font-semibold text-xs ${isAdmin ? 'text-emerald-200' : 'text-stone-300'}`}>
+                        Банный Клуб & Эфиры
                       </div>
                       <div className="text-[10px] text-stone-400">
-                        Вопросы наставнику и обсуждения
+                        {isAdmin ? 'Чат мастеров и субботние разборы' : 'В разработке для учеников'}
                       </div>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-stone-500" />
+                  {!isAdmin ? (
+                    <span className="flex items-center gap-1 text-[10px] font-mono text-stone-400 bg-stone-950 px-2 py-0.5 rounded-full border border-stone-800">
+                      <Hammer className="w-2.5 h-2.5 text-amber-400" />
+                      <span>В разработке</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+                      Live
+                    </span>
+                  )}
+                </button>
+
+                {/* 6. Форум Мастеров (не активен для обычных пользователей) */}
+                <button
+                  onClick={handleForumClick}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    isAdmin && activeTab === 'forum'
+                      ? 'bg-amber-500/15 border-amber-500/50 text-amber-200'
+                      : isAdmin
+                      ? 'bg-stone-900/60 border-stone-800/80 hover:bg-stone-900 text-stone-200'
+                      : 'bg-stone-900/40 border-stone-800/70 hover:bg-stone-900/60'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${
+                      isAdmin
+                        ? 'bg-stone-900 border-amber-500/30 text-amber-400'
+                        : 'bg-stone-900 border-stone-800 text-stone-500'
+                    }`}>
+                      <MessageSquare className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className={`font-semibold text-xs ${isAdmin ? 'text-stone-100' : 'text-stone-300'}`}>
+                        Форум Мастеров
+                      </div>
+                      <div className="text-[10px] text-stone-400">
+                        {isAdmin ? 'Вопросы наставнику и темы' : 'В разработке для учеников'}
+                      </div>
+                    </div>
+                  </div>
+                  {!isAdmin ? (
+                    <span className="flex items-center gap-1 text-[10px] font-mono text-stone-400 bg-stone-950 px-2 py-0.5 rounded-full border border-stone-800">
+                      <Hammer className="w-2.5 h-2.5 text-amber-400" />
+                      <span>В разработке</span>
+                    </span>
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-stone-500" />
+                  )}
                 </button>
 
                 {/* 7. Именной Сертификат */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Compass, BookMarked, MessageSquare, User } from 'lucide-react';
+import { BookOpen, Compass, BookMarked, MessageSquare, User, Lock, Hammer } from 'lucide-react';
 import { UserProgress } from '../types/banya';
 
 interface MobileBottomNavProps {
@@ -9,6 +9,8 @@ interface MobileBottomNavProps {
   onOpenProfile: () => void;
   onScrollToMap: () => void;
   onOpenLesson?: () => void;
+  onShowInDevelopment?: (featureName: string) => void;
+  onRequireLevel3?: (featureName: string) => void;
   progress: UserProgress;
 }
 
@@ -19,12 +21,41 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenProfile,
   onScrollToMap,
   onOpenLesson,
+  onShowInDevelopment,
+  onRequireLevel3,
   progress,
 }) => {
   const isQuestActive = activeTab === 'quest';
   const isHandbookActive = activeTab === 'handbook';
   const isForumActive = activeTab === 'forum';
   const isAdmin = Boolean(progress.isAdmin);
+
+  // Level 3 requirement for Handbook
+  const isLevel3Unlocked = Boolean(
+    isAdmin ||
+    progress.activeLevelId >= 3 ||
+    (progress.completedLevels && progress.completedLevels.some((l) => l >= 2))
+  );
+
+  const handleHandbookTab = () => {
+    if (!isLevel3Unlocked) {
+      if (onRequireLevel3) {
+        onRequireLevel3('Банный Справочник');
+      }
+      return;
+    }
+    setActiveTab('handbook');
+  };
+
+  const handleForumTab = () => {
+    if (!isAdmin) {
+      if (onShowInDevelopment) {
+        onShowInDevelopment('Форум Мастеров');
+      }
+      return;
+    }
+    setActiveTab('forum');
+  };
 
   return (
     <nav
@@ -75,43 +106,61 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           </span>
         </button>
 
-        {/* Tab 3: Справочник */}
+        {/* Tab 3: Справочник (доступен только с 3 уровня) */}
         <button
-          onClick={() => setActiveTab('handbook')}
+          onClick={handleHandbookTab}
           className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${
-            isHandbookActive
+            isHandbookActive && isLevel3Unlocked
               ? 'text-amber-400 font-bold scale-105'
-              : 'text-stone-400 hover:text-stone-200'
+              : isLevel3Unlocked
+              ? 'text-stone-400 hover:text-stone-200'
+              : 'text-stone-500 opacity-80'
           }`}
         >
           <div className="relative">
-            <BookMarked className={`w-5 h-5 ${isHandbookActive ? 'text-amber-400' : 'text-stone-400'}`} />
-            {isHandbookActive && (
+            {isLevel3Unlocked ? (
+              <BookMarked className={`w-5 h-5 ${isHandbookActive ? 'text-amber-400' : 'text-stone-400'}`} />
+            ) : (
+              <div className="relative">
+                <BookMarked className="w-5 h-5 text-stone-500" />
+                <span className="absolute -top-1 -right-1 text-[8px] bg-stone-900 border border-stone-800 text-amber-400 px-1 rounded-full font-mono">
+                  3ур
+                </span>
+              </div>
+            )}
+            {isHandbookActive && isLevel3Unlocked && (
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-400" />
             )}
           </div>
           <span className="text-[10px] mt-1 tracking-tight leading-none truncate max-w-full">
-            Справка
+            {isLevel3Unlocked ? 'Справка' : 'Справка 🔒'}
           </span>
         </button>
 
-        {/* Tab 4: Форум & Программы */}
+        {/* Tab 4: Форум & Программы (не активен для обычных пользователей) */}
         <button
-          onClick={() => setActiveTab('forum')}
+          onClick={handleForumTab}
           className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${
-            isForumActive
+            isForumActive && isAdmin
               ? 'text-amber-400 font-bold scale-105'
-              : 'text-stone-400 hover:text-stone-200'
+              : isAdmin
+              ? 'text-stone-400 hover:text-stone-200'
+              : 'text-stone-500 opacity-80'
           }`}
         >
           <div className="relative">
-            <MessageSquare className={`w-5 h-5 ${isForumActive ? 'text-amber-400' : 'text-stone-400'}`} />
-            {isForumActive && (
+            <MessageSquare className={`w-5 h-5 ${isForumActive && isAdmin ? 'text-amber-400' : isAdmin ? 'text-stone-400' : 'text-stone-500'}`} />
+            {!isAdmin && (
+              <span className="absolute -top-1 -right-1.5 text-[8px] bg-stone-900 border border-stone-800 text-amber-400/90 px-1 rounded-full font-mono">
+                🛠️
+              </span>
+            )}
+            {isForumActive && isAdmin && (
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-400" />
             )}
           </div>
           <span className="text-[10px] mt-1 tracking-tight leading-none truncate max-w-full">
-            Форум
+            {isAdmin ? 'Форум' : 'Форум 🛠️'}
           </span>
         </button>
 

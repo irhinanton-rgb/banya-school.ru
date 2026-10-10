@@ -27,6 +27,7 @@ import { CommunityClubModal } from './components/CommunityClubModal';
 import { UserProfileModal } from './components/profile/UserProfileModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { MobileLevelQuickNav } from './components/MobileLevelQuickNav';
+import { InDevelopmentModal, LevelLockModal } from './components/NoticeModal';
 import { COURSE_LEVELS, BADGES } from './data/courseData';
 import { UserProgress, LevelId, BadgeId } from './types/banya';
 import { useAuth } from './firebase/AuthContext';
@@ -99,6 +100,8 @@ export default function App() {
   const [legalInitialTab, setLegalInitialTab] = useState<'offer' | 'privacy' | 'requisites'>('offer');
   const [showClubModal, setShowClubModal] = useState<boolean>(false);
   const [clubInitialTab, setClubInitialTab] = useState<'chat' | 'webinar' | 'homework'>('chat');
+  const [inDevelopmentFeature, setInDevelopmentFeature] = useState<string | null>(null);
+  const [lockedFeatureModal, setLockedFeatureModal] = useState<string | null>(null);
 
   const [isRequisitesRoute, setIsRequisitesRoute] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -167,7 +170,31 @@ export default function App() {
     }
   }, [user]);
 
+  const isAdmin = user?.email?.toLowerCase() === 'irhinanton@gmail.com' || Boolean(progress.isAdmin);
+  const isLevel3Unlocked = Boolean(
+    isAdmin ||
+    progress.activeLevelId >= 3 ||
+    (progress.completedLevels && progress.completedLevels.some((l) => l >= 2))
+  );
+
+  useEffect(() => {
+    if (!isAdmin && activeTab === 'forum') {
+      setActiveTab('quest');
+      setInDevelopmentFeature('Форум Мастеров');
+    }
+    if (!isLevel3Unlocked && (activeTab === 'simulators' || activeTab === 'handbook')) {
+      setActiveTab('quest');
+      setLockedFeatureModal(
+        activeTab === 'simulators' ? 'Тренажеры и Симуляторы' : 'Банный Справочник'
+      );
+    }
+  }, [activeTab, isAdmin, isLevel3Unlocked]);
+
   const handleOpenClub = (tab: 'chat' | 'webinar' | 'homework' = 'chat') => {
+    if (!isAdmin) {
+      setInDevelopmentFeature('Банный Клуб & Эфиры');
+      return;
+    }
     setClubInitialTab(tab);
     setShowClubModal(true);
   };
@@ -424,6 +451,8 @@ export default function App() {
         onOpenClub={() => handleOpenClub('chat')}
         onOpenAssistant={() => setShowOwlAssistantModal(true)}
         onOpenLegal={(tab) => handleOpenLegal(tab)}
+        onShowInDevelopment={(feature) => setInDevelopmentFeature(feature)}
+        onRequireLevel3={(feature) => setLockedFeatureModal(feature)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         isQuestMapActive={activeTab === 'quest' && questViewMode === 'map' && !showHero}
@@ -570,8 +599,12 @@ export default function App() {
                             <h3 className="font-serif text-base sm:text-lg font-bold text-stone-100">
                               Банный Клуб: Чат Сообщества & Онлайн-Эфиры
                             </h3>
-                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-semibold">
-                              Live
+                            <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-mono font-semibold ${
+                              isAdmin
+                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                                : 'bg-stone-900 border-stone-800 text-stone-400'
+                            }`}>
+                              {isAdmin ? 'Live' : 'В разработке 🛠️'}
                             </span>
                           </div>
                           <p className="text-xs text-stone-400 mt-1 max-w-xl leading-relaxed">
@@ -582,16 +615,32 @@ export default function App() {
 
                       <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                         <button
-                          onClick={() => handleOpenClub('chat')}
-                          className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-all shadow-md cursor-pointer text-center"
+                          onClick={() => {
+                            if (!isAdmin) {
+                              setInDevelopmentFeature('Банный Клуб (Чат)');
+                            } else {
+                              handleOpenClub('chat');
+                            }
+                          }}
+                          className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer text-center ${
+                            isAdmin
+                              ? 'bg-amber-500 hover:bg-amber-400 text-stone-950'
+                              : 'bg-stone-900 hover:bg-stone-850 text-stone-300 border border-stone-800'
+                          }`}
                         >
-                          Общий Чат 💬
+                          {isAdmin ? 'Общий Чат 💬' : 'Чат 💬 (В разработке)'}
                         </button>
                         <button
-                          onClick={() => handleOpenClub('webinar')}
-                          className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800 text-xs font-semibold transition-colors cursor-pointer text-center"
+                          onClick={() => {
+                            if (!isAdmin) {
+                              setInDevelopmentFeature('Банный Клуб (Видеокомната)');
+                            } else {
+                              handleOpenClub('webinar');
+                            }
+                          }}
+                          className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-850 text-stone-300 border border-stone-800 text-xs font-semibold transition-colors cursor-pointer text-center"
                         >
-                          Видеокомната 📹
+                          {isAdmin ? 'Видеокомната 📹' : 'Видеокомната 📹 (В разработке)'}
                         </button>
                       </div>
                     </div>
@@ -851,7 +900,29 @@ export default function App() {
           setShowHero(false);
           setActiveTab('quest');
         }}
+        onShowInDevelopment={(feature) => setInDevelopmentFeature(feature)}
+        onRequireLevel3={(feature) => setLockedFeatureModal(feature)}
         progress={progress}
+      />
+
+      {/* Small "In Development" Popup Window (Маленькое окошко «В разработке») */}
+      <InDevelopmentModal
+        isOpen={Boolean(inDevelopmentFeature)}
+        onClose={() => setInDevelopmentFeature(null)}
+        featureName={inDevelopmentFeature || ''}
+      />
+
+      {/* Small "Locked: Available from Level 3" Popup Window */}
+      <LevelLockModal
+        isOpen={Boolean(lockedFeatureModal)}
+        onClose={() => setLockedFeatureModal(null)}
+        onGoToQuest={() => {
+          setLockedFeatureModal(null);
+          setShowHero(false);
+          setActiveTab('quest');
+          setQuestViewMode('lesson');
+        }}
+        featureName={lockedFeatureModal || ''}
       />
     </div>
   );
