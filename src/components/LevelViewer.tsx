@@ -94,6 +94,9 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               <Compass className="h-4 w-4" />
               <span>{level.questName}</span>
             </div>
+            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-100">
+              {level.title}
+            </h2>
           </div>
 
           {/* Reward preview badge with interactive hover tooltip */}
