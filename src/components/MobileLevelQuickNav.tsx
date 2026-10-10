@@ -17,7 +17,7 @@ export const MobileLevelQuickNav: React.FC<MobileLevelQuickNavProps> = ({
   const completed = progress?.completedLevels ?? [];
 
   return (
-    <div className="md:hidden sticky top-16 z-30 -mx-4 px-4 py-2 bg-stone-950/95 backdrop-blur-md border-b border-stone-800/80 shadow-sm">
+    <div className="md:hidden sticky top-[92px] sm:top-16 z-30 -mx-4 px-4 py-2 bg-stone-950/95 backdrop-blur-md border-b border-stone-800/80 shadow-sm">
       <div className="flex items-center justify-between mb-1.5 px-0.5">
         <span className="text-[11px] font-mono text-amber-400 font-semibold uppercase tracking-wider">
           Станции курса (7 этапов):

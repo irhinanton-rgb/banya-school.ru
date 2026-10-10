@@ -422,6 +422,8 @@ export default function App() {
         onOpenProfile={() => setShowProfileModal(true)}
         onOpenPricing={() => setShowPricingModal(true)}
         onOpenClub={() => handleOpenClub('chat')}
+        onOpenAssistant={() => setShowOwlAssistantModal(true)}
+        onOpenLegal={(tab) => handleOpenLegal(tab)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         isQuestMapActive={activeTab === 'quest' && questViewMode === 'map' && !showHero}
