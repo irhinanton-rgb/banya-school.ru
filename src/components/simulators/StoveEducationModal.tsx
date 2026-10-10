@@ -435,18 +435,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
               <span>Интерактивный макет и симуляция</span>
             </button>
 
-            <button
-              onClick={() => setActiveTab('missions')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === 'missions'
-                  ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
-                  : 'bg-stone-900/80 text-stone-400 hover:text-stone-200 hover:bg-stone-800'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>Задания пармастера (Квесты печи)</span>
-            </button>
-
+            {/* Mission tab button hidden per user request; mechanics and handler kept in code */}
             <button
               onClick={() => setActiveTab('steamTypes')}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
@@ -567,23 +556,6 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                       <Info className="w-3 h-3 text-emerald-300/80 hover:text-white shrink-0" />
                     </button>
                   </div>
-                </div>
-
-                {/* Steam Ladle Action Buttons */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleStovePour('closed')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs uppercase tracking-wide transition-all shadow-md active:scale-95 cursor-pointer"
-                  >
-                    <span>💥 Ковш в ядро ({coreTemp}°C)</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleStovePour('open')}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold text-xs transition-all border border-stone-700 active:scale-95 cursor-pointer"
-                  >
-                    <span>♨️ На открытые камни</span>
-                  </button>
                 </div>
               </div>
 
@@ -1722,16 +1694,6 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                handleStovePour('closed');
-              }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer"
-            >
-              <Droplets className="w-4 h-4" />
-              <span>Подать легкий пар в парную (+8%)</span>
-            </button>
-
             <button
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-medium transition-all border border-stone-700 cursor-pointer"
