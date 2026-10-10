@@ -194,6 +194,13 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
         {/* Action Controls Inside Canvas */}
         <div className="relative z-10 flex flex-wrap items-center justify-end gap-3">
           <button
+            onClick={handlePourWater}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 active:scale-95 text-stone-900 font-bold text-xs shadow-lg shadow-amber-950/40 transition-all cursor-pointer border border-amber-400/30"
+          >
+            <Droplets className="h-4 w-4 text-stone-950" />
+            <span>Поддать пар</span>
+          </button>
+          <button
             onClick={handleVentilate}
             disabled={ventilationOpen}
             className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-800/90 hover:bg-stone-700 active:scale-95 text-stone-200 text-xs font-medium transition-all border border-stone-700 cursor-pointer disabled:opacity-50"
