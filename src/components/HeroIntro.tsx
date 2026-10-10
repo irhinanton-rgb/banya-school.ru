@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Sparkles, BookOpen, Award, Flame, Users, ChevronRight } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Sparkles, Award, Flame, MapPin } from 'lucide-react';
 import { UserProgress } from '../types/banya';
 
 interface HeroIntroProps {
@@ -11,7 +11,6 @@ interface HeroIntroProps {
 export const HeroIntro: React.FC<HeroIntroProps> = ({
   progress,
   onStartQuest,
-  onSelectLevel,
 }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -20,7 +19,6 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.play().catch(() => {
-        // Autoplay policy prevented playback
         setIsPlaying(false);
       });
     }
@@ -77,13 +75,9 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
           style={{ filter: 'brightness(0.74) contrast(1.10) saturate(1.15)' }}
         />
         {/* Scrim Layers: Guarantees 100% Crisp Text Legibility while video is clearly visible */}
-        {/* Layer 1: Base translucent veil */}
         <div className="absolute inset-0 bg-[#0a0908]/45" />
-        {/* Layer 2: Reading gradient from deep charcoal on left to translucent on right */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a0908]/95 via-[#0a0908]/75 sm:via-[#0a0908]/55 to-transparent" />
-        {/* Layer 3: Vertical edge vignette */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0908]/85 via-transparent to-[#0a0908]/60" />
-        {/* Layer 4: Warm amber sauna lamp directional radial glow */}
         <div
           className="absolute inset-0 pointer-events-none opacity-35 mix-blend-screen"
           style={{
@@ -133,7 +127,6 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
 
             {/* CTA Button + Adjacent Progress Counter Block */}
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-4">
-              
               {/* Pulsating Glowing Amber CTA Button */}
               <button
                 onClick={onStartQuest}
@@ -175,7 +168,9 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
 
           {/* Right Column: Founder & Author Stamp (Anton Irkhin) */}
           <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center">
-            <div className="w-full max-w-sm rounded-2xl bg-stone-900/80 border border-stone-800/80 p-5 backdrop-blur-md shadow-2xl space-y-4">
+            <div className="w-full max-w-sm rounded-3xl bg-stone-900/90 border border-amber-500/30 p-5 backdrop-blur-md shadow-2xl space-y-4">
+              
+              {/* Header Info */}
               <div className="flex items-center gap-3.5">
                 <img
                   src="/images/anton-irkhin-avatar.jpg"
@@ -192,23 +187,55 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
                   <div className="text-stone-100 font-serif font-bold text-base leading-tight">
                     Антон Ирхин
                   </div>
-                  <div className="text-amber-400 text-xs font-mono mt-0.5">
-                    Основатель школы & Наставник
+                  <div className="text-amber-400 text-xs font-mono mt-0.5 font-medium">
+                    Автор пармастер квест и наставник
                   </div>
-                  <div className="text-[11px] text-stone-400 mt-0.5">
-                    Судья банных чемпионатов
+                  <div className="flex items-center gap-1 text-[11px] text-stone-400 font-mono mt-0.5">
+                    <MapPin className="w-3 h-3 text-stone-400 shrink-0" />
+                    <span>г. Ростов-на-Дону</span>
                   </div>
                 </div>
               </div>
 
-              <p className="text-xs text-stone-300 leading-relaxed italic border-t border-stone-800/80 pt-3">
-                «Наша миссия — передать чистое ремесло пара: без суеты, с глубоким уважением к физиологии и банным традициям.»
-              </p>
-
-              <div className="flex items-center justify-between text-[11px] font-mono text-stone-400 pt-1 border-t border-stone-800/50">
-                <span>г. Краснодар / Онлайн</span>
-                <span className="text-amber-300 font-semibold">★ 4.98 рейтинг</span>
+              {/* 7 лет опыта · 5000+ парений */}
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <div className="px-3.5 py-2.5 rounded-2xl bg-stone-950/80 border border-stone-800/90 text-center shadow-inner">
+                  <div className="font-serif text-amber-300 font-bold text-base sm:text-lg leading-tight">
+                    7 лет
+                  </div>
+                  <div className="text-[10px] text-stone-400 leading-snug mt-0.5">
+                    опыта в банной практике
+                  </div>
+                </div>
+                <div className="px-3.5 py-2.5 rounded-2xl bg-stone-950/80 border border-stone-800/90 text-center shadow-inner">
+                  <div className="font-serif text-amber-300 font-bold text-base sm:text-lg leading-tight">
+                    5000+
+                  </div>
+                  <div className="text-[10px] text-stone-400 leading-snug mt-0.5">
+                    парений
+                  </div>
+                </div>
               </div>
+
+              {/* Both Quotes as requested */}
+              <div className="space-y-2.5 border-t border-stone-800/80 pt-3">
+                <div className="p-3 rounded-xl bg-stone-950/70 border border-stone-800/80 text-xs text-stone-300 leading-relaxed italic">
+                  «Наша миссия — передать чистое ремесло пара: без суеты, с глубоким уважением к физиологии и банным традициям.»
+                </div>
+                <div className="p-3 rounded-xl bg-stone-950/70 border border-stone-800/80 text-xs text-amber-100/90 leading-relaxed italic">
+                  «Пар должен быть мягким, целительным и ласковым. Здесь вы научитесь парить так, чтобы гости возвращались к вам снова и снова.»
+                </div>
+              </div>
+
+              {/* Location footer without rating */}
+              <div className="flex items-center justify-between text-[11px] font-mono text-stone-400 pt-1 border-t border-stone-800/50">
+                <span className="flex items-center gap-1.5 text-emerald-400">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Онлайн в Академии
+                </span>
+                <span>г. Ростов-на-Дону</span>
+              </div>
+
             </div>
           </div>
 

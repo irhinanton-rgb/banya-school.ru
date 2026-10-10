@@ -9,8 +9,8 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Loader2,
-  Bot,
-  User as UserIcon
+  User as UserIcon,
+  MessageSquare
 } from 'lucide-react';
 import { sendAdminMessage, AdminMessageType } from '../firebase/adminMessageService';
 import { useAuth } from '../firebase/AuthContext';
@@ -197,38 +197,38 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
       <div 
-        className="relative max-w-2xl w-full max-h-[92vh] flex flex-col rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/40 shadow-[0_20px_70px_rgba(0,0,0,0.9)] text-stone-100 overflow-hidden"
+        className="relative max-w-2xl w-full h-[90vh] max-h-[850px] flex flex-col rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/40 shadow-[0_20px_70px_rgba(0,0,0,0.9)] text-stone-100 overflow-hidden"
         role="dialog"
         aria-modal="true"
       >
-        {/* Header with Owl Assistant Avatar (No background, crisp drop-shadow) */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-800 bg-stone-900/60">
-          <div className="flex items-center gap-3.5">
-            <div className="relative flex h-13 w-13 sm:h-15 sm:w-15 items-center justify-center rounded-2xl p-0.5 shrink-0">
+        {/* Header with Owl Assistant Avatar (Fixed compact dimensions) */}
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-800 bg-stone-900/80 shrink-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-stone-950/60 p-1 border border-amber-500/30 shrink-0">
               <img
                 src="/images/PQ.png"
                 alt="Помощник Сова PQ"
-                className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(245,158,11,0.45)] hover:scale-105 transition-transform"
+                className="w-10 h-10 sm:w-12 sm:h-12 max-w-full max-h-full object-contain filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)] hover:scale-105 transition-transform"
               />
-              <span className="absolute -bottom-1 -right-1 flex h-4 w-4">
+              <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-stone-900" />
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-stone-900" />
               </span>
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/25">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/25 shrink-0">
                   ИИ Наставник Сова PQ
                 </span>
-                <span className="text-[11px] font-mono text-emerald-400 font-semibold flex items-center gap-1">
+                <span className="text-[11px] font-mono text-emerald-400 font-semibold flex items-center gap-1 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
                   Онлайн
                 </span>
               </div>
-              <h2 className="text-base sm:text-lg font-serif font-bold text-stone-100 mt-0.5">
+              <h2 className="text-base sm:text-lg font-serif font-bold text-stone-100 mt-0.5 truncate">
                 Помощник PQ & Связь с Наставником
               </h2>
-              <p className="text-xs text-stone-400 hidden sm:block">
+              <p className="text-xs text-stone-400 hidden sm:block truncate">
                 Задайте вопрос ИИ-Сове по квесту, сообщите о баге или оставьте отзыв
               </p>
             </div>
@@ -236,7 +236,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-stone-800/60 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-stone-800/80 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors cursor-pointer shrink-0 ml-2"
             aria-label="Закрыть окно"
           >
             <X className="w-5 h-5" />
@@ -244,7 +244,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-stone-800 bg-stone-950/60 px-4 sm:px-6 gap-2 sm:gap-4 overflow-x-auto">
+        <div className="flex border-b border-stone-800 bg-stone-950/80 px-4 sm:px-6 gap-2 sm:gap-4 overflow-x-auto shrink-0">
           <button
             onClick={() => { setActiveTab('question'); setSuccessStatus(null); setErrorStatus(null); }}
             className={`flex items-center gap-2 py-3 px-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
@@ -253,7 +253,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
                 : 'border-transparent text-stone-400 hover:text-stone-200'
             }`}
           >
-            <HelpCircle className="w-4 h-4 text-amber-400" />
+            <HelpCircle className="w-4 h-4 text-amber-400 shrink-0" />
             <span>Вопрос Сове (ИИ)</span>
           </button>
 
@@ -265,7 +265,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
                 : 'border-transparent text-stone-400 hover:text-stone-200'
             }`}
           >
-            <Bug className="w-4 h-4 text-red-400" />
+            <Bug className="w-4 h-4 text-red-400 shrink-0" />
             <span>Нашли баг / ошибку</span>
           </button>
 
@@ -277,7 +277,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
                 : 'border-transparent text-stone-400 hover:text-stone-200'
             }`}
           >
-            <Heart className="w-4 h-4 text-emerald-400" />
+            <Heart className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Отзывы и Впечатления</span>
           </button>
         </div>
@@ -301,7 +301,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
 
           {/* TAB 1: QUESTION TO OWL PQ (INTERACTIVE AI CHAT) */}
           {activeTab === 'question' && (
-            <div className="space-y-4 flex flex-col">
+            <div className="space-y-4 flex flex-col h-full">
               {/* Quick Prompt Chips */}
               <div>
                 <span className="text-[11px] font-mono text-stone-400 uppercase tracking-wider mb-2 block">
@@ -323,7 +323,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
               </div>
 
               {/* Chat Thread */}
-              <div className="space-y-3 min-h-[160px] max-h-[300px] overflow-y-auto pr-1 rounded-2xl bg-stone-950/70 p-3.5 border border-stone-800/80">
+              <div className="space-y-3 min-h-[180px] max-h-[340px] overflow-y-auto pr-1 rounded-2xl bg-stone-950/70 p-3.5 border border-stone-800/80 flex-1">
                 {chatHistory.map((msg) => (
                   <div
                     key={msg.id}
