@@ -5,7 +5,8 @@ export type BadgeId =
   | 'health_shield' 
   | 'master_title' 
   | 'golden_key' 
-  | 'master_crown';
+  | 'master_crown'
+  | 'stove_master_artifact';
 
 export interface Badge {
   id: BadgeId;

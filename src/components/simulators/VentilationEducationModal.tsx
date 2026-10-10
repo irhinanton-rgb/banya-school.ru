@@ -100,11 +100,12 @@ export const VentilationEducationModal: React.FC<VentilationEducationModalProps>
                   <span>2. Во время процедур (В процессе парения):</span>
                 </span>
                 <span className="text-[11px] font-mono text-cyan-400/90 bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20">
-                  Система «Второе Дыхание»
+                  Приточно-вытяжная вентиляция
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                Микроприток свежего воздуха под голову гостя (форточка под полком или деревянный воздуховод с уличным воздухом, прикрытый прохладным пихтовым веником). Тело гостя принимает мощный паровой прогрев (60°C), а лицо дышит легким морозным уличным кислородом. Пульс остается спокойным, голова светлой, а время комфортного парения увеличивается вдвое без нагрузки на сердце.
+                Критически важна постоянная <strong>приточно-вытяжная вентиляция</strong> (непрерывный приток свежего уличного кислорода под печь и вытяжка тяжелого отработанного воздуха из-под полка). Она обеспечивает легкое дыхание без разрушения парового пирога. <br className="hidden sm:inline" />
+                <span className="text-amber-200"><strong>Если приточно-вытяжной вентиляции в парной нет:</strong> обязательно проводите проветривание прямо во время процедуры — если парение долгое, то примерно в середине сеанса.</span> Пармастер на 15–20 секунд приоткрывает форточку или дверь для смены воздуха в дыхательной зоне, предотвращая гипоксию и головокружение гостя.
               </p>
             </div>
 
@@ -152,23 +153,14 @@ export const VentilationEducationModal: React.FC<VentilationEducationModalProps>
         {/* Modal Bottom Actions */}
         <div className="bg-stone-950 border-t border-stone-800 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-xs font-mono text-stone-400 text-center sm:text-left">
-            <span>Эффект симулятора: </span>
-            <span className="text-cyan-300 font-bold">-15% влажности · -8°C температуры</span>
+            <span>Режим проветривания: </span>
+            <span className="text-cyan-300 font-bold">Обогащение кислородом O₂ · Защита от гипоксии</span>
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
-              onClick={handleApplyVentilation}
-              disabled={isVentilating}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 active:scale-95 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-cyan-500/20 cursor-pointer disabled:opacity-50"
-            >
-              <Wind className="w-4 h-4 text-stone-950" />
-              <span>{isVentilating ? 'Проветриваем...' : 'Запустить залповое проветривание'}</span>
-            </button>
-
-            <button
               onClick={onClose}
-              className="px-5 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 text-xs font-semibold transition-colors cursor-pointer border border-stone-800"
+              className="w-full sm:w-auto px-7 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-500 hover:to-cyan-600 text-stone-100 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border border-cyan-400/40 shadow-lg shadow-cyan-950/50"
             >
               Понятно, закрыть
             </button>

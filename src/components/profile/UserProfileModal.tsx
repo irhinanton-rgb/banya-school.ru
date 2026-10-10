@@ -197,6 +197,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       'master_title',
       'golden_key',
       'master_crown',
+      'stove_master_artifact',
     ];
     onUpdateProgress({
       completedLevels: allLevels,

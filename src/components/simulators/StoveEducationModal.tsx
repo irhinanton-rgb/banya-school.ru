@@ -31,12 +31,16 @@ import {
   playMetalLeverSound
 } from '../../utils/audio';
 import { COMBUSTION_MODES_INFO, CombustionModeDetails } from '../../data/combustionModesData';
+import { BadgeId } from '../../types/banya';
+import confetti from '../../utils/confetti';
 
 interface StoveEducationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onApplySteam: (type: 'closed' | 'open', humidityBoost: number, tempBoost: number) => void;
   soundEnabled: boolean;
+  onGrantReward?: (xp: number, badgeId?: BadgeId) => void;
+  unlockedBadges?: BadgeId[];
 }
 
 // Preset firing modes
@@ -64,6 +68,8 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   onClose,
   onApplySteam,
   soundEnabled,
+  onGrantReward,
+  unlockedBadges = [],
 }) => {
   const [activeTab, setActiveTab] = useState<'blueprint' | 'missions' | 'steamTypes' | 'ceremonies' | 'infrared' | 'quiz'>('blueprint');
   const [selectedPart, setSelectedPart] = useState<string>('closed_chamber');
@@ -99,6 +105,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   // Quiz state
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [quizSubmitted, setQuizSubmitted] = useState<boolean>(false);
+  const [rewardClaimed, setRewardClaimed] = useState<boolean>(false);
 
   // Steam Type Simulator State (Мелкодисперсный vs Крупный пар)
   const [steamSimMode, setSteamSimMode] = useState<'closed' | 'open'>('closed');
@@ -107,7 +114,29 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   // Infrared Simulator State (Короткие vs Длинные ИК-волны)
   const [irSimMode, setIrSimMode] = useState<'sarcophagus' | 'bare_metal'>('sarcophagus');
 
+  // Track interactions across all 3 stove simulations (blueprint, steamTypes, infrared)
+  const [interactedSims, setInteractedSims] = useState<{
+    blueprint: boolean;
+    steamTypes: boolean;
+    infrared: boolean;
+  }>({
+    blueprint: false,
+    steamTypes: false,
+    infrared: false,
+  });
+
+  const markSimInteracted = (sim: 'blueprint' | 'steamTypes' | 'infrared') => {
+    setInteractedSims((prev) => (prev[sim] ? prev : { ...prev, [sim]: true }));
+  };
+
+  const completedSimsCount =
+    (interactedSims.blueprint ? 1 : 0) +
+    (interactedSims.steamTypes ? 1 : 0) +
+    (interactedSims.infrared ? 1 : 0);
+  const isExamUnlocked = completedSimsCount === 3;
+
   const handleTestSteamPour = (target: 'closed' | 'open') => {
+    markSimInteracted('steamTypes');
     setSteamSimMode(target);
     setSteamSimPoured(true);
     if (target === 'closed') {
@@ -190,6 +219,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
 
   // Sound feedback on preset selection
   const applyPresetMode = (mode: FiringMode) => {
+    markSimInteracted('blueprint');
     playMetalLeverSound(soundEnabled);
     if (mode === 'fast_burn') {
       setDamperPos(100);
@@ -216,6 +246,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   };
 
   const handleSelectCombustionMode = (mode: FiringMode) => {
+    markSimInteracted('blueprint');
     applyPresetMode(mode);
     if (COMBUSTION_MODES_INFO[mode]) {
       setActiveModePopup(COMBUSTION_MODES_INFO[mode]);
@@ -225,6 +256,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   if (!isOpen) return null;
 
   const handleStovePour = (type: 'closed' | 'open' | 'herbal') => {
+    markSimInteracted('blueprint');
     playWoodTap(soundEnabled);
     setSteamAnimation(type);
 
@@ -408,7 +440,31 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
 
   const handleCheckQuiz = () => {
     setQuizSubmitted(true);
-    playSuccessChime(soundEnabled);
+    let allCorrect = true;
+    quizQuestions.forEach((q, idx) => {
+      if (quizAnswers[idx] !== q.correct) {
+        allCorrect = false;
+      }
+    });
+
+    if (allCorrect) {
+      playSuccessChime(soundEnabled);
+      try {
+        confetti({
+          particleCount: 90,
+          spread: 75,
+          origin: { y: 0.6 },
+        });
+      } catch {
+        // ignore
+      }
+      if (!rewardClaimed) {
+        setRewardClaimed(true);
+        onGrantReward?.(150, 'stove_master_artifact');
+      }
+    } else {
+      playWoodTap(soundEnabled);
+    }
   };
 
   return (
@@ -478,28 +534,13 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
               <span>ИК-волны (Короткие vs Длинные)</span>
             </button>
 
+            {/* Кнопка парового пирога скрыта из интерфейса по запросу пользователя, но сохранена в коде */}
             <button
               onClick={() => setActiveTab('ceremonies')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === 'ceremonies'
-                  ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
-                  : 'bg-stone-900/80 text-stone-400 hover:text-stone-200 hover:bg-stone-800'
-              }`}
+              className="hidden"
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Паровой пирог и церемонии</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('quiz')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === 'quiz'
-                  ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
-                  : 'bg-stone-900/80 text-stone-400 hover:text-stone-200 hover:bg-stone-800'
-              }`}
-            >
-              <HelpCircle className="w-3.5 h-3.5" />
-              <span>Экзамен пармастера</span>
             </button>
           </div>
         </div>
@@ -1087,6 +1128,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                         onChange={(e) => {
                           setDamperPos(Number(e.target.value));
                           playMetalLeverSound(soundEnabled);
+                          markSimInteracted('blueprint');
                         }}
                         className="w-full accent-amber-500 cursor-pointer"
                       />
@@ -1106,6 +1148,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                         onChange={(e) => {
                           setAshPitPos(Number(e.target.value));
                           playMetalLeverSound(soundEnabled);
+                          markSimInteracted('blueprint');
                         }}
                         className="w-full accent-rose-500 cursor-pointer"
                       />
@@ -1118,6 +1161,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                         onClick={() => {
                           playMetalLeverSound(soundEnabled);
                           setConvectionOpen((prev) => !prev);
+                          markSimInteracted('blueprint');
                         }}
                         className={`w-full py-1.5 rounded-lg text-xs font-bold transition-all ${
                           convectionOpen
@@ -1136,16 +1180,13 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                 <div className="lg:col-span-5 space-y-4">
                   <div className="rounded-2xl bg-stone-900 border border-stone-800 p-5 space-y-4 shadow-lg">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{currentPartData.icon}</span>
-                        <div>
-                          <h4 className="font-serif font-bold text-lg text-amber-300">
-                            {currentPartData.name}
-                          </h4>
-                          <span className="text-xs font-mono text-rose-400 font-semibold">
-                            Рабочая температура: {currentPartData.temp}
-                          </span>
-                        </div>
+                      <div>
+                        <h4 className="font-serif font-bold text-lg text-amber-300">
+                          {currentPartData.name}
+                        </h4>
+                        <span className="text-xs font-mono text-rose-400 font-semibold">
+                          Рабочая температура: {currentPartData.temp}
+                        </span>
                       </div>
                     </div>
 
@@ -1177,7 +1218,7 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                   {/* Quick Select Buttons for All Parts */}
                   <div className="space-y-1.5">
                     <div className="text-[11px] font-mono text-stone-400 uppercase tracking-wider">
-                      Все узлы банной печи:
+                      Узлы банной печи:
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {stoveParts.map((part) => (
@@ -1186,14 +1227,14 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                           onClick={() => {
                             playWoodTap(soundEnabled);
                             setSelectedPart(part.id);
+                            markSimInteracted('blueprint');
                           }}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-left transition-all border cursor-pointer ${
+                          className={`flex items-center px-3 py-2 rounded-xl text-xs text-left transition-all border cursor-pointer ${
                             selectedPart === part.id
                               ? 'bg-amber-500/20 border-amber-500 text-amber-200 font-bold'
                               : 'bg-stone-900/60 border-stone-800 text-stone-400 hover:text-stone-200 hover:bg-stone-800'
                           }`}
                         >
-                          <span>{part.icon}</span>
                           <span className="truncate">{part.name.split(' (')[0]}</span>
                         </button>
                       ))}
@@ -1826,7 +1867,10 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                   {/* Mode Toggles */}
                   <div className="flex flex-wrap items-center gap-2">
                     <button
-                      onClick={() => setIrSimMode('sarcophagus')}
+                      onClick={() => {
+                        setIrSimMode('sarcophagus');
+                        markSimInteracted('infrared');
+                      }}
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
                         irSimMode === 'sarcophagus'
                           ? 'bg-amber-500 text-stone-950 border-amber-400 shadow-md font-bold'
@@ -1838,7 +1882,10 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                     </button>
 
                     <button
-                      onClick={() => setIrSimMode('bare_metal')}
+                      onClick={() => {
+                        setIrSimMode('bare_metal');
+                        markSimInteracted('infrared');
+                      }}
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
                         irSimMode === 'bare_metal'
                           ? 'bg-rose-500 text-white border-rose-400 shadow-md font-bold'
@@ -1979,7 +2026,10 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
 
                       {/* Mode Switch Button */}
                       <button
-                        onClick={() => setIrSimMode(irSimMode === 'sarcophagus' ? 'bare_metal' : 'sarcophagus')}
+                        onClick={() => {
+                          setIrSimMode(irSimMode === 'sarcophagus' ? 'bare_metal' : 'sarcophagus');
+                          markSimInteracted('infrared');
+                        }}
                         className="w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 active:scale-95"
                       >
                         <Radio className="w-4 h-4 text-amber-400" />
@@ -2244,6 +2294,64 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
                 })}
               </div>
 
+              {/* Celebratory Reward Card for Quest Completion */}
+              {quizSubmitted && (() => {
+                const correctCount = quizQuestions.filter((item, idx) => quizAnswers[idx] === item.correct).length;
+                const isAllCorrect = correctCount === quizQuestions.length;
+
+                if (isAllCorrect) {
+                  return (
+                    <div className="rounded-2xl border-2 border-amber-500 bg-gradient-to-br from-amber-950/70 via-stone-900 to-stone-950 p-5 sm:p-6 text-stone-100 shadow-2xl space-y-4 animate-fade-in">
+                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-stone-950 flex items-center justify-center text-3xl shadow-xl ring-2 ring-amber-300 shrink-0">
+                          💎
+                        </div>
+                        <div className="space-y-1 text-center sm:text-left flex-1">
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold uppercase tracking-wider">
+                            <span>🎉 Квест исследования печи успешно пройден!</span>
+                          </div>
+                          <h4 className="text-lg sm:text-xl font-serif font-bold text-amber-200">
+                            Награда получена: +150 XP и Таинственный Артефакт!
+                          </h4>
+                          <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                            Вы безупречно ответили на все вопросы экзамена по физике печи, режимам горения и кондициям легкого пара.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-stone-950/90 border border-amber-500/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl">💎</span>
+                          <div>
+                            <div className="text-sm font-bold text-amber-300 font-serif flex items-center gap-2">
+                              <span>Закалённый Нефрит Каменки</span>
+                              <span className="text-[10px] font-mono uppercase bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                                В инвентаре
+                              </span>
+                            </div>
+                            <div className="text-xs text-stone-300 mt-0.5">
+                              Полудрагоценный камень для закрытой каменки с колоссальной теплоемкостью. <span className="text-amber-200 font-semibold underline decoration-amber-400">Обязательно пригодится вам на дальнейших этапах парения!</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 font-mono font-black text-xs uppercase tracking-wider shadow-md shrink-0">
+                          +150 XP
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-500/50 text-rose-200 text-xs flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">⚠️</span>
+                      <span>Правильных ответов: <strong>{correctCount} из {quizQuestions.length}</strong>. Изучите пояснения выше и попробуйте снова, чтобы заработать опыт и таинственный артефакт!</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="flex items-center justify-end gap-3 pt-2">
                 {!quizSubmitted ? (
                   <button
@@ -2270,22 +2378,81 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
 
         </div>
 
-        {/* Modal Bottom Footer */}
-        <div className={`bg-stone-900/95 border-t border-stone-800 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 transition-all duration-300 ${
+        {/* Modal Bottom Footer: Экзамен пармастера вместо кнопки "Понятно, вернуться в парную" */}
+        <div className={`bg-stone-900/95 border-t border-stone-800 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-300 ${
           showIntroPopup ? 'filter blur-[1px] opacity-40 pointer-events-none select-none' : ''
         }`}>
-          <div className="flex items-center gap-2 text-xs text-stone-400">
-            <span>💡 Поддувало управляет огнем, шибер регулирует тягу дымохода, заслонки конвекции греют парную.</span>
-          </div>
+          {activeTab !== 'quiz' ? (
+            <>
+              {/* Telemetry info / interaction progress */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-stone-400 w-full sm:w-auto">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${isExamUnlocked ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse' : 'bg-amber-400'}`} />
+                  <span className="font-mono text-stone-300 font-medium">Готовность к экзамену:</span>
+                  <span className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                    isExamUnlocked 
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                      : 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                  }`}>
+                    {completedSimsCount}/3 симуляций
+                  </span>
+                </div>
+                {!isExamUnlocked && (
+                  <span className="text-[11px] text-stone-500 font-sans hidden lg:inline">
+                    (Опробуйте: {!interactedSims.blueprint ? 'Макет печи' : !interactedSims.steamTypes ? 'Типы пара' : 'ИК-волны'})
+                  </span>
+                )}
+              </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-medium transition-all border border-stone-700 cursor-pointer"
-            >
-              Понятно, вернуться в парную
-            </button>
-          </div>
+              {/* Long, prominent Exam button */}
+              <div className="w-full sm:flex-1 max-w-xl">
+                <button
+                  onClick={() => {
+                    if (isExamUnlocked) {
+                      setActiveTab('quiz');
+                    }
+                  }}
+                  disabled={!isExamUnlocked}
+                  className={`w-full py-3.5 px-6 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition-all select-none shadow-xl ${
+                    isExamUnlocked
+                      ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 active:scale-[0.98] text-stone-950 border-2 border-amber-300 shadow-amber-500/30 cursor-pointer animate-pulse'
+                      : 'bg-stone-950/80 text-stone-500 border-2 border-stone-800 cursor-not-allowed opacity-60'
+                  }`}
+                  title={
+                    isExamUnlocked
+                      ? 'Все симуляции исследованы! Начать экзамен пармастера'
+                      : 'Экзамен заблокирован. Опробуйте интерактивный макет печи, симуляцию пара и ИК-излучения'
+                  }
+                >
+                  {isExamUnlocked ? (
+                    <>
+                      <Sparkles className="w-5 h-5 text-stone-950 shrink-0" />
+                      <span>🎓 Сдать Экзамен Пармастера (Доступ открыт — Начать!)</span>
+                    </>
+                  ) : (
+                    <>
+                      <HelpCircle className="w-4 h-4 text-stone-600 shrink-0" />
+                      <span>🔒 Экзамен пармастера (Опробуйте симуляции: {completedSimsCount}/3)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="w-full flex items-center justify-between gap-3">
+              <button
+                onClick={() => setActiveTab('blueprint')}
+                className="px-5 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold transition-all border border-stone-700 cursor-pointer flex items-center gap-2"
+              >
+                <span>←</span>
+                <span>Вернуться к макету печи</span>
+              </button>
+              <div className="text-xs font-mono text-amber-300 font-bold flex items-center gap-2">
+                <span>👑</span>
+                <span>Квалификационный экзамен пармастера в процессе</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* INFORMATIVE INTRO MODAL OVER INACTIVE STOVE BLUEPRINT */}

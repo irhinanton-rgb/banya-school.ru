@@ -3,15 +3,20 @@ import { Flame, Droplets, AlertTriangle, Wind, Info, Sparkles, BookOpen } from '
 import { playSteamSound, playExplosiveSteamSound } from '../../utils/audio';
 import { StoveEducationModal } from './StoveEducationModal';
 import { VentilationEducationModal } from './VentilationEducationModal';
+import { BadgeId } from '../../types/banya';
 
 interface MicroclimateSimulatorProps {
   soundEnabled: boolean;
   onSuccessTask?: () => void;
+  onGrantReward?: (xp: number, badgeId?: BadgeId) => void;
+  unlockedBadges?: BadgeId[];
 }
 
 export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
   soundEnabled,
   onSuccessTask,
+  onGrantReward,
+  unlockedBadges = [],
 }) => {
   const [temperature, setTemperature] = useState<number>(65);
   const [humidity, setHumidity] = useState<number>(60);
@@ -293,6 +298,8 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
         onClose={() => setIsStoveModalOpen(false)}
         onApplySteam={handleApplySteamFromStove}
         soundEnabled={soundEnabled}
+        onGrantReward={onGrantReward}
+        unlockedBadges={unlockedBadges}
       />
 
       {/* Interactive Ventilation Educational Modal */}

@@ -4,7 +4,7 @@ import { BroomTechniquesSimulator } from './simulators/BroomTechniquesSimulator'
 import { HerbalBlenderSimulator } from './simulators/HerbalBlenderSimulator';
 import { GuestTriageSimulator } from './simulators/GuestTriageSimulator';
 import { Thermometer, Activity, Sparkles, ShieldCheck, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
-import { UserProgress, LevelId } from '../types/banya';
+import { UserProgress, LevelId, BadgeId } from '../types/banya';
 import { COURSE_LEVELS } from '../data/courseData';
 
 interface SimulatorsHubProps {
@@ -12,6 +12,7 @@ interface SimulatorsHubProps {
   onGrantXp: (amount: number) => void;
   progress: UserProgress;
   onNavigateToLevel: (levelId: LevelId) => void;
+  onUnlockBadge?: (badgeId: BadgeId, xp: number) => void;
   onOpenPricing?: () => void;
 }
 
@@ -20,6 +21,7 @@ export const SimulatorsHub: React.FC<SimulatorsHubProps> = ({
   onGrantXp,
   progress,
   onNavigateToLevel,
+  onUnlockBadge,
   onOpenPricing,
 }) => {
   const [activeSim, setActiveSim] = useState<'climate' | 'brooms' | 'herbs' | 'triage'>('climate');
@@ -128,6 +130,14 @@ export const SimulatorsHub: React.FC<SimulatorsHubProps> = ({
             <MicroclimateSimulator
               soundEnabled={soundEnabled}
               onSuccessTask={() => onGrantXp(20)}
+              unlockedBadges={progress.unlockedBadges}
+              onGrantReward={(xp, badgeId) => {
+                if (badgeId && onUnlockBadge) {
+                  onUnlockBadge(badgeId, xp);
+                } else {
+                  onGrantXp(xp);
+                }
+              }}
             />
           )}
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { LevelData, UserProgress, LevelId } from '../types/banya';
+import React, { useState, useRef, useEffect } from 'react';
+import { LevelData, UserProgress, LevelId, BadgeId } from '../types/banya';
 import { BADGES } from '../data/courseData';
 import { MicroclimateSimulator } from './simulators/MicroclimateSimulator';
 import { BroomTechniquesSimulator } from './simulators/BroomTechniquesSimulator';
@@ -27,6 +27,7 @@ interface LevelViewerProps {
   onStartExam: () => void;
   soundEnabled: boolean;
   onGrantXp: (amount: number) => void;
+  onUnlockBadge?: (badgeId: BadgeId, xp: number) => void;
   onOpenPricing?: () => void;
   onNavigateToMap?: () => void;
   onSelectLevel?: (levelId: LevelId) => void;
@@ -39,6 +40,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
   onStartExam,
   soundEnabled,
   onGrantXp,
+  onUnlockBadge,
   onOpenPricing,
   onNavigateToMap,
   onSelectLevel,
@@ -48,13 +50,18 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
   const [hasCompletedQuiz, setHasCompletedQuiz] = useState<boolean>(isCompleted);
   const [showFailModal, setShowFailModal] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const currentLevelIdRef = useRef<number>(level.id);
 
-  React.useEffect(() => {
-    setSelectedAnswers({});
+  useEffect(() => {
+    // Only reset state if user navigated to a different level station
+    if (currentLevelIdRef.current !== level.id) {
+      currentLevelIdRef.current = level.id;
+      setSelectedAnswers({});
+      setShowFailModal(false);
+      setShowSuccessModal(false);
+    }
     const completed = (progress?.completedLevels ?? []).includes(level.id);
     setHasCompletedQuiz(completed);
-    setShowFailModal(false);
-    setShowSuccessModal(false);
   }, [level.id, progress?.completedLevels]);
 
   const badge = BADGES.find((b) => b.id === level.rewardBadge);
@@ -289,6 +296,14 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
           <MicroclimateSimulator
             soundEnabled={soundEnabled}
             onSuccessTask={() => onGrantXp(15)}
+            unlockedBadges={progress.unlockedBadges}
+            onGrantReward={(xp, badgeId) => {
+              if (badgeId && onUnlockBadge) {
+                onUnlockBadge(badgeId, xp);
+              } else {
+                onGrantXp(xp);
+              }
+            }}
           />
         )}
 

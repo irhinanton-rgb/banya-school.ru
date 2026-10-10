@@ -320,7 +320,6 @@ export default function App() {
         xp: prev.xp + xpReward,
         completedLevels: nextCompleted,
         unlockedBadges: nextBadges,
-        activeLevelId: Math.min(7, levelId + 1) as LevelId,
       };
     });
   };
@@ -529,6 +528,7 @@ export default function App() {
                     onOpenPricing={() => setShowPricingModal(true)}
                     onNavigateToMap={handleOpenQuestMap}
                     onSelectLevel={handleSelectLevel}
+                    onUnlockBadge={handleGrantBadge}
                   />
                 </div>
 
@@ -595,6 +595,7 @@ export default function App() {
             onGrantXp={handleGrantXp}
             progress={progress}
             onNavigateToLevel={handleSelectLevel}
+            onUnlockBadge={handleGrantBadge}
             onOpenPricing={() => setShowPricingModal(true)}
           />
         )}
