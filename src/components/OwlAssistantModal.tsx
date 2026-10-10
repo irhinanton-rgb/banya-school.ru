@@ -15,6 +15,7 @@ import {
 import { sendAdminMessage, AdminMessageType } from '../firebase/adminMessageService';
 import { useAuth } from '../firebase/AuthContext';
 import { UserProgress } from '../types/banya';
+import { getExpertOwlAnswer } from '../services/owlBrain';
 
 interface OwlAssistantModalProps {
   isOpen: boolean;
@@ -87,8 +88,10 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
     setErrorStatus(null);
 
     try {
-      // 1. Ask Gemini AI for real-time guidance
-      let reply = 'Твой вопрос принят мудрой Совой PQ! Для успешного прохождения квеста изучай теорию на станциях, внимательно следи за кондициями 60/60 и закрепляй знания в симуляторах. Ух! 🦉';
+      const resolvedStudentName = userName || progress.name || 'Александр';
+      // Fallback expert answer from comprehensive bath database if network is slow/offline
+      const instantExpert = getExpertOwlAnswer(question, resolvedStudentName, progress.activeLevelId || 1);
+      let reply = instantExpert || 'Твой вопрос принят мудрой Совой PQ! Для успешного прохождения квеста изучай теорию на станциях, внимательно следи за кондициями 60/60 и закрепляй знания в симуляторах. Ух! 🦉';
 
       try {
         const res = await fetch('/api/assistant-ai', {
@@ -97,18 +100,23 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
           body: JSON.stringify({
             question,
             currentLevel: progress.activeLevelId || 1,
-            studentName: userName || progress.name || 'Ученик',
+            studentName: resolvedStudentName,
           }),
         });
 
         if (res.ok) {
           const data = await res.json();
-          if (data.answer) {
+          if (data.answer && !data.answer.includes('Приветствую, банный ученик! Я твой мудрый наставник')) {
             reply = data.answer;
+          } else if (instantExpert) {
+            reply = instantExpert;
           }
         }
       } catch (err) {
-        console.warn('AI assistant request failed, using default guidance:', err);
+        console.warn('AI assistant request failed, using expert guidance:', err);
+        if (instantExpert) {
+          reply = instantExpert;
+        }
       }
 
       const owlMsg: ChatMessage = {

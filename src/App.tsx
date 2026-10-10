@@ -792,12 +792,10 @@ export default function App() {
         progress={progress}
       />
 
-      {/* Floating Bell Button: only visible after user has started learning */}
-      {hasStartedLearning && !showHero && (
-        <FloatingBellButton
-          onClick={() => setShowOwlAssistantModal(true)}
-        />
-      )}
+      {/* Floating Bell Button: always accessible and floating in bottom corner on both PC and mobile */}
+      <FloatingBellButton
+        onClick={() => setShowOwlAssistantModal(true)}
+      />
 
       {/* Community Club Modal (Single hub with Chat, Video Webroom, and Homework Review) */}
       <CommunityClubModal
