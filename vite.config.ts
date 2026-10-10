@@ -1,6 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { pathToFileURL } from "url";
 import { defineConfig, Plugin } from "vite";
 
 function apiDevPlugin(): Plugin {
@@ -12,34 +13,50 @@ function apiDevPlugin(): Plugin {
           return next();
         }
 
-        const handleApi = async (modulePath: string) => {
+        // Add Express-like convenience methods if missing on Node HTTP res
+        const expressRes = res as any;
+        if (!expressRes.status) {
+          expressRes.status = function (statusCode: number) {
+            this.statusCode = statusCode;
+            return this;
+          };
+        }
+        if (!expressRes.json) {
+          expressRes.json = function (data: any) {
+            this.setHeader("Content-Type", "application/json");
+            this.end(JSON.stringify(data));
+            return this;
+          };
+        }
+
+        const handleApi = async (relativePath: string) => {
           let body = "";
           req.on("data", (chunk) => {
             body += chunk;
           });
           req.on("end", async () => {
             try {
-              const { default: handler } = await import(modulePath);
+              const fullPath = path.resolve(process.cwd(), relativePath);
+              const fileUrl = pathToFileURL(fullPath).href;
+              const { default: handler } = await import(fileUrl);
               (req as any).body = JSON.parse(body || "{}");
-              await handler(req, res);
+              await handler(req, expressRes);
             } catch (err: any) {
-              res.statusCode = 500;
-              res.setHeader("Content-Type", "application/json");
-              res.end(JSON.stringify({ error: err.message }));
+              expressRes.statusCode = 500;
+              expressRes.setHeader("Content-Type", "application/json");
+              expressRes.end(JSON.stringify({ error: err.message }));
             }
           });
         };
 
         if (req.url.startsWith("/api/create-payment") && req.method === "POST") {
-          return handleApi("./api/create-payment.js");
+          return handleApi("api/create-payment.js");
         }
-
         if (req.url.startsWith("/api/admin-notification") && req.method === "POST") {
-          return handleApi("./api/admin-notification.js");
+          return handleApi("api/admin-notification.js");
         }
-
         if (req.url.startsWith("/api/assistant-ai") && req.method === "POST") {
-          return handleApi("./api/assistant-ai.js");
+          return handleApi("api/assistant-ai.js");
         }
 
         next();

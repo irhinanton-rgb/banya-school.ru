@@ -9,8 +9,8 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Loader2,
-  Compass,
-  MessageSquare
+  Bot,
+  User as UserIcon
 } from 'lucide-react';
 import { sendAdminMessage, AdminMessageType } from '../firebase/adminMessageService';
 import { useAuth } from '../firebase/AuthContext';
@@ -22,6 +22,13 @@ interface OwlAssistantModalProps {
   progress: UserProgress;
 }
 
+interface ChatMessage {
+  id: string;
+  sender: 'user' | 'owl';
+  text: string;
+  timestamp: string;
+}
+
 export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
   isOpen,
   onClose,
@@ -30,47 +37,70 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminMessageType>('question');
   
+  // Interactive Chat history
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
+    {
+      id: 'welcome',
+      sender: 'owl',
+      text: `Ух! 🦉 Приветствую тебя, ${progress.name || 'дорогой ученик'}! Я — Сова PQ, твой персональный банный наставник. Задай мне любой вопрос о прохождении квеста, температуре камней, хвате веников или кондициях парной, и я сразу помогу!`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    }
+  ]);
+
   // Form fields
   const [questionText, setQuestionText] = useState('');
   const [bugText, setBugText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
   const [userName, setUserName] = useState(progress.name || user?.displayName || '');
   const [userContact, setUserContact] = useState(user?.email || '');
-  const [referralSource, setReferralSource] = useState('Рекомендация друзей');
+  const [referralSource, setReferralSource] = useState('Telegram-канал Батя в Бане');
   const [customReferral, setCustomReferral] = useState('');
 
-  // AI chat answer for questions
-  const [aiAnswer, setAiAnswer] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successStatus, setSuccessStatus] = useState<string | null>(null);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSendQuestion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!questionText.trim()) return;
+  const quickQuestions = [
+    'Какая температура нужна для лёгкого пара?',
+    `Как лучше пройти Станцию ${progress.activeLevelId || 1}?`,
+    'В чём секрет кондиций 60/60?',
+    'Как правильно держать веник в руке?',
+  ];
 
+  const handleSendQuestion = async (textToSend?: string) => {
+    const question = (textToSend || questionText).trim();
+    if (!question || isSubmitting) return;
+
+    const userMsg: ChatMessage = {
+      id: 'user-' + Date.now(),
+      sender: 'user',
+      text: question,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setChatHistory(prev => [...prev, userMsg]);
+    setQuestionText('');
     setIsSubmitting(true);
     setSuccessStatus(null);
     setErrorStatus(null);
-    setAiAnswer(null);
-
-    const question = questionText.trim();
 
     try {
       // 1. Ask Gemini AI for real-time guidance
-      let reply = 'Твой вопрос принят мудрой Совой PQ! Для успешного прохождения квеста изучай теорию на станциях, внимательно следи за кондициями 60/60 и закрепляй знания в симуляторах.';
+      let reply = 'Твой вопрос принят мудрой Совой PQ! Для успешного прохождения квеста изучай теорию на станциях, внимательно следи за кондициями 60/60 и закрепляй знания в симуляторах. Ух! 🦉';
+
       try {
         const res = await fetch('/api/assistant-ai', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             question,
-            currentLevel: progress.activeLevelId,
+            currentLevel: progress.activeLevelId || 1,
             studentName: userName || progress.name || 'Ученик',
           }),
         });
+
         if (res.ok) {
           const data = await res.json();
           if (data.answer) {
@@ -78,22 +108,27 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
           }
         }
       } catch (err) {
-        console.warn('AI answer request failed, using default guidance:', err);
+        console.warn('AI assistant request failed, using default guidance:', err);
       }
 
-      setAiAnswer(reply);
+      const owlMsg: ChatMessage = {
+        id: 'owl-' + Date.now(),
+        sender: 'owl',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setChatHistory(prev => [...prev, owlMsg]);
 
-      // 2. Also send to Admin via Firestore + Telegram
-      await sendAdminMessage({
+      // 2. Also send to Admin via Firestore + Telegram in background
+      sendAdminMessage({
         type: 'question',
         message: question,
         userId: user?.uid || 'guest',
         userName: userName || progress.name || 'Гость курса',
         userEmail: userContact || user?.email || '',
         referralSource: referralSource === 'Другое' ? customReferral : referralSource,
-      });
+      }).catch(err => console.warn('Background admin send warning:', err));
 
-      setSuccessStatus('Вопрос отправлен Сове и передан наставнику Антону Ирхину!');
     } catch (err: any) {
       console.error('Error handling question:', err);
       setErrorStatus('Произошла ошибка при отправке. Пожалуйста, попробуйте еще раз.');
@@ -167,9 +202,9 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
         aria-modal="true"
       >
         {/* Header with Owl Assistant Avatar (No background, crisp drop-shadow) */}
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-stone-800 bg-stone-900/60">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-800 bg-stone-900/60">
           <div className="flex items-center gap-3.5">
-            <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl p-1 shrink-0">
+            <div className="relative flex h-13 w-13 sm:h-15 sm:w-15 items-center justify-center rounded-2xl p-0.5 shrink-0">
               <img
                 src="/images/PQ.png"
                 alt="Помощник Сова PQ"
@@ -183,17 +218,18 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/25">
-                  Мудрый Наставник
+                  ИИ Наставник Сова PQ
                 </span>
-                <span className="text-[11px] font-mono text-emerald-400 font-semibold">
-                  Online
+                <span className="text-[11px] font-mono text-emerald-400 font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+                  Онлайн
                 </span>
               </div>
-              <h2 className="text-lg sm:text-xl font-serif font-bold text-stone-100 mt-0.5">
+              <h2 className="text-base sm:text-lg font-serif font-bold text-stone-100 mt-0.5">
                 Помощник PQ & Связь с Наставником
               </h2>
               <p className="text-xs text-stone-400 hidden sm:block">
-                Задайте вопрос по квесту, сообщите о баге или поделитесь впечатлениями
+                Задайте вопрос ИИ-Сове по квесту, сообщите о баге или оставьте отзыв
               </p>
             </div>
           </div>
@@ -218,7 +254,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
             }`}
           >
             <HelpCircle className="w-4 h-4 text-amber-400" />
-            <span>Вопрос по квесту</span>
+            <span>Вопрос Сове (ИИ)</span>
           </button>
 
           <button
@@ -247,7 +283,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
         </div>
 
         {/* Scrollable Body Content */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
           {/* Status notifications */}
           {successStatus && (
             <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs sm:text-sm animate-fadeIn">
@@ -263,100 +299,126 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
             </div>
           )}
 
-          {/* TAB 1: QUESTION TO OWL PQ */}
+          {/* TAB 1: QUESTION TO OWL PQ (INTERACTIVE AI CHAT) */}
           {activeTab === 'question' && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 leading-relaxed flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-amber-300 font-semibold">Спросите Сову PQ о прохождении:</strong>
-                  <p className="mt-1 text-stone-300">
-                    Задайте любой вопрос по текущей станции (Станция {progress.activeLevelId}), тестам, симуляторам или банной технике. Сова ответит в этом же окне, а копия вопроса улетит админу Антону Ирхину.
-                  </p>
+            <div className="space-y-4 flex flex-col">
+              {/* Quick Prompt Chips */}
+              <div>
+                <span className="text-[11px] font-mono text-stone-400 uppercase tracking-wider mb-2 block">
+                  Быстрые вопросы Сове:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {quickQuestions.map((chip, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={() => handleSendQuestion(chip)}
+                      className="px-3 py-1.5 rounded-full bg-stone-800/80 hover:bg-amber-500/20 text-stone-300 hover:text-amber-300 text-xs border border-stone-700/80 hover:border-amber-500/40 transition-all text-left cursor-pointer"
+                    >
+                      {chip}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Real-time AI Assistant Response Display in the same window */}
-              {aiAnswer && (
-                <div className="p-4 sm:p-5 rounded-2xl bg-stone-900 border border-amber-500/40 shadow-xl space-y-3 animate-fadeIn">
-                  <div className="flex items-center gap-2.5">
-                    <img
-                      src="/images/PQ.png"
-                      alt="Сова PQ"
-                      className="w-7 h-7 object-contain drop-shadow"
-                    />
-                    <span className="font-serif font-bold text-amber-300 text-sm">
-                      Ответ Совы PQ:
-                    </span>
-                  </div>
-                  <div className="text-xs sm:text-sm text-stone-200 leading-relaxed whitespace-pre-wrap font-sans bg-stone-950/60 p-3.5 rounded-xl border border-stone-800">
-                    {aiAnswer}
-                  </div>
-                  <p className="text-[11px] font-mono text-stone-400">
-                    ✨ Сообщение также направлено администратору школы.
-                  </p>
-                </div>
-              )}
+              {/* Chat Thread */}
+              <div className="space-y-3 min-h-[160px] max-h-[300px] overflow-y-auto pr-1 rounded-2xl bg-stone-950/70 p-3.5 border border-stone-800/80">
+                {chatHistory.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex items-start gap-2.5 ${
+                      msg.sender === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    {msg.sender === 'owl' && (
+                      <div className="w-7 h-7 shrink-0 rounded-lg bg-amber-500/10 p-1 border border-amber-500/20 flex items-center justify-center">
+                        <img
+                          src="/images/PQ.png"
+                          alt="Сова"
+                          className="w-full h-full object-contain drop-shadow"
+                        />
+                      </div>
+                    )}
 
-              <form onSubmit={handleSendQuestion} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-mono uppercase text-stone-400 mb-1.5">
-                    Ваш вопрос:
-                  </label>
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed ${
+                        msg.sender === 'user'
+                          ? 'bg-amber-500 text-stone-950 font-medium rounded-tr-sm shadow-md'
+                          : 'bg-stone-900 border border-stone-700/70 text-stone-100 rounded-tl-sm shadow-lg whitespace-pre-wrap'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-4 mb-1 text-[10px] opacity-75 font-mono">
+                        <span className="font-semibold">
+                          {msg.sender === 'user' ? (userName || 'Ученик') : 'Сова PQ'}
+                        </span>
+                        <span>{msg.timestamp}</span>
+                      </div>
+                      <div>{msg.text}</div>
+                    </div>
+
+                    {msg.sender === 'user' && (
+                      <div className="w-7 h-7 shrink-0 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300">
+                        <UserIcon className="w-4 h-4" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {isSubmitting && (
+                  <div className="flex items-start gap-2.5 justify-start animate-pulse">
+                    <div className="w-7 h-7 shrink-0 rounded-lg bg-amber-500/10 p-1 border border-amber-500/20 flex items-center justify-center">
+                      <img
+                        src="/images/PQ.png"
+                        alt="Сова"
+                        className="w-full h-full object-contain drop-shadow"
+                      />
+                    </div>
+                    <div className="bg-stone-900 border border-stone-700/70 text-stone-300 rounded-2xl px-4 py-2.5 text-xs flex items-center gap-2">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                      <span>Сова PQ обдумывает ответ...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Chat Input Box */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendQuestion();
+                }}
+                className="space-y-3"
+              >
+                <div className="relative">
                   <textarea
                     value={questionText}
                     onChange={(e) => setQuestionText(e.target.value)}
-                    placeholder="Например: Как правильно удерживать баланс веников во 2-м уровне? Или: Какая температура должна быть на закрытой каменке?"
-                    rows={3}
-                    required
-                    className="w-full px-4 py-3 rounded-xl bg-stone-900 border border-stone-700 text-stone-100 placeholder-stone-500 text-xs sm:text-sm focus:outline-none focus:border-amber-400 transition-colors resize-none"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendQuestion();
+                      }
+                    }}
+                    placeholder="Задайте вопрос Сове (нажмите Enter для отправки)..."
+                    rows={2}
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 pr-12 rounded-2xl bg-stone-900 border border-stone-700 text-stone-100 placeholder-stone-500 text-xs sm:text-sm focus:outline-none focus:border-amber-400 transition-colors resize-none"
                   />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !questionText.trim()}
+                    className="absolute right-2.5 bottom-3.5 p-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold transition-all disabled:opacity-40 cursor-pointer shadow-md active:scale-95"
+                    title="Отправить вопрос"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase text-stone-400 mb-1">
-                      Ваше имя:
-                    </label>
-                    <input
-                      type="text"
-                      value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
-                      placeholder="Имя или позывной"
-                      className="w-full px-3.5 py-2 rounded-xl bg-stone-900 border border-stone-700 text-stone-100 text-xs focus:outline-none focus:border-amber-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase text-stone-400 mb-1">
-                      Email или Telegram для связи (опционально):
-                    </label>
-                    <input
-                      type="text"
-                      value={userContact}
-                      onChange={(e) => setUserContact(e.target.value)}
-                      placeholder="@telegram или email"
-                      className="w-full px-3.5 py-2 rounded-xl bg-stone-900 border border-stone-700 text-stone-100 text-xs focus:outline-none focus:border-amber-400"
-                    />
-                  </div>
+                <div className="flex items-center justify-between text-[11px] text-stone-400 px-1 font-mono">
+                  <span>✨ Сова отвечает мгновенно на базе ИИ</span>
+                  <span>Копия сохраняется для наставника</span>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !questionText.trim()}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] disabled:opacity-50 cursor-pointer active:scale-95"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Сова думает и отправляет...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      <span>Спросить Сову PQ</span>
-                    </>
-                  )}
-                </button>
               </form>
             </div>
           )}
@@ -382,7 +444,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
                   <textarea
                     value={bugText}
                     onChange={(e) => setBugText(e.target.value)}
-                    placeholder="Опишите, что произошло: например, «Не открывается окно теста на 3 уровне» или «Кнопка звука не отключается»..."
+                    placeholder="Например: на 1-м уровне кнопка вентиляции не открывает заслонку или таймер завис..."
                     rows={4}
                     required
                     className="w-full px-4 py-3 rounded-xl bg-stone-900 border border-stone-700 text-stone-100 placeholder-stone-500 text-xs sm:text-sm focus:outline-none focus:border-red-400 transition-colors resize-none"
@@ -392,7 +454,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-mono uppercase text-stone-400 mb-1">
-                      Ваше имя (опционально):
+                      Ваше имя:
                     </label>
                     <input
                       type="text"
