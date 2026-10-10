@@ -75,6 +75,7 @@ export default function App() {
   });
 
   const [activeTab, setActiveTab] = useState<'quest' | 'simulators' | 'handbook' | 'forum'>('quest');
+  const [questViewMode, setQuestViewMode] = useState<'map' | 'lesson'>('map');
   const [showHero, setShowHero] = useState<boolean>(true);
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
   const [showExamModal, setShowExamModal] = useState<boolean>(false);
@@ -159,17 +160,15 @@ export default function App() {
     setShowClubModal(true);
   };
 
-  const handleScrollToMap = () => {
+  const handleOpenQuestMap = () => {
     setShowHero(false);
     setActiveTab('quest');
-    setTimeout(() => {
-      const el = document.getElementById('quest-roadmap-section');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 700, behavior: 'smooth' });
-      }
-    }, 50);
+    setQuestViewMode('map');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleScrollToMap = () => {
+    handleOpenQuestMap();
   };
 
   const handleOpenLegal = (tab: 'offer' | 'privacy' | 'requisites' = 'offer') => {
@@ -295,10 +294,12 @@ export default function App() {
   const handleSelectLevel = (levelId: LevelId) => {
     setShowHero(false);
     setActiveTab('quest');
+    setQuestViewMode('lesson');
     setProgress((prev) => ({
       ...prev,
       activeLevelId: levelId,
     }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCompleteLevel = (levelId: LevelId, xpReward: number) => {
@@ -412,6 +413,7 @@ export default function App() {
         onOpenClub={() => handleOpenClub('chat')}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        isQuestMapActive={activeTab === 'quest' && questViewMode === 'map' && !showHero}
         onGoToHome={() => {
           setShowHero(true);
           setActiveTab('quest');
@@ -420,7 +422,9 @@ export default function App() {
         onStartLearning={() => {
           setShowHero(false);
           setActiveTab('quest');
+          setQuestViewMode('lesson');
         }}
+        onOpenQuestMap={handleOpenQuestMap}
       />
 
       {/* Main Content Viewport */}
@@ -442,11 +446,11 @@ export default function App() {
                   handleSelectLevel(levelId);
                 }}
               />
-            ) : (
-              /* Learning Workspace: station viewer, navigation, quest roadmap, club and trophies */
-              <div className="space-y-8 sm:space-y-10 animate-fadeIn">
-                {/* Back to welcome screen bar */}
-                <div className="flex items-center justify-between pb-2 border-b border-stone-800/80">
+            ) : questViewMode === 'map' ? (
+              /* ONLY Quest Roadmap Map View */
+              <div className="space-y-6 animate-fadeIn">
+                {/* Back to welcome screen and Switch to Lesson bars */}
+                <div className="flex items-center justify-between pb-3 border-b border-stone-800/80">
                   <button
                     onClick={() => {
                       setShowHero(true);
@@ -456,6 +460,49 @@ export default function App() {
                   >
                     <span>← На главный экран</span>
                   </button>
+                  <button
+                    onClick={() => {
+                      setQuestViewMode('lesson');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="inline-flex items-center gap-2 text-xs font-mono text-amber-300 hover:text-amber-200 transition-colors py-1.5 px-3.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer shadow-sm"
+                  >
+                    <span>К текущему уроку (Станция {progress.activeLevelId}) →</span>
+                  </button>
+                </div>
+
+                {/* Quest Roadmap Map */}
+                <div id="quest-roadmap-section">
+                  <QuestMap
+                    progress={progress}
+                    onSelectLevel={handleSelectLevel}
+                    activeLevelId={progress.activeLevelId}
+                    onOpenPricing={() => setShowPricingModal(true)}
+                  />
+                </div>
+              </div>
+            ) : (
+              /* Learning Workspace: station viewer, navigation, club and trophies */
+              <div className="space-y-8 sm:space-y-10 animate-fadeIn">
+                {/* Back to welcome screen and direct Map link bar */}
+                <div className="flex items-center justify-between pb-2 border-b border-stone-800/80">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <button
+                      onClick={() => {
+                        setShowHero(true);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="inline-flex items-center gap-2 text-xs font-mono text-stone-400 hover:text-amber-300 transition-colors py-1.5 px-3 rounded-xl bg-stone-900/70 hover:bg-stone-900 border border-stone-800 hover:border-amber-500/40 cursor-pointer shadow-sm"
+                    >
+                      <span>← Главная</span>
+                    </button>
+                    <button
+                      onClick={handleOpenQuestMap}
+                      className="inline-flex items-center gap-1.5 text-xs font-mono text-amber-300 hover:text-amber-200 transition-colors py-1.5 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer shadow-sm"
+                    >
+                      <span>🗺️ Карта Квеста</span>
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2 text-xs font-mono text-stone-400">
                     <span>Станция {progress.activeLevelId} из 7</span>
                     <span className="text-amber-500/60">•</span>
@@ -480,6 +527,8 @@ export default function App() {
                     soundEnabled={progress.soundEnabled}
                     onGrantXp={handleGrantXp}
                     onOpenPricing={() => setShowPricingModal(true)}
+                    onNavigateToMap={handleOpenQuestMap}
+                    onSelectLevel={handleSelectLevel}
                   />
                 </div>
 
@@ -519,16 +568,6 @@ export default function App() {
                       Видеокомната 📹
                     </button>
                   </div>
-                </div>
-
-                {/* Quest Roadmap Map */}
-                <div id="quest-roadmap-section" className="scroll-mt-20">
-                  <QuestMap
-                    progress={progress}
-                    onSelectLevel={handleSelectLevel}
-                    activeLevelId={progress.activeLevelId}
-                    onOpenPricing={() => setShowPricingModal(true)}
-                  />
                 </div>
 
                 {/* Badges / Trophies Shelf & Secret Chest */}

@@ -28,6 +28,8 @@ interface LevelViewerProps {
   soundEnabled: boolean;
   onGrantXp: (amount: number) => void;
   onOpenPricing?: () => void;
+  onNavigateToMap?: () => void;
+  onSelectLevel?: (levelId: LevelId) => void;
 }
 
 export const LevelViewer: React.FC<LevelViewerProps> = ({
@@ -38,19 +40,28 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
   soundEnabled,
   onGrantXp,
   onOpenPricing,
+  onNavigateToMap,
+  onSelectLevel,
 }) => {
   const isCompleted = (progress?.completedLevels ?? []).includes(level.id);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [hasCompletedQuiz, setHasCompletedQuiz] = useState<boolean>(isCompleted);
+  const [showFailModal, setShowFailModal] = useState<boolean>(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
 
   React.useEffect(() => {
     setSelectedAnswers({});
-    setHasCompletedQuiz((progress?.completedLevels ?? []).includes(level.id));
+    const completed = (progress?.completedLevels ?? []).includes(level.id);
+    setHasCompletedQuiz(completed);
+    setShowFailModal(false);
+    setShowSuccessModal(false);
   }, [level.id, progress?.completedLevels]);
 
   const badge = BADGES.find((b) => b.id === level.rewardBadge);
 
   const handleSelectAnswer = (qIdx: number, optIdx: number) => {
+    // Cannot change answers while quiz is marked completed unless retaking
+    if (hasCompletedQuiz && isCompleted) return;
     setSelectedAnswers((prev) => ({
       ...prev,
       [qIdx]: optIdx,
@@ -69,16 +80,27 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
       }
     });
 
-    if (allCorrect) {
-      setHasCompletedQuiz(true);
-      playSuccessChime(soundEnabled);
-      confetti({
-        particleCount: 60,
-        spread: 70,
-        origin: { y: 0.7 },
-      });
-      onCompleteLevel(level.id, level.rewardXp);
+    if (!allCorrect) {
+      // If even ONE answer is incorrect: reset answers and return to beginning of quest with fail popup
+      setSelectedAnswers({});
+      setShowFailModal(true);
+      return;
     }
+
+    // ALL answers are correct:
+    setHasCompletedQuiz(true);
+    setShowSuccessModal(true);
+    playSuccessChime(soundEnabled);
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    } catch {
+      // ignore
+    }
+    onCompleteLevel(level.id, level.rewardXp);
   };
 
   return (
@@ -90,9 +112,20 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800 pb-5">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-amber-400">
-              <Compass className="h-4 w-4" />
-              <span>{level.questName}</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-amber-400">
+                <Compass className="h-4 w-4" />
+                <span>{level.questName}</span>
+              </div>
+              {onNavigateToMap && (
+                <button
+                  onClick={onNavigateToMap}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-950/90 hover:bg-stone-900 border border-amber-500/30 hover:border-amber-400 text-stone-300 hover:text-amber-300 text-[11px] font-mono transition-all cursor-pointer shadow-sm"
+                  title="Перейти к Карте Квеста"
+                >
+                  <span>🗺️ Карта Квеста</span>
+                </button>
+              )}
             </div>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-100">
               {level.title}
@@ -375,8 +408,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
           <div className="space-y-6">
             {level.quiz.map((q, qIdx) => {
               const selectedOpt = selectedAnswers[qIdx];
-              const isAnswered = selectedOpt !== undefined;
-              const isCorrect = selectedOpt === q.correctIndex;
+              const isTestPassed = isCompleted && hasCompletedQuiz;
 
               return (
                 <div key={q.id} className="rounded-xl bg-stone-950/70 border border-stone-800 p-5 space-y-3">
@@ -393,14 +425,19 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   <div className="space-y-2 pt-1 pl-4">
                     {q.options.map((opt, optIdx) => {
                       const isChosen = selectedOpt === optIdx;
-                      let optClass = 'border-stone-800 bg-stone-900/80 hover:bg-stone-800 text-stone-300';
-                      if (isAnswered) {
+                      let optClass = 'border-stone-800 bg-stone-900/80 hover:bg-stone-850 hover:border-stone-700 text-stone-300';
+
+                      if (isTestPassed) {
                         if (optIdx === q.correctIndex) {
                           optClass = 'border-emerald-500 bg-emerald-950/40 text-emerald-200';
-                        } else if (isChosen && !isCorrect) {
+                        } else if (isChosen && optIdx !== q.correctIndex) {
                           optClass = 'border-rose-500 bg-rose-950/40 text-rose-200';
                         } else {
                           optClass = 'border-stone-800 bg-stone-950/30 text-stone-500 opacity-60';
+                        }
+                      } else {
+                        if (isChosen) {
+                          optClass = 'border-amber-400 bg-amber-500/15 text-amber-200 ring-1 ring-amber-400/40 shadow-sm';
                         }
                       }
 
@@ -408,33 +445,41 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                         <button
                           key={optIdx}
                           onClick={() => handleSelectAnswer(qIdx, optIdx)}
-                          disabled={hasCompletedQuiz && isCompleted}
-                          className={`w-full p-3 rounded-lg border text-left text-xs transition-colors cursor-pointer ${optClass}`}
+                          disabled={isTestPassed}
+                          className={`w-full p-3.5 rounded-xl border text-left text-xs sm:text-sm transition-all cursor-pointer ${optClass}`}
                         >
-                          <div className="flex items-center gap-2.5">
-                            <span className="font-mono text-[11px] opacity-60">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                                isChosen
+                                  ? 'border-amber-400 bg-amber-400 text-stone-950'
+                                  : 'border-stone-600 bg-stone-900'
+                              }`}
+                            >
+                              {isChosen && <div className="w-1.5 h-1.5 rounded-full bg-stone-950" />}
+                            </div>
+                            <span className="font-mono text-xs opacity-60 shrink-0">
                               {String.fromCharCode(65 + optIdx)})
                             </span>
-                            <span>{opt}</span>
+                            <span className="leading-relaxed">{opt}</span>
                           </div>
                         </button>
                       );
                     })}
                   </div>
 
-                  {/* Immediate feedback & rationale */}
-                  {isAnswered && (
-                    <div
-                      className={`text-xs p-3 rounded-lg mt-2 ${
-                        isCorrect
-                          ? 'bg-emerald-950/30 text-emerald-300 border border-emerald-500/30'
-                          : 'bg-rose-950/30 text-rose-300 border border-rose-500/30'
-                      }`}
-                    >
-                      <strong className="block mb-0.5">
-                        {isCorrect ? '✓ Верно!' : '✕ Не совсем так.'}
+                  {/* Immediate feedback & rationale ONLY after test has been passed */}
+                  {isTestPassed && (
+                    <div className="text-xs p-3.5 rounded-xl mt-2 bg-emerald-950/30 text-emerald-300 border border-emerald-500/30 leading-relaxed space-y-1">
+                      <strong className="block text-emerald-200">
+                        ✓ Пояснение мастера:
                       </strong>
                       <p>{q.explanation}</p>
+                      {q.proTip && (
+                        <p className="text-amber-300/90 font-mono text-[11px] pt-1">
+                          💡 {q.proTip}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -443,32 +488,211 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
           </div>
 
           {/* Action button */}
-          <div className="flex justify-end pt-3">
-            {!isCompleted ? (
-              <button
-                onClick={handleCheckQuiz}
-                disabled={Object.keys(selectedAnswers).length < level.quiz.length}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md"
-              >
-                <span>Подтвердить ответы и забрать {level.rewardXp} XP</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
+          <div className="pt-3">
+            {!isCompleted || !hasCompletedQuiz ? (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="text-xs font-mono text-stone-400">
+                  {Object.keys(selectedAnswers).length < level.quiz.length ? (
+                    <span>
+                      Ответьте на все вопросы: <strong className="text-amber-400">{Object.keys(selectedAnswers).length}</strong> из {level.quiz.length} выбрано
+                    </span>
+                  ) : (
+                    <span className="text-emerald-400 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Все вопросы отмечены — нажмите «Проверить ответы»</span>
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={handleCheckQuiz}
+                  disabled={Object.keys(selectedAnswers).length < level.quiz.length}
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-stone-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95"
+                >
+                  <span>Проверить ответы (+{level.rewardXp} XP)</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             ) : (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full p-3.5 rounded-xl bg-stone-950/90 border border-emerald-500/30">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full p-4 rounded-xl bg-stone-950/90 border border-emerald-500/30">
                 <div className="text-xs font-mono text-emerald-400 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
-                  <span className="font-semibold">
-                    Награда получена: +{level.rewardXp} XP · {badge ? badge.name : 'Трофей'}
+                  <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
+                  <span className="font-semibold text-sm">
+                    Тест успешно сдан! Награда: +{level.rewardXp} XP · {badge ? badge.name : 'Трофей'}
                   </span>
                 </div>
-                {level.id === 1 && (
-                  <div className="text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 rounded-lg flex items-center gap-2">
-                    <span>💡</span>
-                    <span>Во втором уровне нам понадобится найти 2 веника для отработки движений</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedAnswers({});
+                      setHasCompletedQuiz(false);
+                    }}
+                    className="text-[11px] font-mono text-stone-400 hover:text-amber-300 underline cursor-pointer"
+                  >
+                    Пройти повторно
+                  </button>
+                  {onNavigateToMap && (
+                    <button
+                      onClick={onNavigateToMap}
+                      className="px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-850 border border-amber-500/30 text-amber-300 text-xs font-mono transition-colors cursor-pointer"
+                    >
+                      Карта Квеста →
+                    </button>
+                  )}
+                </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Fail Modal: "Материал не усвоен, давай попробуем снова!" */}
+      {showFailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative max-w-md w-full rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-rose-500/50 p-6 sm:p-8 shadow-2xl text-center space-y-5">
+            <div className="w-16 h-16 rounded-3xl bg-rose-500/20 border border-rose-500/40 text-rose-400 mx-auto flex items-center justify-center text-3xl shadow-inner">
+              ❌
+            </div>
+            
+            <div className="space-y-2">
+              <span className="text-xs font-mono uppercase tracking-wider text-rose-400 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/30">
+                Тест не сдан · Есть ошибки
+              </span>
+              <h3 className="text-2xl font-serif font-bold text-stone-100">
+                Материал не усвоен!
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                В ответах допущена ошибка. Чтобы стать настоящим мастером пара и не навредить здоровью гостя, все правила первого пара должны быть усвоены на 100%.
+              </p>
+              <p className="text-xs text-amber-300/90 font-medium">
+                Давай попробуем снова! Внимательно повторите материал станции и ответьте на все вопросы заново.
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => {
+                  setShowFailModal(false);
+                  const el = document.getElementById('level-station-section');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/25 cursor-pointer active:scale-95"
+              >
+                Повторить материал (В начало квеста) ↺
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal: Поздравления, заработанные очки, награды */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative max-w-lg w-full rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/60 p-6 sm:p-8 shadow-2xl text-center space-y-6">
+            <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-3xl bg-amber-500/30 blur-xl animate-pulse" />
+              <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-stone-950 flex items-center justify-center text-4xl shadow-xl ring-2 ring-amber-300/50">
+                🏆
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-xs font-mono uppercase tracking-wider text-amber-300 bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/30">
+                Уровень успешно пройден!
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-serif font-bold text-stone-100">
+                {level.id === 1
+                  ? 'Поздравляем с прохождением 1-го уровня!'
+                  : `Поздравляем с прохождением ${level.id}-го уровня!`}
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-md mx-auto">
+                Вы блестяще ответили на все вопросы проверочного мини-теста и доказали глубокое понимание темы «{level.title}»!
+              </p>
+            </div>
+
+            {/* Earned Points & Reward Badge */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+              <div className="p-4 rounded-2xl bg-stone-950/90 border border-amber-500/40 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase text-stone-400">Заработано очков</span>
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="text-2xl font-serif font-bold text-amber-300">
+                  +{level.rewardXp} XP
+                </div>
+                <div className="text-[11px] text-stone-400 font-mono">
+                  Общий опыт: <span className="text-amber-200 font-semibold">{progress.xp + level.rewardXp} XP</span>
+                </div>
+              </div>
+
+              {badge && (
+                <div className="p-4 rounded-2xl bg-stone-950/90 border border-amber-500/40 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono uppercase text-stone-400">Награда получена</span>
+                    <Award className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl filter drop-shadow">{badge.icon}</span>
+                    <div className="text-xs font-serif font-bold text-amber-200 leading-tight">
+                      {badge.name}
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-stone-400 line-clamp-2">
+                    {badge.description}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Level 1 specific tip for level 2 */}
+            {level.id === 1 && (
+              <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/50 text-left space-y-1 shadow-inner">
+                <div className="flex items-center gap-2 text-xs font-serif font-bold text-amber-300">
+                  <span>💡</span>
+                  <span>Важная подсказка для 2-го уровня:</span>
+                </div>
+                <p className="text-xs text-amber-100/90 leading-relaxed font-mono">
+                  Во втором уровне нам понадобится найти 2 веника для отработки движений!
+                </p>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              {onNavigateToMap && (
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    onNavigateToMap();
+                  }}
+                  className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-amber-300 border border-amber-500/40 font-semibold text-xs transition-colors cursor-pointer text-center"
+                >
+                  🗺️ Карта Квеста
+                </button>
+              )}
+
+              {level.id < 7 && onSelectLevel ? (
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    onSelectLevel((level.id + 1) as LevelId);
+                  }}
+                  className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/25 cursor-pointer text-center"
+                >
+                  🌿 Перейти к уровню {level.id + 1} →
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/25 cursor-pointer text-center"
+                >
+                  Отлично, продолжить
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

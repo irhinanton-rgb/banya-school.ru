@@ -32,6 +32,8 @@ interface HeaderProps {
   setActiveTab: (tab: 'quest' | 'simulators' | 'handbook' | 'forum') => void;
   onGoToHome?: () => void;
   onStartLearning?: () => void;
+  onOpenQuestMap?: () => void;
+  isQuestMapActive?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -48,6 +50,8 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   onGoToHome,
   onStartLearning,
+  onOpenQuestMap,
+  isQuestMapActive,
 }) => {
   const { user } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -116,18 +120,16 @@ export const Header: React.FC<HeaderProps> = ({
           {/* 1. Карта Квеста */}
           <button
             onClick={() => {
-              if (onStartLearning) {
+              if (onOpenQuestMap) {
+                onOpenQuestMap();
+              } else if (onStartLearning) {
                 onStartLearning();
               } else {
                 setActiveTab('quest');
               }
-              setTimeout(() => {
-                const el = document.getElementById('quest-roadmap-section') || document.getElementById('level-station-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }, 50);
             }}
             className={`transition-colors py-1 border-b-2 whitespace-nowrap cursor-pointer ${
-              activeTab === 'quest'
+              activeTab === 'quest' && (isQuestMapActive !== false)
                 ? 'border-amber-500 text-amber-300 font-semibold drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]'
                 : 'border-transparent text-stone-400 hover:text-stone-200'
             }`}
