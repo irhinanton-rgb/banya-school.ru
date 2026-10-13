@@ -1,0 +1,179 @@
+import React from 'react';
+import { BookOpen, Compass, BookMarked, MessageSquare, User, Lock, Hammer } from 'lucide-react';
+import { UserProgress } from '../types/banya';
+
+interface MobileBottomNavProps {
+  activeTab: 'quest' | 'simulators' | 'handbook' | 'forum';
+  setActiveTab: (tab: 'quest' | 'simulators' | 'handbook' | 'forum') => void;
+  onOpenClub: () => void;
+  onOpenProfile: () => void;
+  onScrollToMap: () => void;
+  onOpenLesson?: () => void;
+  onShowInDevelopment?: (featureName: string) => void;
+  onRequireLevel3?: (featureName: string) => void;
+  progress: UserProgress;
+}
+
+export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
+  activeTab,
+  setActiveTab,
+  onOpenClub,
+  onOpenProfile,
+  onScrollToMap,
+  onOpenLesson,
+  onShowInDevelopment,
+  onRequireLevel3,
+  progress,
+}) => {
+  const isQuestActive = activeTab === 'quest';
+  const isHandbookActive = activeTab === 'handbook';
+  const isForumActive = activeTab === 'forum';
+  const isAdmin = Boolean(progress.isAdmin);
+
+  // Level 3 requirement for Handbook
+  const isLevel3Unlocked = Boolean(
+    isAdmin ||
+    progress.activeLevelId >= 3 ||
+    (progress.completedLevels && progress.completedLevels.some((l) => l >= 2))
+  );
+
+  const handleHandbookTab = () => {
+    if (!isLevel3Unlocked) {
+      if (onRequireLevel3) {
+        onRequireLevel3('Банный Справочник');
+      }
+      return;
+    }
+    setActiveTab('handbook');
+  };
+
+  const handleForumTab = () => {
+    if (!isAdmin) {
+      if (onShowInDevelopment) {
+        onShowInDevelopment('Форум Мастеров');
+      }
+      return;
+    }
+    setActiveTab('forum');
+  };
+
+  return (
+    <nav
+      aria-label="Мобильная навигация"
+      className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-stone-950/95 backdrop-blur-xl border-t border-stone-800/90 shadow-[0_-8px_30px_rgba(0,0,0,0.7)] px-2 pt-1.5 pb-[max(0.6rem,env(safe-area-inset-bottom))] print:hidden transition-transform"
+    >
+      <div className="grid grid-cols-5 items-center gap-1 max-w-md mx-auto">
+        {/* Tab 1: Обучение */}
+        <button
+          onClick={() => {
+            if (onOpenLesson) {
+              onOpenLesson();
+            } else {
+              setActiveTab('quest');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${
+            isQuestActive
+              ? 'text-amber-400 font-bold scale-105'
+              : 'text-stone-400 hover:text-stone-200'
+          }`}
+        >
+          <div className="relative">
+            <BookOpen className={`w-5 h-5 ${isQuestActive ? 'text-amber-400' : 'text-stone-400'}`} />
+            {isQuestActive && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-400" />
+            )}
+          </div>
+          <span className="text-[10px] mt-1 tracking-tight leading-none truncate max-w-full">
+            Урок
+          </span>
+        </button>
+
+        {/* Tab 3: Справочник (доступен только с 3 уровня) */}
+        <button
+          onClick={handleHandbookTab}
+          className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${
+            isHandbookActive && isLevel3Unlocked
+              ? 'text-amber-400 font-bold scale-105'
+              : isLevel3Unlocked
+              ? 'text-stone-400 hover:text-stone-200'
+              : 'text-stone-500 opacity-80'
+          }`}
+        >
+          <div className="relative">
+            {isLevel3Unlocked ? (
+              <BookMarked className={`w-5 h-5 ${isHandbookActive ? 'text-amber-400' : 'text-stone-400'}`} />
+            ) : (
+              <div className="relative">
+                <BookMarked className="w-5 h-5 text-stone-500" />
+                <span className="absolute -top-1 -right-1 text-[8px] bg-stone-900 border border-stone-800 text-amber-400 px-1 rounded-full font-mono">
+                  3ур
+                </span>
+              </div>
+            )}
+            {isHandbookActive && isLevel3Unlocked && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-400" />
+            )}
+          </div>
+          <span className="text-[10px] mt-1 tracking-tight leading-none truncate max-w-full">
+            {isLevel3Unlocked ? 'Справка' : 'Справка 🔒'}
+          </span>
+        </button>
+
+        {/* Tab 4: Форум & Программы (не активен для обычных пользователей) */}
+        <button
+          onClick={handleForumTab}
+          className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${
+            isForumActive && isAdmin
+              ? 'text-amber-400 font-bold scale-105'
+              : isAdmin
+              ? 'text-stone-400 hover:text-stone-200'
+              : 'text-stone-500 opacity-80'
+          }`}
+        >
+          <div className="relative">
+            <MessageSquare className={`w-5 h-5 ${isForumActive && isAdmin ? 'text-amber-400' : isAdmin ? 'text-stone-400' : 'text-stone-500'}`} />
+            {!isAdmin && (
+              <span className="absolute -top-1 -right-1.5 text-[8px] bg-stone-900 border border-stone-800 text-amber-400/90 px-1 rounded-full font-mono">
+                🛠️
+              </span>
+            )}
+            {isForumActive && isAdmin && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-400" />
+            )}
+          </div>
+          <span className="text-[10px] mt-1 tracking-tight leading-none truncate max-w-full">
+            {isAdmin ? 'Форум' : 'Форум 🛠️'}
+          </span>
+        </button>
+
+        {/* Tab 5: Кабинет */}
+        <button
+          onClick={onOpenProfile}
+          className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-stone-400 hover:text-amber-300 transition-all cursor-pointer active:scale-95"
+        >
+          <div className="relative">
+            {progress.avatarUrl ? (
+              <img
+                src={progress.avatarUrl}
+                alt="Профиль"
+                className="w-5 h-5 rounded-full object-cover border border-amber-500/60"
+              />
+            ) : (
+              <User className="w-5 h-5 text-stone-300" />
+            )}
+            {isAdmin && (
+              <span className="absolute -top-1.5 -right-1 text-[10px]" title="Админ">
+                👑
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] mt-1 tracking-tight leading-none truncate max-w-full">
+            Кабинет
+          </span>
+        </button>
+      </div>
+    </nav>
+  );
+};

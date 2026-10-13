@@ -1,0 +1,6 @@
+{
+  "name": "Квест Пармастера: Путь к Мастерству",
+  "description": "Интерактивная геймифицированная система обучения банному мастерству, технике парения, ароматерапии и безопасности парной.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

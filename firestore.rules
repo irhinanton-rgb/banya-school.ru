@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data) {
+      return data.uid is string && data.uid.size() <= 128 && data.uid == request.auth.uid
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100
+        && (!('email' in data) || (data.email is string && data.email.size() <= 150))
+        && (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() <= 32))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500));
+    }
+
+    function isValidUserProgress(data) {
+      return data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid
+        && data.name is string && data.name.size() <= 100
+        && data.xp is number && data.xp >= 0 && data.xp <= 1000000
+        && data.completedLevels is list && data.completedLevels.size() <= 50
+        && data.unlockedBadges is list && data.unlockedBadges.size() <= 50
+        && (!('activeLevelId' in data) || (data.activeLevelId is number) || (data.activeLevelId is string && data.activeLevelId.size() <= 64))
+        && (!('examScore' in data) || (data.examScore is number))
+        && (!('certifiedDate' in data) || (data.certifiedDate is string && data.certifiedDate.size() <= 64))
+        && (!('tariff' in data) || (data.tariff is string && data.tariff.size() <= 32))
+        && (!('isPaid' in data) || (data.isPaid is bool))
+        && (!('paidAt' in data) || (data.paidAt is string && data.paidAt.size() <= 64))
+        && (!('orderId' in data) || (data.orderId is string && data.orderId.size() <= 64));
+    }
+
+    function isValidCommunityMessage(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 1000
+        && data.createdAt is string && data.createdAt.size() <= 64
+        && (!('authorAvatar' in data) || (data.authorAvatar is string && data.authorAvatar.size() <= 500))
+        && (!('authorRole' in data) || (data.authorRole is string && data.authorRole.size() <= 32));
+    }
+
+    function isValidAdminMessage(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.type is string && (data.type == 'question' || data.type == 'bug' || data.type == 'feedback')
+        && data.message is string && data.message.size() >= 1 && data.message.size() <= 2000
+        && data.createdAt is string && data.createdAt.size() <= 64
+        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128))
+        && (!('userName' in data) || (data.userName is string && data.userName.size() <= 100))
+        && (!('userEmail' in data) || (data.userEmail is string && data.userEmail.size() <= 150))
+        && (!('referralSource' in data) || (data.referralSource is string && data.referralSource.size() <= 100))
+        && (!('status' in data) || (data.status is string && data.status.size() <= 32));
+    }
+    // User profile document
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProfile(incoming());
+      allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProfile(incoming())
+                    && incoming().uid == existing().uid;
+      allow delete: if false;
+
+      // User progress subcollection
+      match /progress/{progressId} {
+        allow get, list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+        allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProgress(incoming());
+        allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProgress(incoming())
+                      && incoming().userId == existing().userId;
+        allow delete: if false;
+      }
+    }
+
+    // Public community messages
+    match /community_messages/{messageId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isValidId(messageId) && incoming().authorId == request.auth.uid && isValidCommunityMessage(incoming());
+      allow update, delete: if isSignedIn() && isValidId(messageId) && existing().authorId == request.auth.uid;
+    }
+
+    // User questions, bug reports, and feedback directed to admin
+    match /admin_messages/{messageId} {
+      allow get, list: if isSignedIn();
+      allow create: if isValidId(messageId) && isValidAdminMessage(incoming());
+      allow update, delete: if isSignedIn();
+    }
+  }
+}

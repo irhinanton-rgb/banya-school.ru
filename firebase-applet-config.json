@@ -1,0 +1,12 @@
+{
+  "projectId": "banya-school",
+  "appId": "1:923632191778:web:fea12832cc7a1f9c51bd7b",
+  "apiKey": "AIzaSyBlnpleN1s4EBg2-qh3UR075cCOVuAiLaw",
+  "authDomain": "banya-school.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "banya-school.firebasestorage.app",
+  "messagingSenderId": "923632191778",
+  "measurementId": "",
+  "oAuthClientId": "",
+  "recaptchaSiteKey": ""
+}
