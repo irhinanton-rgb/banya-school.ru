@@ -54,9 +54,14 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
   const isCompleted = (progress?.completedLevels ?? []).includes(level.id);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [hasCompletedQuiz, setHasCompletedQuiz] = useState<boolean>(isCompleted);
+  const [localCompletedTasks, setLocalCompletedTasks] = useState<string[]>([]);
   const [showFailModal, setShowFailModal] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [showLevel2PromoModal, setShowLevel2PromoModal] = useState<boolean>(false);
+
+  const markTaskCompleted = (taskId: string) => {
+    setLocalCompletedTasks((prev) => (prev.includes(taskId) ? prev : [...prev, taskId]));
+  };
 
   const isPaidMaster = Boolean(progress?.isAdmin || progress?.isPaid || progress?.tariff === 'master_pro');
   const isLevelLocked = level.id >= 3 && !isPaidMaster;
@@ -209,6 +214,30 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               <span>Задание: {level.taskTitle}</span>
             </div>
 
+            {level.tasks && level.tasks.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {level.tasks.map((task) => {
+                  const isDone = isCompleted || hasCompletedQuiz || localCompletedTasks.includes(task.id);
+                  return (
+                    <div
+                      key={task.id}
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-mono transition-all ${
+                        isDone
+                          ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
+                          : 'bg-stone-950/60 border-stone-800 text-stone-400'
+                      }`}
+                    >
+                      <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                        isDone ? 'bg-emerald-500 text-stone-950' : 'bg-stone-850 text-stone-500 border border-stone-700'
+                      }`}>
+                        {isDone ? '✓' : '○'}
+                      </span>
+                      <span className="truncate">{task.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="md:col-span-4 rounded-xl bg-stone-950/80 border border-amber-500/20 p-4 space-y-2">
@@ -275,6 +304,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
       </div>
 
       {/* Core Learning Cards (Burger King Microlearning Station Format) */}
+      {level.id !== 4 && level.learningPoints && level.learningPoints.length > 0 && (
       <div className="space-y-4">
         <h3 className="font-serif text-xl font-bold text-stone-100 flex items-center gap-2">
           <span>📖</span>
@@ -306,6 +336,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
           ))}
         </div>
       </div>
+      )}
 
       {/* Embedded Level Simulator */}
       <div className="space-y-4">
@@ -346,7 +377,23 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
         {level.interactiveType === 'safety_triage' && (
           <GuestTriageSimulator
             soundEnabled={soundEnabled}
-            onGrantXp={onGrantXp}
+            onGrantXp={(xp) => {
+              onGrantXp(xp);
+              markTaskCompleted('interactive');
+            }}
+            onSuccess={() => {
+              markTaskCompleted('interactive');
+              markTaskCompleted('guest_safety');
+            }}
+            onMasterSafetyCompleted={() => {
+              markTaskCompleted('master_safety');
+            }}
+            onGuestSafetyCompleted={() => {
+              markTaskCompleted('guest_safety');
+            }}
+            onErgonomicsSafetyCompleted={() => {
+              markTaskCompleted('ergonomics_safety');
+            }}
           />
         )}
 

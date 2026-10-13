@@ -13,19 +13,19 @@ export const FloatingBellButton: React.FC<FloatingBellButtonProps> = ({
   const [showOwlPopup, setShowOwlPopup] = useState(false);
 
   const handleClick = () => {
-    // Show animated pop-up owl
     setShowOwlPopup(true);
     setTimeout(() => {
       setShowOwlPopup(false);
       onClick();
-    }, 450);
+    }, 400);
   };
 
   return (
-    <div className="fixed bottom-20 md:bottom-8 right-3.5 sm:right-6 z-40 group pointer-events-auto">
-      {/* Pop-up animated Owl PQ avatar on click */}
+    /* Only rendered on desktop/tablet (hidden on mobile, where the bell is in the bottom bar) */
+    <div className="hidden md:block fixed bottom-8 right-6 z-40 group pointer-events-auto">
+      {/* Pop-up animated Owl avatar on click */}
       {showOwlPopup && (
-        <div className="absolute bottom-14 right-1/2 translate-x-1/2 flex flex-col items-center animate-bounce z-50 pointer-events-none">
+        <div className="absolute bottom-16 right-1/2 translate-x-1/2 flex flex-col items-center animate-bounce z-50 pointer-events-none">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-500/20 backdrop-blur-md p-1.5 border-2 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.8)] flex items-center justify-center scale-110 transition-all">
             <img
               src="/images/PQ.png"
@@ -39,34 +39,45 @@ export const FloatingBellButton: React.FC<FloatingBellButtonProps> = ({
         </div>
       )}
 
-      {/* Floating Button (Compact, without text, pulsating gold glow) */}
+      {/* Floating Button (Pulsating gold glow) */}
       <button
         onClick={handleClick}
-        aria-label="Помощник Сова PQ и колокольчик"
-        title="Помощник Сова PQ (вопросы, баги, отзывы)"
-        className="relative flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-500 text-stone-950 shadow-[0_4px_25px_rgba(245,158,11,0.55)] hover:shadow-[0_4px_35px_rgba(245,158,11,0.85)] hover:scale-110 active:scale-95 transition-all duration-300 border border-amber-300/60 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-stone-950"
+        aria-label="Помощник Сова PQ"
+        title="Помощник Сова PQ"
+        className="relative flex h-13 w-13 items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-500 text-stone-950 shadow-[0_4px_25px_rgba(245,158,11,0.55)] hover:shadow-[0_4px_35px_rgba(245,158,11,0.85)] hover:scale-110 active:scale-95 transition-all duration-300 border border-amber-300/60 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-stone-950"
       >
         {/* Subtle breathing outer ring */}
         <span className="absolute -inset-1 rounded-full bg-amber-400/30 blur-sm group-hover:bg-amber-400/60 animate-pulse pointer-events-none" />
 
         {/* Crisp Bell Icon */}
-        <Bell className="relative w-5 h-5 sm:w-5.5 sm:h-5.5 fill-stone-950 text-stone-950 group-hover:rotate-12 transition-transform duration-200" />
+        <Bell className="relative w-6 h-6 fill-stone-950 text-stone-950 group-hover:rotate-12 transition-transform duration-200" />
 
         {/* Small live notification indicator badge */}
-        <span className="absolute top-0 right-0 flex h-3 w-3">
+        <span className="absolute top-0 right-0 flex h-3.5 w-3.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border border-stone-950" />
+          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-stone-950" />
         </span>
       </button>
 
-      {/* Hover tooltip for clarity on desktop */}
-      <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 hidden lg:group-hover:flex items-center gap-2 pointer-events-none transition-opacity duration-200 opacity-0 group-hover:opacity-100 whitespace-nowrap bg-stone-900/95 border border-amber-500/30 text-amber-200 text-xs px-3 py-1.5 rounded-xl shadow-xl backdrop-blur-md font-medium">
-        <img
-          src="/images/PQ.png"
-          alt="PQ"
-          className="w-4 h-4 object-contain"
-        />
-        <span>Помощник PQ</span>
+      {/* Hover pop-up on PC: transparent owl without background standing above button + tooltip that it is the assistant */}
+      <div className="absolute right-0 bottom-full mb-3 hidden md:group-hover:flex flex-col items-center pointer-events-none transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 z-50">
+        {/* Owl illustration without background (floating with drop-shadow) */}
+        <div className="relative animate-bounce">
+          <img
+            src="/images/PQ.png"
+            alt="Сова Помощник"
+            className="w-20 h-20 object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] filter drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]"
+          />
+        </div>
+
+        {/* Tooltip badge */}
+        <div className="mt-1 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-950/95 border border-amber-500/50 shadow-2xl backdrop-blur-md whitespace-nowrap">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-xs font-serif font-bold text-amber-200 tracking-wide">
+            Помощник Сова PQ
+          </span>
+          <span className="text-[10px] text-stone-400 font-mono">· Онлайн</span>
+        </div>
       </div>
     </div>
   );

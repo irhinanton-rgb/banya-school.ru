@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Compass, BookMarked, MessageSquare, User, Lock, Hammer } from 'lucide-react';
+import { BookOpen, Compass, BookMarked, MessageSquare, User, Lock, Hammer, Bell } from 'lucide-react';
 import { UserProgress } from '../types/banya';
 
 interface MobileBottomNavProps {
@@ -9,6 +9,7 @@ interface MobileBottomNavProps {
   onOpenProfile: () => void;
   onScrollToMap: () => void;
   onOpenLesson?: () => void;
+  onOpenOwl?: () => void;
   onShowInDevelopment?: (featureName: string) => void;
   onRequireLevel3?: (featureName: string) => void;
   progress: UserProgress;
@@ -21,6 +22,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenProfile,
   onScrollToMap,
   onOpenLesson,
+  onOpenOwl,
   onShowInDevelopment,
   onRequireLevel3,
   progress,
@@ -90,7 +92,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           </span>
         </button>
 
-        {/* Tab 3: Справочник (доступен только с 3 уровня) */}
+        {/* Tab 2: Справочник (доступен с 3 уровня) */}
         <button
           onClick={handleHandbookTab}
           className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${
@@ -121,7 +123,27 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           </span>
         </button>
 
-        {/* Tab 4: Форум & Программы (не активен для обычных пользователей) */}
+        {/* Tab 3: Колокольчик-Помощник (Встроен в мобильную нижнюю плавающую шторку, без всплывающей совы) */}
+        <button
+          onClick={() => {
+            if (onOpenOwl) onOpenOwl();
+          }}
+          aria-label="Помощник"
+          className="flex flex-col items-center justify-center py-1 px-1 rounded-xl text-amber-400 hover:text-amber-300 transition-all cursor-pointer active:scale-95 group"
+        >
+          <div className="relative flex items-center justify-center h-8 w-8 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-500 text-stone-950 shadow-[0_2px_12px_rgba(245,158,11,0.5)] border border-amber-300/60">
+            <Bell className="w-4 h-4 fill-stone-950 text-stone-950 group-active:rotate-12 transition-transform" />
+            <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-stone-950" />
+            </span>
+          </div>
+          <span className="text-[10px] mt-0.5 tracking-tight leading-none font-semibold text-amber-300 truncate max-w-full">
+            Помощь
+          </span>
+        </button>
+
+        {/* Tab 4: Форум */}
         <button
           onClick={handleForumTab}
           className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${

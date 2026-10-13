@@ -900,6 +900,7 @@ export default function App() {
           setShowHero(false);
           setActiveTab('quest');
         }}
+        onOpenOwl={() => setShowOwlAssistantModal(true)}
         onShowInDevelopment={(feature) => setInDevelopmentFeature(feature)}
         onRequireLevel3={(feature) => setLockedFeatureModal(feature)}
         progress={progress}

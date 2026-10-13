@@ -46,6 +46,7 @@ export interface LevelData {
   title: string;
   questName: string;
   taskTitle: string;
+  tasks?: { id: string; title: string }[];
   rewardBadge: BadgeId;
   rewardXp: number;
   interestingFact: string;
