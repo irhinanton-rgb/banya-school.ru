@@ -7,11 +7,11 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { FloatingBellButton } from './components/FloatingBellButton';
 
-const HeroIntro = lazy(() => import('./components/HeroIntro').then(m => ({ default: m.HeroIntro })));
-const OwlAssistantModal = lazy(() => import('./components/OwlAssistantModal').then(m => ({ default: m.OwlAssistantModal })));
-const QuestMap = lazy(() => import('./components/QuestMap').then(m => ({ default: m.QuestMap })));
-const LevelViewer = lazy(() => import('./components/LevelViewer').then(m => ({ default: m.LevelViewer })));
-const BadgesShowcase = lazy(() => import('./components/BadgesShowcase').then(m => ({ default: m.BadgesShowcase })));
+import { HeroIntro } from './components/HeroIntro';
+import { OwlAssistantModal } from './components/OwlAssistantModal';
+import { QuestMap } from './components/QuestMap';
+import { LevelViewer } from './components/LevelViewer';
+import { BadgesShowcase } from './components/BadgesShowcase';
 import { lazy, Suspense } from 'react';
 
 const SimulatorsHub = lazy(() => import('./components/SimulatorsHub').then(m => ({ default: m.SimulatorsHub })));
@@ -700,7 +700,9 @@ export default function App() {
         )}
       </main>
 
-      {/* Modals */}
+      {/* Suspended Modals */}
+      <Suspense fallback={null}>
+{/* Modals */}
       <EmergencyEventModal
         isOpen={showEmergencyModal}
         onClose={() => setShowEmergencyModal(false)}
@@ -893,6 +895,8 @@ export default function App() {
       </footer>
 
       {/* Mobile Sticky Bottom Navigation Bar */}
+      </Suspense>
+
       <MobileBottomNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
