@@ -76,7 +76,7 @@ export default defineConfig(() => {
     build: {
       target: "es2020",
       cssCodeSplit: false,
-      modulePreload: true,
+      modulePreload: false,
       rollupOptions: {
         output: {
           manualChunks(id) {

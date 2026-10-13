@@ -24,8 +24,20 @@ function initApp() {
         </AuthProvider>
       </ErrorBoundary>
     );
-  } catch (err) {
+  } catch (err: any) {
     console.error('Fatal initialization error:', err);
+    if (container) {
+      container.innerHTML = `
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0c0a09;color:#f5f5f4;font-family:sans-serif;padding:20px;text-align:center;">
+          <div style="max-width:480px;background:#1c1917;border:1px solid #7f1d1d;border-radius:16px;padding:32px;">
+            <div style="font-size:36px;margin-bottom:12px;">🌿</div>
+            <h2 style="font-size:20px;color:#fca5a5;margin:0 0 12px 0;">Ошибка запуска приложения</h2>
+            <p style="font-size:14px;color:#a8a29e;margin:0 0 16px 0;">${err?.message || 'Не удалось запустить интерактивную парную'}</p>
+            <button onclick="window.location.reload(true)" style="background:#ea580c;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Перезагрузить страницу</button>
+          </div>
+        </div>
+      `;
+    }
   }
 }
 
