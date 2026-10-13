@@ -76,14 +76,7 @@ export default defineConfig(() => {
     build: {
       target: "es2020",
       cssCodeSplit: false,
-      modulePreload: true,
-      rollupOptions: {
-        output: {
-          entryFileNames: "assets/[name]-[hash].js",
-          chunkFileNames: "assets/[name]-[hash].js",
-          assetFileNames: "assets/[name].[ext]",
-        },
-      },
+      modulePreload: false,
     },
     server: {
       hmr: process.env.DISABLE_HMR !== "true",
