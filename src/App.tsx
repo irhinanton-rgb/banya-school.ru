@@ -14,19 +14,19 @@ import { LevelViewer } from './components/LevelViewer';
 import { BadgesShowcase } from './components/BadgesShowcase';
 import { lazy, Suspense } from 'react';
 
-const SimulatorsHub = lazy(() => import('./components/SimulatorsHub').then(m => ({ default: m.SimulatorsHub })));
-const HandbookView = lazy(() => import('./components/HandbookView').then(m => ({ default: m.HandbookView })));
-const ForumView = lazy(() => import('./components/forum/ForumView').then(m => ({ default: m.ForumView })));
-const EmergencyEventModal = lazy(() => import('./components/simulators/EmergencyEventModal').then(m => ({ default: m.EmergencyEventModal })));
-const FinalExamModal = lazy(() => import('./components/FinalExamModal').then(m => ({ default: m.FinalExamModal })));
-const CertificateModal = lazy(() => import('./components/CertificateModal').then(m => ({ default: m.CertificateModal })));
-const LeaderboardModal = lazy(() => import('./components/LeaderboardModal').then(m => ({ default: m.LeaderboardModal })));
-const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
-const PricingModal = lazy(() => import('./components/PricingModal').then(m => ({ default: m.PricingModal })));
-const LegalModal = lazy(() => import('./components/LegalModal').then(m => ({ default: m.LegalModal })));
-const RequisitesPage = lazy(() => import('./components/legal/RequisitesPage').then(m => ({ default: m.RequisitesPage })));
-const CommunityClubModal = lazy(() => import('./components/CommunityClubModal').then(m => ({ default: m.CommunityClubModal })));
-const UserProfileModal = lazy(() => import('./components/profile/UserProfileModal').then(m => ({ default: m.UserProfileModal })));
+import { SimulatorsHub } from './components/SimulatorsHub';
+import { HandbookView } from './components/HandbookView';
+import { ForumView } from './components/forum/ForumView';
+import { EmergencyEventModal } from './components/simulators/EmergencyEventModal';
+import { FinalExamModal } from './components/FinalExamModal';
+import { CertificateModal } from './components/CertificateModal';
+import { LeaderboardModal } from './components/LeaderboardModal';
+import { AuthModal } from './components/AuthModal';
+import { PricingModal } from './components/PricingModal';
+import { LegalModal } from './components/LegalModal';
+import { RequisitesPage } from './components/legal/RequisitesPage';
+import { CommunityClubModal } from './components/CommunityClubModal';
+import { UserProfileModal } from './components/profile/UserProfileModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { MobileLevelQuickNav } from './components/MobileLevelQuickNav';
 import { InDevelopmentModal, LevelLockModal } from './components/NoticeModal';
@@ -700,9 +700,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Suspended Modals */}
-      <Suspense fallback={null}>
-{/* Modals */}
+      {/* Modals */}
       <EmergencyEventModal
         isOpen={showEmergencyModal}
         onClose={() => setShowEmergencyModal(false)}
@@ -895,8 +893,6 @@ export default function App() {
       </footer>
 
       {/* Mobile Sticky Bottom Navigation Bar */}
-      </Suspense>
-
       <MobileBottomNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
