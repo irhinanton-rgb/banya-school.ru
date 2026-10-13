@@ -86,12 +86,6 @@ export default defineConfig(() => {
             if (id.includes("node_modules/lucide-react")) {
               return "vendor-icons";
             }
-            if (id.includes("node_modules/canvas-confetti") || id.includes("node_modules/motion")) {
-              return "vendor-effects";
-            }
-            if (id.includes("node_modules/react") || id.includes("node_modules/react-dom") || id.includes("node_modules/preact")) {
-              return "vendor-framework";
-            }
           },
           entryFileNames: "assets/[name]-[hash].js",
           chunkFileNames: "assets/[name]-[hash].js",
