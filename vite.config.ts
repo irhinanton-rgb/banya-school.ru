@@ -76,17 +76,9 @@ export default defineConfig(() => {
     build: {
       target: "es2020",
       cssCodeSplit: false,
-      modulePreload: false,
+      modulePreload: true,
       rollupOptions: {
         output: {
-          manualChunks(id) {
-            if (id.includes("node_modules/firebase")) {
-              return "vendor-firebase";
-            }
-            if (id.includes("node_modules/lucide-react")) {
-              return "vendor-icons";
-            }
-          },
           entryFileNames: "assets/[name]-[hash].js",
           chunkFileNames: "assets/[name]-[hash].js",
           assetFileNames: "assets/[name].[ext]",
