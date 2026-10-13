@@ -77,9 +77,8 @@ export default defineConfig(() => {
       target: "es2020",
       cssCodeSplit: false,
       modulePreload: true,
-      rolldownOptions: {
+      rollupOptions: {
         output: {
-          codeSplitting: true,
           entryFileNames: "assets/[name]-[hash].js",
           chunkFileNames: "assets/[name]-[hash].js",
           assetFileNames: "assets/[name].[ext]",
