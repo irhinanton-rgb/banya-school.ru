@@ -66,12 +66,7 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "."),
-        react: "preact/compat",
-        "react-dom/test-utils": "preact/test-utils",
-        "react-dom/client": "preact/compat/client",
-        "react-dom": "preact/compat",
-        "react/jsx-runtime": "preact/jsx-runtime",
-      },
+                                              },
     },
     build: {
       target: "es2020",

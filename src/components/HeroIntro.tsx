@@ -70,6 +70,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
         <video
           ref={videoRef}
           src="/videos/omakhivanie.mp4"
+          preload="none"
           poster="/images/anton-irkhin.jpg"
           autoPlay
           loop
