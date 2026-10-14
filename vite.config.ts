@@ -70,8 +70,19 @@ export default defineConfig(() => {
     },
     build: {
       target: "es2020",
-      cssCodeSplit: false,
-      modulePreload: false,
+      cssCodeSplit: true,
+      modulePreload: true,
+      chunkSizeWarningLimit: 900,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules/firebase")) return "vendor-firebase";
+            if (id.includes("node_modules/mqtt")) return "vendor-mqtt";
+            if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) return "vendor-react";
+            if (id.includes("node_modules/lucide-react") || id.includes("node_modules/motion")) return "vendor-ui";
+          }
+        }
+      }
     },
     server: {
       hmr: process.env.DISABLE_HMR !== "true",
