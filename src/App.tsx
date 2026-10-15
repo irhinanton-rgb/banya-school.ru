@@ -56,6 +56,7 @@ const INITIAL_PROGRESS: UserProgress = {
 export default function App() {
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [authInitialMode, setAuthInitialMode] = useState<'signup' | 'signin'>('signup');
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
   const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
 
@@ -475,7 +476,14 @@ export default function App() {
         onOpenCertificate={() => setShowCertificateModal(true)}
         onNavigateToLevel={handleSelectLevel}
         onOpenEmergency={() => setShowEmergencyModal(true)}
-        onOpenAuth={() => setShowAuthModal(true)}
+        onOpenAuth={() => {
+          setAuthInitialMode('signin');
+          setShowAuthModal(true);
+        }}
+        onOpenRegister={() => {
+          setAuthInitialMode('signup');
+          setShowAuthModal(true);
+        }}
         onOpenProfile={() => setShowProfileModal(true)}
         onOpenPricing={() => setShowPricingModal(true)}
         onOpenClub={() => handleOpenClub('chat')}
@@ -743,6 +751,7 @@ export default function App() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         progress={progress}
+        initialMode={authInitialMode}
         onManualSync={handleManualSync}
         isSyncing={isCloudSyncing}
         lastSyncedTime={lastSyncedTime}

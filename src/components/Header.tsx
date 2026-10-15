@@ -32,6 +32,7 @@ export interface HeaderProps {
   onNavigateToLevel: (levelId: LevelId) => void;
   onOpenEmergency: () => void;
   onOpenAuth: () => void;
+  onOpenRegister?: () => void;
   onOpenProfile: () => void;
   onOpenPricing: () => void;
   onOpenClub: () => void;
@@ -54,6 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCertificate,
   onOpenEmergency,
   onOpenAuth,
+  onOpenRegister,
   onOpenProfile,
   onOpenPricing,
   onOpenClub,
@@ -462,25 +464,48 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* Prominent "Личный Кабинет" Button */}
-            <button
-              onClick={user ? onOpenProfile : onOpenAuth}
-              title={user ? `Личный Кабинет (${displayName})` : 'Войти в Личный Кабинет'}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:shadow-[0_0_22px_rgba(245,158,11,0.5)] cursor-pointer active:scale-95 border border-amber-300/40"
-            >
-              {user && displayAvatar ? (
-                <img
-                  src={displayAvatar}
-                  alt={displayName}
-                  className="h-4.5 w-4.5 sm:h-5 sm:w-5 rounded-lg object-cover border border-stone-950/40"
-                />
-              ) : (
-                <UserIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-stone-950" />
-              )}
-              <span className="whitespace-nowrap">
-                {user ? (displayName ? displayName.split(' ')[0] : 'Кабинет') : 'Кабинет'}
-              </span>
-            </button>
+            {/* When user is authenticated: show Personal Cabinet badge */}
+            {user ? (
+              <button
+                onClick={onOpenProfile}
+                title={`Личный Кабинет (${displayName})`}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:shadow-[0_0_22px_rgba(245,158,11,0.5)] cursor-pointer active:scale-95 border border-amber-300/40"
+              >
+                {displayAvatar ? (
+                  <img
+                    src={displayAvatar}
+                    alt={displayName}
+                    className="h-4.5 w-4.5 sm:h-5 sm:w-5 rounded-lg object-cover border border-stone-950/40"
+                  />
+                ) : (
+                  <UserIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-stone-950" />
+                )}
+                <span className="whitespace-nowrap">
+                  {displayName ? displayName.split(' ')[0] : 'Кабинет'}
+                </span>
+              </button>
+            ) : (
+              /* When user is NOT authenticated: explicitly show Регистрация and Вход */
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <button
+                  onClick={onOpenRegister || onOpenAuth}
+                  title="Создать аккаунт в Академии"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs sm:text-sm transition-all shadow-[0_0_15px_rgba(245,158,11,0.35)] hover:shadow-[0_0_22px_rgba(245,158,11,0.55)] cursor-pointer active:scale-95 border border-amber-300/50"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-stone-950 shrink-0" />
+                  <span className="whitespace-nowrap">Регистрация</span>
+                </button>
+
+                <button
+                  onClick={onOpenAuth}
+                  title="Войти в существующий аккаунт"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 text-stone-200 hover:text-white border border-stone-700/80 hover:border-amber-500/50 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95"
+                >
+                  <UserIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="whitespace-nowrap">Вход</span>
+                </button>
+              </div>
+            )}
 
             {/* Mobile Menu Button (Hamburger) — Opens full slide-over menu with ALL PC sections */}
             <button
@@ -723,19 +748,39 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 pt-1 border-t border-stone-800/80">
-                  <button
-                    onClick={() => {
-                      setMobileDrawerOpen(false);
-                      if (user) {
+                  {user ? (
+                    <button
+                      onClick={() => {
+                        setMobileDrawerOpen(false);
                         onOpenProfile();
-                      } else {
-                        onOpenAuth();
-                      }
-                    }}
-                    className="w-full py-2 px-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold transition-all shadow-md cursor-pointer text-center"
-                  >
-                    {user ? 'Личный Кабинет' : 'Войти в аккаунт'}
-                  </button>
+                      }}
+                      className="w-full py-2 px-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold transition-all shadow-md cursor-pointer text-center"
+                    >
+                      Личный Кабинет
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setMobileDrawerOpen(false);
+                          if (onOpenRegister) onOpenRegister();
+                          else onOpenAuth();
+                        }}
+                        className="w-full py-2 px-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 text-xs font-bold transition-all shadow-md cursor-pointer text-center"
+                      >
+                        Регистрация
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMobileDrawerOpen(false);
+                          onOpenAuth();
+                        }}
+                        className="w-full py-2 px-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 hover:text-white border border-stone-700 text-xs font-semibold transition-all cursor-pointer text-center"
+                      >
+                        Вход
+                      </button>
+                    </>
+                  )}
 
                   <button
                     onClick={() => {
