@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../firebase/AuthContext';
 import { UserProgress } from '../types/banya';
-import { ConfirmationResult, RecaptchaVerifier } from 'firebase/auth';
+
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -93,16 +93,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Agreement checkbox
   const [agreedToTerms, setAgreedToTerms] = useState<boolean>(true);
 
-  // Countdown timer for SMS
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (smsTimer > 0) {
-      interval = setInterval(() => {
-        setSmsTimer((prev) => (prev > 0 ? prev - 1 : 0));
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [smsTimer]);
+
 
   // Set email mode based on initialMode or startLearningMode
   useEffect(() => {
@@ -211,53 +202,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   // Phone: Send SMS
-  const handleSendPhoneSms = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearAuthError();
-    clearAuthSuccess();
-
-    if (!phone || phone.length < 10) return;
-
-    if (!agreedToTerms) {
-      alert('Необходимо согласие с условиями оферты и обработки данных');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Initialize recaptcha if needed
-      const verifier = initPhoneRecaptcha('recaptcha-container');
-      recaptchaVerifierRef.current = verifier;
-
-      const result = await sendPhoneCode(phone, verifier);
-      if (result) {
-        setConfirmationResult(result);
-        setSmsTimer(60);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Phone: Verify Code
-  const handleVerifyPhoneCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearAuthError();
-    clearAuthSuccess();
-
-    if (!confirmationResult || !phoneCode.trim()) return;
-
-    setLoading(true);
-    try {
-      await confirmPhoneCode(confirmationResult, phoneCode, displayName || progress.name);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleLogout = async () => {
     await signOutUser();
-    setConfirmationResult(null);
+
   };
 
   const isMasterPro = progress.isPaid || progress.tariff === 'master_pro';
