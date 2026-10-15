@@ -49,14 +49,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
   const [adminLoginSuccess, setAdminLoginSuccess] = useState(false);
   
   // Interactive Chat history
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
-    {
-      id: 'welcome',
-      sender: 'owl',
-      text: `Ух! 🦉 Приветствую тебя, ${progress.name || 'дорогой ученик'}! Я — Сова PQ, твой персональный банный наставник. Задай мне любой вопрос о прохождении квеста, температуре камней, хвате веников или кондициях парной, и я сразу помогу!`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    }
-  ]);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
   // Form fields
   const [questionText, setQuestionText] = useState('');
@@ -511,10 +504,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-stone-400 px-1 font-mono">
-                  <span>✨ Сова отвечает мгновенно на базе ИИ</span>
-                  <span>Копия сохраняется для наставника</span>
-                </div>
+
               </form>
             </div>
           )}
