@@ -28,6 +28,8 @@ export interface AdminMessageRecord extends AdminMessagePayload {
 }
 
 export const PARMASTER_BOT_TOKEN = '8683515876:AAHzMeka0nuQG0Hc1lTJCNuPZRogpg-Lw_0';
+export const BATYA_BOT_TOKEN = '7992502826:AAFaVxzLifwnqRGnV1q3OhUmx4Ykz2C5OBU';
+export const BOT_TOKENS = [PARMASTER_BOT_TOKEN, BATYA_BOT_TOKEN];
 export const ADMIN_CHAT_ID = '471147423';
 
 function escapeTgHtml(str: string): string {
@@ -140,20 +142,30 @@ export async function sendDirectTelegram(payload: AdminMessagePayload): Promise<
   const text = lines.filter(Boolean).join('\n');
 
   try {
-    const res = await fetch(`https://api.telegram.org/bot${PARMASTER_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: ADMIN_CHAT_ID,
-        text,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
+    const promises = BOT_TOKENS.map(async (token) => {
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID,
+            text,
+            parse_mode: 'HTML',
+            disable_web_page_preview: true,
+          }),
+        });
+        const data = await res.json();
+        return !!data?.ok;
+      } catch (e) {
+        console.warn(`Failed sending to bot ${token.slice(0, 10)}:`, e);
+        return false;
+      }
     });
-    const data = await res.json();
-    return !!data?.ok;
+
+    const results = await Promise.allSettled(promises);
+    return results.some(r => r.status === 'fulfilled' && r.value === true);
   } catch (err) {
-    console.warn('Direct Telegram Bot API call error:', err);
+    console.warn('Direct Telegram Bot API broadcast error:', err);
     return false;
   }
 }

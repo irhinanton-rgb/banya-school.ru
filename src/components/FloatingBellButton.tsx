@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Bell } from 'lucide-react';
 
 interface FloatingBellButtonProps {
@@ -10,38 +10,12 @@ export const FloatingBellButton: React.FC<FloatingBellButtonProps> = ({
   onClick,
   hasUnread,
 }) => {
-  const [showOwlPopup, setShowOwlPopup] = useState(false);
-
-  const handleClick = () => {
-    setShowOwlPopup(true);
-    setTimeout(() => {
-      setShowOwlPopup(false);
-      onClick();
-    }, 400);
-  };
-
   return (
     /* Only rendered on desktop/tablet (hidden on mobile, where the bell is in the bottom bar) */
     <div className="hidden md:block fixed bottom-8 right-6 z-40 group pointer-events-auto">
-      {/* Pop-up animated Owl avatar on click */}
-      {showOwlPopup && (
-        <div className="absolute bottom-16 right-1/2 translate-x-1/2 flex flex-col items-center animate-bounce z-50 pointer-events-none">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-500/20 backdrop-blur-md p-1.5 border-2 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.8)] flex items-center justify-center scale-110 transition-all">
-            <img
-              src="/images/PQ.png"
-              alt="Сова PQ"
-              className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(245,158,11,0.9)]"
-            />
-          </div>
-          <span className="mt-1 text-[11px] font-mono font-bold bg-stone-950/90 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/50 shadow-lg whitespace-nowrap">
-            Ух! Сова спешит на помощь 🦉
-          </span>
-        </div>
-      )}
-
       {/* Floating Button (Pulsating gold glow) */}
       <button
-        onClick={handleClick}
+        onClick={onClick}
         aria-label="Помощник Сова PQ"
         title="Помощник Сова PQ"
         className="relative flex h-13 w-13 items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-500 text-stone-950 shadow-[0_4px_25px_rgba(245,158,11,0.55)] hover:shadow-[0_4px_35px_rgba(245,158,11,0.85)] hover:scale-110 active:scale-95 transition-all duration-300 border border-amber-300/60 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-stone-950"
