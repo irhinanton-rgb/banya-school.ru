@@ -28,7 +28,13 @@ import {
   ShieldCheck,
   RotateCcw,
   Check,
+  Key,
+  Lock,
+  Unlock,
+  Sun,
+  Thermometer,
 } from 'lucide-react';
+import { SecretChestModal } from '../inventory/SecretChestModal';
 
 interface GuestTriageSimulatorProps {
   soundEnabled: boolean;
@@ -37,6 +43,8 @@ interface GuestTriageSimulatorProps {
   onMasterSafetyCompleted?: () => void;
   onGuestSafetyCompleted?: () => void;
   onErgonomicsSafetyCompleted?: () => void;
+  unlockedBadges?: string[];
+  onUnlockBadge?: (badgeId: any, xp: number) => void;
 }
 
 export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
@@ -46,11 +54,14 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
   onMasterSafetyCompleted,
   onGuestSafetyCompleted,
   onErgonomicsSafetyCompleted,
+  unlockedBadges = [],
+  onUnlockBadge,
 }) => {
   const [activeTab, setActiveTab] = useState<'master' | 'guest' | 'ergonomics'>('master');
 
   // --- Master Safety State ---
-  const [plungeCount, setPlungeCount] = useState<number>(1);
+  const [isSecretChestOpen, setIsSecretChestOpen] = useState<boolean>(false);
+  const hasGoldenKey = unlockedBadges.includes('golden_key') || localStorage.getItem('banya_golden_key_awarded') === 'true';
   const [boostIngredients, setBoostIngredients] = useState<{
     salt: boolean;
     lemon: boolean;
@@ -120,10 +131,17 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
       if (onGrantXp) onGrantXp(30);
       if (onSuccess) onSuccess();
       if (onGuestSafetyCompleted) onGuestSafetyCompleted();
+      
+      // Award the Golden Key to open the Secret Chest of Master Recipes!
+      localStorage.setItem('banya_golden_key_awarded', 'true');
+      if (onUnlockBadge) {
+        onUnlockBadge('golden_key', 50);
+      }
+      
       try {
         confetti({
-          particleCount: 40,
-          spread: 60,
+          particleCount: 60,
+          spread: 70,
           origin: { y: 0.7 },
         });
       } catch {
@@ -543,103 +561,143 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
                 <strong className="text-amber-300 font-semibold">Золотое правило питьевого режима мастера:</strong> пить малыми глотками каждые 15–20 минут минеральную гидрокарбонатную воду без газа, изотонические растворы, домашние ягодные морсы с щепоткой соли или отвары из кураги и изюма.
               </div>
             </div>
+
+            {/* SECRET CHEST OF MASTER RECIPES (Unlocks via Golden Key from Guest Triage) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-stone-900 to-amber-950/30 border-2 border-amber-500/40 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 border shadow-inner ${
+                  hasGoldenKey 
+                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)]' 
+                    : 'bg-stone-900 border-stone-700 text-stone-500'
+                }`}>
+                  {hasGoldenKey ? '🗝️' : '🔒'}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h5 className="font-serif font-bold text-stone-100 text-sm sm:text-base">
+                      Сундук с тайными рецептами пармастера
+                    </h5>
+                    {hasGoldenKey ? (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold">
+                        КЛЮЧ ЕСТЬ ✓
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full bg-stone-800 text-stone-400 border border-stone-700 text-[10px] font-mono">
+                        ЗАКРЫТ НА ЗАМОК
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-stone-400 mt-0.5 leading-snug">
+                    {hasGoldenKey 
+                      ? 'Золотой Ключ у вас в руках! Откройте сундук и изучите секретные рецепты восстановления и банных эликсиров.' 
+                      : 'Чтобы получить Золотой Ключ от сундука — перейдите во вкладку «Безопасность гостя» и успешно пройдите «Интерактивный тренажер входного триажа гостей»!'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="shrink-0 w-full sm:w-auto">
+                {hasGoldenKey ? (
+                  <button
+                    onClick={() => {
+                      setIsSecretChestOpen(true);
+                      playWoodTap(soundEnabled);
+                    }}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-500/30 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Unlock className="w-4 h-4 text-stone-950" />
+                    <span>Открыть тайный сундук</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setActiveTab('guest');
+                      playWoodTap(soundEnabled);
+                    }}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 border border-amber-500/30 text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Key className="w-4 h-4 text-amber-400" />
+                    <span>Пройти триаж гостей за ключом →</span>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Subsection 2: The Critical Danger of Cold Plunge and Rapid Thermal Swings (>7 dives in 15 min) */}
+          {/* Subsection 2: Physiological Truth: Harm of Cold Plunge & The Vital Need for Gradual Open-Air Cooling */}
           <div className="rounded-2xl border border-rose-500/40 bg-stone-950/90 p-5 sm:p-6 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
               <div>
                 <div className="flex items-center gap-2 text-xs font-bold text-rose-400 uppercase tracking-wider font-mono">
                   <AlertTriangle className="w-4 h-4 text-rose-500" />
-                  <span>Вред купели & частая смена температурного режима:</span>
+                  <span>Физиологический разбор опасности:</span>
                 </div>
                 <h4 className="font-serif text-lg font-bold text-stone-100 mt-1">
-                  Окунание в купель более 7 раз за одно 15-минутное парение
+                  Вред купели для пармастера: почему нельзя окунаться в процессе парения
                 </h4>
               </div>
               <span className="px-3 py-1 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs font-mono font-semibold self-start sm:self-auto">
-                ОПАСНО ДЛЯ ЖИЗНИ
+                ФИЗИОЛОГИЯ СЕРДЦА
               </span>
             </div>
 
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-              Некоторые мастера во время 15-минутного парения выскакивают и окунаются в купель более 7 раз: <em>«Быстро охладился — и снова к гостю»</em>. <strong>Это тяжелейшая физиологическая перегрузка!</strong> Смена температурных экстремумов (+65°C / +10°C) каждые 2 минуты моментально захлопывает капилляры кожи спазмом, запирая кипящий жар внутри ядра тела и провоцируя предынсультные скачки артериального давления.
-            </p>
-
-            {/* Interactive Plunge Danger Simulator Slider */}
-            <div className="space-y-4 p-4 rounded-xl bg-stone-900/80 border border-stone-800">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-stone-300 font-medium">
-                  Смоделируйте количество окунаний мастера в ледяную купель за одно 15-минутное парение:
-                </span>
-                <span className="font-mono font-bold text-base px-2.5 py-0.5 rounded-lg bg-stone-950 border border-stone-700 text-amber-300">
-                  {plungeCount} {plungeCount === 1 ? 'раз' : plungeCount < 5 ? 'раза' : 'раз'} за 15 мин
-                </span>
-              </div>
-
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={plungeCount}
-                onChange={(e) => {
-                  setPlungeCount(Number(e.target.value));
-                  playWoodTap(soundEnabled);
-                }}
-                className="w-full accent-rose-500 cursor-pointer"
-              />
-
-              <div className="flex justify-between text-[10px] text-stone-500 font-mono">
-                <span>1 раз (вне сеанса)</span>
-                <span>3 раза (ангиоспазм)</span>
-                <span className="text-rose-400 font-bold">7 раз (запирание жара в ядре)</span>
-                <span className="text-red-500 font-bold">10 раз (сосудистый криз)</span>
-              </div>
-
-              {/* Dynamic Physiological Feedback */}
-              <div className={`p-4 rounded-xl border text-xs leading-relaxed space-y-2 transition-all ${plungeEval.bg}`}>
-                <div className="flex items-center justify-between">
-                  <span className={`font-mono font-bold uppercase tracking-wider text-[11px] ${plungeEval.color}`}>
-                    {plungeEval.badge}
-                  </span>
-                  <span className="text-[11px] text-stone-400 font-mono">
-                    Давление сосудов: <strong className="text-stone-200">{plungeEval.pressure}</strong>
-                  </span>
+            <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-500/30 text-xs sm:text-sm text-stone-200 leading-relaxed space-y-2">
+              <p>
+                Некоторые начинающие пармастера совершают грубую ошибку: <strong>за одно 15-минутное парение выскакивают в ледяную купель больше 7 раз</strong>, думая: <em>«Сбил жар — и полон сил»</em>. Это опаснейший самообман!
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                <div className="p-3 rounded-xl bg-stone-900 border border-rose-500/20 space-y-1">
+                  <div className="text-rose-400 font-bold text-xs flex items-center gap-1.5">
+                    <Flame className="w-3.5 h-3.5" />
+                    <span>1. Запирание кипящего жара в ядре тела</span>
+                  </div>
+                  <p className="text-[11px] text-stone-400 leading-snug">
+                    Ледяная вода вызывает мгновенный спазм капилляров кожи. Потоотделение блокируется, и всё внутреннее тепло оказывается наглухо запертым внутри. Температура жизненно важных органов продолжает расти — возникает скрытый тепловой удар ядра тела при обманчивом ощущении холодной кожи.
+                  </p>
                 </div>
-                <p className="text-stone-200 font-sans">{plungeEval.status}</p>
+
+                <div className="p-3 rounded-xl bg-stone-900 border border-rose-500/20 space-y-1">
+                  <div className="text-rose-400 font-bold text-xs flex items-center gap-1.5">
+                    <Heart className="w-3.5 h-3.5" />
+                    <span>2. Сосудистый криз и износ миокарда</span>
+                  </div>
+                  <p className="text-[11px] text-stone-400 leading-snug">
+                    Смена температур каждые две минуты (+65°C / +10°C) вызывает скачки давления до 180–200 мм рт. ст. и мощнейший выброс адреналина. Сердечная мышца работает на износ, надпочечники истощаются, а риск аритмии взлетает в разы.
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Scientific Breakdown Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1.5">
-                <div className="text-rose-400 font-bold flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5" />
-                  <span>Запирание жара внутри ядра</span>
-                </div>
-                <p className="text-stone-400 text-[11px] leading-snug">
-                  При резком холоде капилляры кожи спазмируются. Организм больше не может отдавать тепло наружу через пот. Внутренний жар запирается в жизненно важных органах (перегрев ядра тела).
-                </p>
+            {/* Vital Recommendation: Gradual Open-Air Cooling */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-stone-900 to-stone-950 border border-emerald-500/40 space-y-3">
+              <div className="flex items-center gap-2.5 text-emerald-300 font-bold text-sm font-serif">
+                <Wind className="w-5 h-5 text-emerald-400" />
+                <span>Золотой стандарт мастера: Постепенное остывание на открытом воздухе</span>
               </div>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                В отличие от гостя, который приходит получить контраст и расслабиться, <strong>мастер находится под непрерывной физической нагрузкой</strong>. Его терморегуляция должна снижаться плавно и физиологично.
+              </p>
 
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1.5">
-                <div className="text-rose-400 font-bold flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5" />
-                  <span>Износ миокарда</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
+                <div className="p-3.5 rounded-xl bg-stone-900 border border-emerald-500/20 space-y-1.5">
+                  <strong className="text-emerald-300 block">🍃 Плавное дыхание</strong>
+                  <p className="text-stone-400 text-[11px] leading-snug">
+                    Выйдите на открытый воздух или террасу. Медленный вдох носом и глубокий выдох ртом восстанавливают сердечный ритм без сосудистого спазма.
+                  </p>
                 </div>
-                <p className="text-stone-400 text-[11px] leading-snug">
-                  Колебания давления от 110 до 190 мм рт. ст. по 10–15 раз за несколько часов вызывают микронадрывы эндотелия сосудов и риск аритмии/инсульта.
-                </p>
-              </div>
 
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1.5">
-                <div className="text-emerald-400 font-bold flex items-center gap-1.5">
-                  <Droplet className="w-3.5 h-3.5" />
-                  <span>Правильная альтернатива</span>
+                <div className="p-3.5 rounded-xl bg-stone-900 border border-emerald-500/20 space-y-1.5">
+                  <strong className="text-emerald-300 block">💧 Мягкое умывание</strong>
+                  <p className="text-stone-400 text-[11px] leading-snug">
+                    Ополосните прохладной водой лицо, шею и кисти рук. Это стимулирует рецепторы блуждающего нерва (n. vagus), мягко снижая пульс.
+                  </p>
                 </div>
-                <p className="text-stone-400 text-[11px] leading-snug">
-                  Умыть лицо прохладной водой, обтереть шею и плечи влажным полотенцем комнатной температуры (+22...+25°C), спокойно подышать в тени.
-                </p>
+
+                <div className="p-3.5 rounded-xl bg-stone-900 border border-emerald-500/20 space-y-1.5">
+                  <strong className="text-emerald-300 block">🧖 Теплое укутывание</strong>
+                  <p className="text-stone-400 text-[11px] leading-snug">
+                    Накиньте сухой вафельный халат или льняную простыню. Организм отдаст лишнее тепло в атмосферу мягко, сохранив здоровье сосудов на десятилетия.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

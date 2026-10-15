@@ -377,6 +377,10 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
         {level.interactiveType === 'safety_triage' && (
           <GuestTriageSimulator
             soundEnabled={soundEnabled}
+            unlockedBadges={progress.unlockedBadges}
+            onUnlockBadge={(badgeId, xp) => {
+              if (onUnlockBadge) onUnlockBadge(badgeId, xp);
+            }}
             onGrantXp={(xp) => {
               onGrantXp(xp);
               markTaskCompleted('interactive');
