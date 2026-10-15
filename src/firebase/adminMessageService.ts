@@ -28,9 +28,25 @@ export interface AdminMessageRecord extends AdminMessagePayload {
 }
 
 export const PARMASTER_BOT_TOKEN = '8683515876:AAHzMeka0nuQG0Hc1lTJCNuPZRogpg-Lw_0';
-export const BATYA_BOT_TOKEN = '7992502826:AAFaVxzLifwnqRGnV1q3OhUmx4Ykz2C5OBU';
-export const BOT_TOKENS = [PARMASTER_BOT_TOKEN, BATYA_BOT_TOKEN];
 export const ADMIN_CHAT_ID = '471147423';
+
+// In-memory deduplication cache to prevent duplicate broadcasts within 15 seconds
+const recentDispatches = new Map<string, number>();
+
+function isDuplicate(key: string): boolean {
+  const now = Date.now();
+  const lastTime = recentDispatches.get(key);
+  if (lastTime && now - lastTime < 15000) {
+    return true;
+  }
+  recentDispatches.set(key, now);
+  if (recentDispatches.size > 100) {
+    for (const [k, t] of recentDispatches.entries()) {
+      if (now - t > 30000) recentDispatches.delete(k);
+    }
+  }
+  return false;
+}
 
 function escapeTgHtml(str: string): string {
   if (!str) return '';
@@ -142,28 +158,18 @@ export async function sendDirectTelegram(payload: AdminMessagePayload): Promise<
   const text = lines.filter(Boolean).join('\n');
 
   try {
-    const promises = BOT_TOKENS.map(async (token) => {
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: ADMIN_CHAT_ID,
-            text,
-            parse_mode: 'HTML',
-            disable_web_page_preview: true,
-          }),
-        });
-        const data = await res.json();
-        return !!data?.ok;
-      } catch (e) {
-        console.warn(`Failed sending to bot ${token.slice(0, 10)}:`, e);
-        return false;
-      }
+    const res = await fetch(`https://api.telegram.org/bot${PARMASTER_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: ADMIN_CHAT_ID,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+      }),
     });
-
-    const results = await Promise.allSettled(promises);
-    return results.some(r => r.status === 'fulfilled' && r.value === true);
+    const data = await res.json();
+    return !!data?.ok;
   } catch (err) {
     console.warn('Direct Telegram Bot API broadcast error:', err);
     return false;
@@ -174,6 +180,12 @@ export async function sendDirectTelegram(payload: AdminMessagePayload): Promise<
  * Send inquiry, bug report, feedback, registration, or payment notification directly to Telegram bot & Firestore
  */
 export async function sendAdminMessage(payload: AdminMessagePayload): Promise<boolean> {
+  // Deduplicate identical triggers (e.g. from React strict-mode re-renders or rapid clicks)
+  const dedupeKey = `${payload.type}_${payload.orderId || ''}_${(payload.message || '').trim().slice(0, 50)}_${payload.userEmail || ''}`;
+  if (isDuplicate(dedupeKey)) {
+    return true;
+  }
+
   const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
   const nowIso = new Date().toISOString();
 
@@ -199,17 +211,13 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
     console.warn('Could not save message to firestore (will still deliver Telegram notification):', err);
   }
 
-  // 2. Direct send to Telegram Bot API (100% reliable in browser with CORS)
+  // 2. Direct send to Telegram Bot API (100% reliable in browser with CORS) - EXCLUSIVELY to @ParmasterQuest_bot
   const tgSuccess = await sendDirectTelegram(payload);
 
-  // 3. Optional background server hook backup
-  const serverEndpoints = [
-    '/www/banya-school.ru/api/admin-notification.php',
-    '/api/admin-notification.php',
-  ];
-  for (const ep of serverEndpoints) {
+  // 3. Fallback ONLY if direct browser dispatch was blocked (e.g. by an adblocker)
+  if (!tgSuccess) {
     try {
-      fetch(ep, {
+      await fetch('/api/admin-notification.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -227,11 +235,11 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
           currentLevel: payload.currentLevel,
           createdAt: new Date().toLocaleString('ru-RU'),
         }),
-      }).catch(() => {});
+      });
     } catch (_) {}
   }
 
-  return tgSuccess;
+  return true;
 }
 
 /**
