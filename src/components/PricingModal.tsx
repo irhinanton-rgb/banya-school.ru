@@ -60,35 +60,31 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         userEmail: user?.email || null,
       };
 
-      // 1. Try PHP endpoint (standard for ISPmanager/Apache hosting)
-      try {
-        const phpRes = await fetch('/api/create-payment.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(paymentPayload),
-        });
-        const contentType = phpRes.headers.get('content-type') || '';
-        if (phpRes.ok && contentType.includes('application/json')) {
-          data = await phpRes.json();
-        }
-      } catch (err) {
-        console.warn('PHP payment endpoint not reachable, trying Node:', err);
-      }
+      // 1. Query available backend payment endpoints (both root and ISPmanager virtual host path)
+      const candidateEndpoints = [
+        '/www/banya-school.ru/api/create-payment.php',
+        '/api/create-payment.php',
+        '/api/create-payment',
+      ];
 
-      // 2. Try Node/serverless endpoint if not yet resolved
-      if (!data?.confirmationUrl) {
+      for (const endpoint of candidateEndpoints) {
+        if (data?.confirmationUrl) break;
         try {
-          const response = await fetch('/api/create-payment', {
+          const res = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(paymentPayload),
           });
-          const ct = response.headers.get('content-type') || '';
-          if (response.ok && ct.includes('application/json')) {
-            data = await response.json();
+          const contentType = res.headers.get('content-type') || '';
+          if (res.ok && contentType.includes('application/json')) {
+            const parsed = await res.json();
+            if (parsed.success && parsed.confirmationUrl) {
+              data = parsed;
+              break;
+            }
           }
-        } catch (e) {
-          console.warn('Node payment endpoint failed:', e);
+        } catch (err) {
+          console.warn(`Payment endpoint ${endpoint} failed:`, err);
         }
       }
 

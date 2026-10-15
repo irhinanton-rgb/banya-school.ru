@@ -20,7 +20,7 @@ function copyDirRecursive(src, dest) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
 
-    // Skip the target mirror subdirectories to prevent infinite recursion
+    // Skip the target mirror subdirectories and heavy media already on the server
     if (['www', 'banya-school.ru', 'public_html'].includes(entry.name)) {
       continue;
     }
@@ -36,13 +36,10 @@ function copyDirRecursive(src, dest) {
 const distDir = path.resolve(__dirname, '..', 'dist');
 
 if (fs.existsSync(distDir)) {
-  console.log('🔄 Mirroring dist/ build to common virtual host paths...');
+  console.log('🔄 Mirroring dist/ build to www/banya-school.ru virtual host path...');
 
   const mirrorTargets = [
     path.join(distDir, 'www', 'banya-school.ru'),
-    path.join(distDir, 'banya-school.ru'),
-    path.join(distDir, 'public_html'),
-    path.join(distDir, 'www'),
   ];
 
   for (const target of mirrorTargets) {
@@ -54,7 +51,7 @@ if (fs.existsSync(distDir)) {
     }
   }
 
-  console.log('✅ Build mirroring complete! Any FTP deployment directory will receive the latest site files.');
+  console.log('✅ Build mirroring complete! Fast sync enabled.');
 } else {
   console.error('❌ dist/ does not exist. Run vite build first.');
 }

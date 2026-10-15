@@ -203,27 +203,33 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
   const tgSuccess = await sendDirectTelegram(payload);
 
   // 3. Optional background server hook backup
-  try {
-    fetch('/api/admin-notification.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: messageId,
-        type: payload.type,
-        message: payload.message,
-        userName: payload.userName,
-        userEmail: payload.userEmail,
-        phoneNumber: payload.phoneNumber,
-        authMethod: payload.authMethod,
-        referralSource: payload.referralSource,
-        orderId: payload.orderId,
-        amount: payload.amount,
-        answer: payload.answer,
-        currentLevel: payload.currentLevel,
-        createdAt: new Date().toLocaleString('ru-RU'),
-      }),
-    }).catch(() => {});
-  } catch (_) {}
+  const serverEndpoints = [
+    '/www/banya-school.ru/api/admin-notification.php',
+    '/api/admin-notification.php',
+  ];
+  for (const ep of serverEndpoints) {
+    try {
+      fetch(ep, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: messageId,
+          type: payload.type,
+          message: payload.message,
+          userName: payload.userName,
+          userEmail: payload.userEmail,
+          phoneNumber: payload.phoneNumber,
+          authMethod: payload.authMethod,
+          referralSource: payload.referralSource,
+          orderId: payload.orderId,
+          amount: payload.amount,
+          answer: payload.answer,
+          currentLevel: payload.currentLevel,
+          createdAt: new Date().toLocaleString('ru-RU'),
+        }),
+      }).catch(() => {});
+    } catch (_) {}
+  }
 
   return tgSuccess;
 }
