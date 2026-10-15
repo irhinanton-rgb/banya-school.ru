@@ -10,3 +10,4 @@ bun.lock
 -e 
 *.tar.gz
 backup_*/
+*.zip

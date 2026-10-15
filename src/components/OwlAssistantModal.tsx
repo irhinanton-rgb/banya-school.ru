@@ -149,9 +149,14 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
         });
 
         if (res.ok) {
-          const data = await res.json();
-          if (data.answer && !data.answer.includes('Приветствую, банный ученик! Я твой мудрый наставник')) {
-            reply = data.answer;
+          const ct = res.headers.get('content-type') || '';
+          if (ct.includes('application/json')) {
+            const data = await res.json();
+            if (data.answer && !data.answer.includes('Приветствую, банный ученик! Я твой мудрый наставник')) {
+              reply = data.answer;
+            } else if (instantExpert) {
+              reply = instantExpert;
+            }
           } else if (instantExpert) {
             reply = instantExpert;
           }

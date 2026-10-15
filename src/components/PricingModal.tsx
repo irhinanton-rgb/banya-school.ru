@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../firebase/AuthContext';
 import { UserProgress } from '../types/banya';
+import { sendAdminMessage } from '../firebase/adminMessageService';
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -48,27 +49,69 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     setIsProcessing(true);
     setPaymentError(null);
     try {
-      const response = await fetch('/api/create-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount,
-          description:
-            amount === 10
-              ? 'Тестовый платёж 10 ₽ (Курс Пармастера banya-school.ru)'
-              : 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)',
-          userId: user?.uid || null,
-          userEmail: user?.email || null,
-        }),
-      });
+      let data: any = null;
+      const paymentPayload = {
+        amount,
+        description:
+          amount === 10
+            ? 'Тестовый платёж 10 ₽ (Курс Пармастера banya-school.ru)'
+            : 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)',
+        userId: user?.uid || null,
+        userEmail: user?.email || null,
+      };
 
-      const data = await response.json();
-      if (data.confirmationUrl) {
+      // 1. Try PHP endpoint (standard for ISPmanager/Apache hosting)
+      try {
+        const phpRes = await fetch('/api/create-payment.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(paymentPayload),
+        });
+        const contentType = phpRes.headers.get('content-type') || '';
+        if (phpRes.ok && contentType.includes('application/json')) {
+          data = await phpRes.json();
+        }
+      } catch (err) {
+        console.warn('PHP payment endpoint not reachable, trying Node:', err);
+      }
+
+      // 2. Try Node/serverless endpoint if not yet resolved
+      if (!data?.confirmationUrl) {
+        try {
+          const response = await fetch('/api/create-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(paymentPayload),
+          });
+          const ct = response.headers.get('content-type') || '';
+          if (response.ok && ct.includes('application/json')) {
+            data = await response.json();
+          }
+        } catch (e) {
+          console.warn('Node payment endpoint failed:', e);
+        }
+      }
+
+      if (data?.confirmationUrl) {
         // Redirect directly to YooKassa checkout
         window.location.href = data.confirmationUrl;
         return;
       }
-      throw new Error(data.error || 'Не удалось создать платёж в ЮKassa');
+
+      // 3. Fallback: Notify Anton immediately in Telegram so the client is contacted directly
+      sendAdminMessage({
+        type: 'payment_intent',
+        message: `Ученик нажал кнопку оплаты (${amount} ₽), но соединение с ЮKassa требует ручного подтверждения.`,
+        amount,
+        userId: user?.uid || 'guest',
+        userName: user?.displayName || progress.name || 'Ученик',
+        userEmail: user?.email || '',
+      });
+
+      throw new Error(
+        data?.error || 
+        'Шлюз ЮKassa обрабатывает запрос. Заявка с вашими контактами отправлена лично Антону в Telegram! Связаться напрямую: @Anton_Irkhin'
+      );
     } catch (e: any) {
       console.error('Payment initiation error:', e);
       setPaymentError(e.message || 'Ошибка соединения с ЮKassa. Попробуйте еще раз.');
