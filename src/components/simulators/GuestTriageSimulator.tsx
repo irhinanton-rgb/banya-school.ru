@@ -192,49 +192,7 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
     }
   };
 
-  // Plunge and rapid temperature change evaluation (>7 dives per 15 min session)
-  const getPlungeEvaluation = (count: number) => {
-    if (count <= 1) {
-      return {
-        level: 'safe',
-        badge: '1 раз: допустимо вне работы с гостем',
-        color: 'text-emerald-400',
-        bg: 'bg-emerald-950/30 border-emerald-500/30',
-        pressure: '120/80 мм рт. ст.',
-        status: 'Кратковременный тонус капилляров. Однако прямо во время парения мастеру не стоит нырять в купель: даже один нырок сужает сосуды кожи и мешает стабильной работе.',
-      };
-    }
-    if (count <= 3) {
-      return {
-        level: 'warning',
-        badge: '2–3 раза за 15 минут: нарастающий спазм сосудов',
-        color: 'text-amber-400',
-        bg: 'bg-amber-950/30 border-amber-500/30',
-        pressure: '150/95 мм рт. ст.',
-        status: 'Частая смена температурного режима (+65°C / +10°C). Капилляры кожи спазмируются, потоотделение сбивается, начинается скачкообразный рост давления.',
-      };
-    }
-    if (count <= 6) {
-      return {
-        level: 'danger',
-        badge: '4–6 раз за 15 минут: разрушение терморегуляции',
-        color: 'text-rose-400',
-        bg: 'bg-rose-950/40 border-rose-500/50',
-        pressure: '175/110 мм рт. ст.',
-        status: 'Тяжелый стресс вегетативной системы. Капилляры наглухо захлопываются, блокируя охлаждение через пот. Внутренний кипящий жар запирается в жизненно важных органах ядра тела!',
-      };
-    }
-    return {
-      level: 'critical',
-      badge: 'БОЛЕЕ 7 РАЗ ЗА 15 МИНУТ: КАТАСТРОФА ДЛЯ СЕРДЦА И ЯДРА ТЕЛА',
-      color: 'text-red-500',
-      bg: 'bg-red-950/80 border-red-500/90 ring-2 ring-red-500/60',
-      pressure: '195/125+ мм рт. ст.',
-      status: 'КРИТИЧЕСКАЯ ПЕРЕГРУЗКА! Погружение более 7 раз за одно 15-минутное парение — это смена режима каждые 2 минуты. Сердечная мышца испытывает запредельный износ от перепадов, а запертый жар ядра тела ведет к тяжелому тепловому удару и риску сосудистого криза.',
-    };
-  };
 
-  const plungeEval = getPlungeEvaluation(plungeCount);
 
   // Ergonomics calculations
   const optimalBenchHeight = Math.round(masterHeight * 0.44);
