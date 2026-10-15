@@ -35,7 +35,7 @@ import {
   Sun,
   Thermometer,
 } from 'lucide-react';
-import { SecretChestModal } from '../inventory/SecretChestModal';
+import { MasterRecipeChestModal } from '../inventory/MasterRecipeChestModal';
 
 interface GuestTriageSimulatorProps {
   soundEnabled: boolean;
@@ -1486,13 +1486,13 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
         </div>
       )}
 
-      {/* Secret Chest Modal for Master Recipes */}
-      <SecretChestModal
+      {/* Dedicated Master Recipe Chest Modal (Only contains the recipe scroll) */}
+      <MasterRecipeChestModal
         isOpen={isSecretChestOpen}
         onClose={() => setIsSecretChestOpen(false)}
         hasKey={hasGoldenKey}
         soundEnabled={soundEnabled}
-        onOpenKeeperChallenge={() => {
+        onGoToTriage={() => {
           setIsSecretChestOpen(false);
           setActiveTab('guest');
         }}
