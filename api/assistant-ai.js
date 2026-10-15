@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { broadcastToAdmins, escapeHtml } from './telegram-notifier.js';
+import { escapeHtml } from './telegram-notifier.js';
 
 const apiKey = process.env.GEMINI_API_KEY;
 
@@ -53,21 +53,7 @@ export default async function handler(req, res) {
       const finalAnswer = expertAnswer || `Ух! 🦉 Вопрос принят, ${studentName || 'ученик'}! Для лёгкого пара держи кондиции 60/60, камни 400-500°C и работай эластичной кистью. Вопрос передан лично Антону Ирхину!`;
       
       // Notify Telegram
-      broadcastToAdmins(
-        [
-          `🦉 <b>[Сова PQ] Вопрос ученика по квесту</b>`,
-          ``,
-          `👤 <b>Ученик:</b> ${escapeHtml(studentName || 'Ученик')} (Станция ${currentLevel || 1})`,
-          userEmail ? `📧 <b>Email:</b> ${escapeHtml(userEmail)}` : null,
-          `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
-          ``,
-          `❓ <b>Вопрос:</b>`,
-          escapeHtml(question),
-          ``,
-          `💡 <b>Ответ Совы PQ:</b>`,
-          escapeHtml(finalAnswer),
-        ].filter(Boolean).join('\n')
-      ).catch((e) => console.warn('TG broadcast warning:', e));
+      // Notification handled exclusively by client/sendAdminMessage
 
       return res.status(200).json({ answer: finalAnswer });
     }
@@ -120,21 +106,7 @@ export default async function handler(req, res) {
     const generatedAnswer = response.text || 'Отличный вопрос! Сохраняй спокойствие и продолжай движение по станциям квеста.';
 
     // Broadcast student question and Owl's answer directly to Anton's Telegram bot!
-    broadcastToAdmins(
-      [
-        `🦉 <b>[Сова PQ] Вопрос ученика по квесту</b>`,
-        ``,
-        `👤 <b>Ученик:</b> ${escapeHtml(studentName || 'Ученик')} (Станция ${currentLevel || 1})`,
-        userEmail ? `📧 <b>Email:</b> ${escapeHtml(userEmail)}` : null,
-        `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
-        ``,
-        `❓ <b>Вопрос ученика:</b>`,
-        escapeHtml(question),
-        ``,
-        `💡 <b>Ответ Совы PQ:</b>`,
-        escapeHtml(generatedAnswer),
-      ].filter(Boolean).join('\n')
-    ).catch((e) => console.warn('TG broadcast warning:', e));
+    // Notification handled exclusively by client/sendAdminMessage
 
     return res.status(200).json({
       answer: generatedAnswer
@@ -166,20 +138,7 @@ export default async function handler(req, res) {
     try {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       if (body.question) {
-        broadcastToAdmins(
-          [
-            `🦉 <b>[Сова PQ] Вопрос ученика по квесту</b>`,
-            ``,
-            `👤 <b>Ученик:</b> ${escapeHtml(body.studentName || 'Ученик')}`,
-            `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
-            ``,
-            `❓ <b>Вопрос ученика:</b>`,
-            escapeHtml(body.question),
-            ``,
-            `💡 <b>Ответ Совы PQ:</b>`,
-            escapeHtml(fallbackAnswer),
-          ].join('\n')
-        ).catch(() => {});
+        // Notification handled exclusively by client/sendAdminMessage
       }
     } catch {
       // ignore

@@ -181,7 +181,7 @@ export async function sendDirectTelegram(payload: AdminMessagePayload): Promise<
  */
 export async function sendAdminMessage(payload: AdminMessagePayload): Promise<boolean> {
   // Deduplicate identical triggers (e.g. from React strict-mode re-renders or rapid clicks)
-  const dedupeKey = `${payload.type}_${payload.orderId || ''}_${(payload.message || '').trim().slice(0, 50)}_${payload.userEmail || ''}`;
+  const dedupeKey = `${payload.type}_${payload.orderId || ''}_${(payload.message || '').trim()}`;
   if (isDuplicate(dedupeKey)) {
     return true;
   }
@@ -211,33 +211,8 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
     console.warn('Could not save message to firestore (will still deliver Telegram notification):', err);
   }
 
-  // 2. Direct send to Telegram Bot API (100% reliable in browser with CORS) - EXCLUSIVELY to @ParmasterQuest_bot
-  const tgSuccess = await sendDirectTelegram(payload);
-
-  // 3. Fallback ONLY if direct browser dispatch was blocked (e.g. by an adblocker)
-  if (!tgSuccess) {
-    try {
-      await fetch('/api/admin-notification.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: messageId,
-          type: payload.type,
-          message: payload.message,
-          userName: payload.userName,
-          userEmail: payload.userEmail,
-          phoneNumber: payload.phoneNumber,
-          authMethod: payload.authMethod,
-          referralSource: payload.referralSource,
-          orderId: payload.orderId,
-          amount: payload.amount,
-          answer: payload.answer,
-          currentLevel: payload.currentLevel,
-          createdAt: new Date().toLocaleString('ru-RU'),
-        }),
-      });
-    } catch (_) {}
-  }
+  // 2. Send Telegram notification directly to @ParmasterQuest_bot (via direct Telegram Bot API)
+  await sendDirectTelegram(payload);
 
   return true;
 }

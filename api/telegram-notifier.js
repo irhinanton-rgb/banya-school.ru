@@ -3,10 +3,13 @@ import https from 'https';
 export const TELEGRAM_BOT_TOKEN = process.env.PARMASTER_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '8683515876:AAHzMeka0nuQG0Hc1lTJCNuPZRogpg-Lw_0';
 
 // Anton Irkhin's Telegram Chat ID (@Anton_Irkhin) for student messages, questions & course purchases
-export const ADMIN_CHAT_IDS = [
-  '471147423', // Антон Ирхин
-  process.env.TELEGRAM_ADMIN_CHAT_ID,
-].filter(Boolean);
+export const ADMIN_CHAT_IDS = Array.from(
+  new Set(
+    ['471147423', process.env.TELEGRAM_ADMIN_CHAT_ID]
+      .filter(Boolean)
+      .map(id => String(id).trim())
+  )
+);
 
 export function escapeHtml(str) {
   if (!str) return '';
