@@ -127,7 +127,7 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
 
             {/* Sub-headline */}
             <p className="text-base sm:text-lg text-stone-200/90 leading-relaxed font-sans max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              Интерактивная программа от первого пара до уверенного мастера.
+              Первая интерактивная программа банного обучения от первого пара до уверенного мастера.
             </p>
 
             {/* CTA Button + Adjacent Progress Counter Block */}
