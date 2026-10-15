@@ -878,27 +878,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Official Legal & INN line for YooKassa & Bank Compliance */}
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-3 pt-3 border-t border-stone-900 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-[11px] text-stone-500 font-mono text-center sm:text-left">
-          <div>
-            Исполнитель: <strong className="text-stone-300">Самозанятый Ирхин Антон</strong> · ИНН: <strong className="text-amber-300 font-bold">614007827150</strong> · e-mail: <a href="mailto:irhinanton@gmail.com" className="text-amber-400 hover:underline">irhinanton@gmail.com</a>
-          </div>
-          <div>
-            <a
-              href="/requisites"
-              onClick={(e) => {
-                e.preventDefault();
-                if (typeof window !== 'undefined') {
-                  window.history.pushState({}, '', '/requisites');
-                }
-                setIsRequisitesRoute(true);
-              }}
-              className="text-amber-400 hover:underline cursor-pointer"
-            >
-              Официальная страница реквизитов (banya-school.ru/requisites) →
-            </a>
-          </div>
-        </div>
+
       </footer>
 
       {/* Mobile Sticky Bottom Navigation Bar */}
