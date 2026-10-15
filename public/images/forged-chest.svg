@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" className="w-full h-full drop-shadow-md">
+  <defs>
+    <linearGradient id="chestWoodDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#854d0e"/>
+      <stop offset="50%" stop-color="#713f12"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+    <linearGradient id="chestWoodLid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a16207"/>
+      <stop offset="70%" stop-color="#854d0e"/>
+      <stop offset="100%" stop-color="#713f12"/>
+    </linearGradient>
+    <linearGradient id="chestGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="chestIron" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#78716c"/>
+      <stop offset="50%" stop-color="#44403c"/>
+      <stop offset="100%" stop-color="#1c1917"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shadow below chest -->
+  <ellipse cx="32" cy="58" rx="26" ry="5" fill="#000000" opacity="0.6"/>
+
+  <!-- Chest Body (Bottom) -->
+  <rect x="8" y="28" width="48" height="26" rx="4" fill="url(#chestWoodDark)" stroke="#1c1917" stroke-width="1.5"/>
+
+  <!-- Wood Planks Lines Body -->
+  <line x1="8" y1="36" x2="56" y2="36" stroke="#291305" stroke-width="1" opacity="0.7"/>
+  <line x1="8" y1="45" x2="56" y2="45" stroke="#291305" stroke-width="1" opacity="0.7"/>
+
+  <!-- Iron Reinforcement Bands Vertical (Body) -->
+  <rect x="15" y="28" width="6" height="26" fill="url(#chestIron)" stroke="#1c1917" stroke-width="0.8"/>
+  <rect x="43" y="28" width="6" height="26" fill="url(#chestIron)" stroke="#1c1917" stroke-width="0.8"/>
+
+  <!-- Iron Studs / Rivets Body -->
+  <circle cx="18" cy="32" r="1" fill="#d6d3d1"/>
+  <circle cx="18" cy="41" r="1" fill="#d6d3d1"/>
+  <circle cx="18" cy="50" r="1" fill="#d6d3d1"/>
+  <circle cx="46" cy="32" r="1" fill="#d6d3d1"/>
+  <circle cx="46" cy="41" r="1" fill="#d6d3d1"/>
+  <circle cx="46" cy="50" r="1" fill="#d6d3d1"/>
+
+  <!-- Chest Lid (Arched Top) -->
+  <path d="M 8 28 C 8 15, 20 10, 32 10 C 44 10, 56 15, 56 28 Z" fill="url(#chestWoodLid)" stroke="#1c1917" stroke-width="1.5"/>
+
+  <!-- Lid Iron Bands Curved -->
+  <path d="M 15 28 C 15 16, 23 12, 21 10 L 15 10 C 12 12, 15 16, 15 28 Z" fill="url(#chestIron)" opacity="0.9"/>
+  <path d="M 43 28 C 43 16, 35 12, 37 10 L 43 10 C 46 12, 43 16, 43 28 Z" fill="url(#chestIron)" opacity="0.9"/>
+  <!-- Iron border rim of lid -->
+  <rect x="7" y="26" width="50" height="3.5" rx="1.5" fill="url(#chestIron)" stroke="#1c1917" stroke-width="1"/>
+
+  <!-- Lid Rivets -->
+  <circle cx="18" cy="18" r="1" fill="#d6d3d1"/>
+  <circle cx="46" cy="18" r="1" fill="#d6d3d1"/>
+
+  <!-- Center Gold Lock Plate -->
+  <rect x="27" y="24" width="10" height="14" rx="2.5" fill="url(#chestGold)" stroke="#78350f" stroke-width="1.2"/>
+  
+  <!-- Keyhole in Lock -->
+  <circle cx="32" cy="29" r="2" fill="#1c1917"/>
+  <polygon points="31,29 33,29 33.5,34 30.5,34" fill="#1c1917"/>
+
+  <!-- Side Handles Iron -->
+  <path d="M 6 36 C 4 36, 4 44, 6 44" fill="none" stroke="#78716c" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 58 36 C 60 36, 60 44, 58 44" fill="none" stroke="#78716c" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Golden Glow effect around lock -->
+  <circle cx="32" cy="30" r="12" fill="#fbbf24" opacity="0.15" filter="blur(2px)"/>
+</svg>
