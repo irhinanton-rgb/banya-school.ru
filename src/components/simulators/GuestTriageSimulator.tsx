@@ -174,45 +174,45 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
     }
   };
 
-  // Plunge impact evaluation
+  // Plunge and rapid temperature change evaluation (>7 dives per 15 min session)
   const getPlungeEvaluation = (count: number) => {
     if (count <= 1) {
       return {
         level: 'safe',
-        badge: 'Допустимо для гостя (но осторожно для мастера)',
+        badge: '1 раз: допустимо вне работы с гостем',
         color: 'text-emerald-400',
         bg: 'bg-emerald-950/30 border-emerald-500/30',
         pressure: '120/80 мм рт. ст.',
-        status: 'Кратковременный тонус капилляров. Если мастер здоров, организм справляется, но перед продолжением парения лучше просто обтереться прохладным полотенцем.',
+        status: 'Кратковременный тонус капилляров. Однако прямо во время парения мастеру не стоит нырять в купель: даже один нырок сужает сосуды кожи и мешает стабильной работе.',
       };
     }
-    if (count <= 4) {
+    if (count <= 3) {
       return {
         level: 'warning',
-        badge: 'Нарастающий ангиоспазм сосудов',
+        badge: '2–3 раза за 15 минут: нарастающий спазм сосудов',
         color: 'text-amber-400',
         bg: 'bg-amber-950/30 border-amber-500/30',
-        pressure: '145/95 мм рт. ст.',
-        status: 'Резкое сужение периферических сосудов. Кровь отливает от кожи к внутренним органам. Начинается перегрузка сердца и рост артериального давления.',
+        pressure: '150/95 мм рт. ст.',
+        status: 'Частая смена температурного режима (+65°C / +10°C). Капилляры кожи спазмируются, потоотделение сбивается, начинается скачкообразный рост давления.',
       };
     }
-    if (count <= 8) {
+    if (count <= 6) {
       return {
         level: 'danger',
-        badge: 'ТЯЖЕЛЫЙ СТРЕСС И ПЕРЕГРЕВ ЯДРА ТЕЛА',
+        badge: '4–6 раз за 15 минут: разрушение терморегуляции',
         color: 'text-rose-400',
         bg: 'bg-rose-950/40 border-rose-500/50',
-        pressure: '170/110 мм рт. ст.',
-        status: 'ФАТАЛЬНАЯ ОШИБКА! Спазмированная кожа блокирует потоотделение. Внутренний жар не выходит, а запирается внутри органов (риск глубокого теплового удара ядра тела). Истощение надпочечников адреналином.',
+        pressure: '175/110 мм рт. ст.',
+        status: 'Тяжелый стресс вегетативной системы. Капилляры наглухо захлопываются, блокируя охлаждение через пот. Внутренний кипящий жар запирается в жизненно важных органах ядра тела!',
       };
     }
     return {
       level: 'critical',
-      badge: 'КРИТИЧЕСКАЯ УГРОЗА ЖИЗНИ МАСТЕРА (10–15 РАЗ)',
+      badge: 'БОЛЕЕ 7 РАЗ ЗА 15 МИНУТ: КАТАСТРОФА ДЛЯ СЕРДЦА И ЯДРА ТЕЛА',
       color: 'text-red-500',
-      bg: 'bg-red-950/70 border-red-500/80 ring-2 ring-red-500/50',
-      pressure: '190/120+ мм рт. ст.',
-      status: 'ПРЕДИНСУЛЬТНОЕ СОСТОЯНИЕ! Экстремальный износ миокарда, риск фибрилляции желудочков и сосудистой катастрофы. Иллюзия «бодрости» — это лишь адреналиновая агония нервной системы!',
+      bg: 'bg-red-950/80 border-red-500/90 ring-2 ring-red-500/60',
+      pressure: '195/125+ мм рт. ст.',
+      status: 'КРИТИЧЕСКАЯ ПЕРЕГРУЗКА! Погружение более 7 раз за одно 15-минутное парение — это смена режима каждые 2 минуты. Сердечная мышца испытывает запредельный износ от перепадов, а запертый жар ядра тела ведет к тяжелому тепловому удару и риску сосудистого криза.',
     };
   };
 
@@ -468,127 +468,93 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
             </div>
           </div>
 
-          {/* Subsection 1: Checklist of Master Readiness & Occupational Ergonomics */}
-          <div className="rounded-2xl border border-stone-800 bg-stone-950/80 p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-850 pb-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-300 uppercase tracking-wider font-mono">
-                <Bed className="w-4 h-4 text-amber-400" />
-                <span>Чек-лист готовности мастера & Охрана труда:</span>
+          {/* Subsection 1: Electrolytes and Microelements Balance (Critical loss during sessions) */}
+          <div className="rounded-2xl border border-amber-500/30 bg-stone-950/90 p-5 sm:p-6 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider font-mono">
+                  <Activity className="w-4 h-4 text-amber-400" />
+                  <span>Биохимия мастера в парной:</span>
+                </div>
+                <h4 className="font-serif text-lg font-bold text-stone-100 mt-1">
+                  Колоссальная потеря электролитов и микроэлементов
+                </h4>
               </div>
-              <span className="text-[11px] font-mono text-stone-400">
-                Отметьте готовность: {Object.values(masterChecklist).filter(Boolean).length} / 4
+              <span className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-mono font-semibold self-start sm:self-auto">
+                ⚡ До 2.5 л пота за смену
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <label
-                onClick={() => handleToggleChecklist('sleep')}
-                className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                  masterChecklist.sleep
-                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
-                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:border-stone-700'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={masterChecklist.sleep}
-                  readOnly
-                  className="mt-0.5 accent-emerald-500"
-                />
-                <div>
-                  <strong className="block text-stone-100 font-semibold mb-0.5">
-                    Сон не менее 8 часов
-                  </strong>
-                  <span className="text-[11px] text-stone-400 leading-snug block">
-                    При дефиците сна вегетативная регуляция дает сбой, сердце не выдерживает термической нагрузки.
-                  </span>
-                </div>
-              </label>
+            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+              Работая у горячей каменки с тяжелыми вениками, мастер теряет в разы больше жидкости и солей, чем гость на полке. 
+              <strong> Главная опасность — пить простую дистиллированную или фильтрованную воду:</strong> она не восполняет электролиты, а лишь разбавляет остаточную плазму крови (осмотический шок). Без микроэлементов прекращается передача нервных импульсов к мышцам.
+            </p>
 
-              <label
-                onClick={() => handleToggleChecklist('nutrition')}
-                className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                  masterChecklist.nutrition
-                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
-                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:border-stone-700'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={masterChecklist.nutrition}
-                  readOnly
-                  className="mt-0.5 accent-emerald-500"
-                />
-                <div>
-                  <strong className="block text-stone-100 font-semibold mb-0.5">
-                    Легкое питание за 1.5–2 часа
-                  </strong>
-                  <span className="text-[11px] text-stone-400 leading-snug block">
-                    Сложные углеводы и белок. На пустой желудок — гипогликемия, на полный — кровь отливает к желудку.
-                  </span>
+            {/* 4 Crucial Electrolytes Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <strong className="text-amber-300 font-mono text-sm">Na+ (Натрий)</strong>
+                  <span className="text-[10px] font-mono bg-stone-800 px-1.5 py-0.5 rounded text-stone-400">Потеря №1</span>
                 </div>
-              </label>
+                <div className="text-xs text-stone-200 font-semibold">Объём плазмы и тонус</div>
+                <p className="text-[11px] text-stone-400 leading-snug">
+                  При дефиците натрия резко падает давление, кружится голова, возникают судороги икр и кистей.
+                </p>
+              </div>
 
-              <label
-                onClick={() => handleToggleChecklist('cap')}
-                className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                  masterChecklist.cap
-                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
-                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:border-stone-700'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={masterChecklist.cap}
-                  readOnly
-                  className="mt-0.5 accent-emerald-500"
-                />
-                <div>
-                  <strong className="block text-stone-100 font-semibold mb-0.5">
-                    Сухая войлочная шапка и форма
-                  </strong>
-                  <span className="text-[11px] text-stone-400 leading-snug block">
-                    Защита сосудов головного мозга от перегрева. Дышащий рашгард и сухие нескользящие тапочки.
-                  </span>
+              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <strong className="text-rose-300 font-mono text-sm">K+ (Калий)</strong>
+                  <span className="text-[10px] font-mono bg-stone-800 px-1.5 py-0.5 rounded text-stone-400">Ритм сердца</span>
                 </div>
-              </label>
+                <div className="text-xs text-stone-200 font-semibold">Проводимость миокарда</div>
+                <p className="text-[11px] text-stone-400 leading-snug">
+                  Уход калия с потом провоцирует экстрасистолы, сердечную аритмию и мышечную вялость в руках.
+                </p>
+              </div>
 
-              <label
-                onClick={() => handleToggleChecklist('limit')}
-                className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                  masterChecklist.limit
-                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
-                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:border-stone-700'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={masterChecklist.limit}
-                  readOnly
-                  className="mt-0.5 accent-emerald-500"
-                />
-                <div>
-                  <strong className="block text-stone-100 font-semibold mb-0.5">
-                    Лимит смены: 3–4 глубоких парения
-                  </strong>
-                  <span className="text-[11px] text-stone-400 leading-snug block">
-                    Железный предел физиологии. Работать 8–10 заходов подряд — путь к инфаркту и инвалидности.
-                  </span>
+              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <strong className="text-emerald-300 font-mono text-sm">Mg2+ (Магний)</strong>
+                  <span className="text-[10px] font-mono bg-stone-800 px-1.5 py-0.5 rounded text-stone-400">Антиспазм</span>
                 </div>
-              </label>
+                <div className="text-xs text-stone-200 font-semibold">Расслабление мышечных волокон</div>
+                <p className="text-[11px] text-stone-400 leading-snug">
+                  Недостаток магния вызывает неконтролируемый тремор пальцев, спазм предплечий и раздражительность.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <strong className="text-sky-300 font-mono text-sm">Cl- & Ca2+</strong>
+                  <span className="text-[10px] font-mono bg-stone-800 px-1.5 py-0.5 rounded text-stone-400">Баланс кислот</span>
+                </div>
+                <div className="text-xs text-stone-200 font-semibold">Кислотно-щелочной гомеостаз</div>
+                <p className="text-[11px] text-stone-400 leading-snug">
+                  Хлор удерживает водный баланс клеток, а кальций регулирует силу сокращения мышц при работе с вениками.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/20 text-xs text-stone-300 leading-relaxed flex items-start gap-2.5">
+              <span className="text-amber-400 text-base">🥤</span>
+              <div>
+                <strong className="text-amber-300 font-semibold">Золотое правило питьевого режима мастера:</strong> пить малыми глотками каждые 15–20 минут минеральную гидрокарбонатную воду без газа, изотонические растворы, домашние ягодные морсы с щепоткой соли или отвары из кураги и изюма.
+              </div>
             </div>
           </div>
 
-          {/* Subsection 2: The Critical Cold Plunge Trap (5-15 Dives Hazard) */}
+          {/* Subsection 2: The Critical Danger of Cold Plunge and Rapid Thermal Swings (>7 dives in 15 min) */}
           <div className="rounded-2xl border border-rose-500/40 bg-stone-950/90 p-5 sm:p-6 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
               <div>
                 <div className="flex items-center gap-2 text-xs font-bold text-rose-400 uppercase tracking-wider font-mono">
                   <AlertTriangle className="w-4 h-4 text-rose-500" />
-                  <span>Разбор фатальной ошибки мастеров:</span>
+                  <span>Вред купели & частая смена температурного режима:</span>
                 </div>
                 <h4 className="font-serif text-lg font-bold text-stone-100 mt-1">
-                  «Окунуться в ледяную купель от 5 до 15 раз за одно парение»
+                  Окунание в купель более 7 раз за одно 15-минутное парение
                 </h4>
               </div>
               <span className="px-3 py-1 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs font-mono font-semibold self-start sm:self-auto">
@@ -597,37 +563,37 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
             </div>
 
             <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-              Многие начинающие мастера, спасаясь от жара в парной, ныряют в ледяную купель по 5–15 раз за парение или смену. Кажется: <em>«Освежился — и снова полон сил!»</em> <strong>Это смертельно опасная иллюзия.</strong> В реальности организм переживает тяжелейший физиологический коллапс.
+              Некоторые мастера во время 15-минутного парения выскакивают и окунаются в купель более 7 раз: <em>«Быстро охладился — и снова к гостю»</em>. <strong>Это тяжелейшая физиологическая перегрузка!</strong> Смена температурных экстремумов (+65°C / +10°C) каждые 2 минуты моментально захлопывает капилляры кожи спазмом, запирая кипящий жар внутри ядра тела и провоцируя предынсультные скачки артериального давления.
             </p>
 
             {/* Interactive Plunge Danger Simulator Slider */}
             <div className="space-y-4 p-4 rounded-xl bg-stone-900/80 border border-stone-800">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-stone-300 font-medium">
-                  Смоделируйте количество погружений мастера в ледяную воду за смену:
+                  Смоделируйте количество окунаний мастера в ледяную купель за одно 15-минутное парение:
                 </span>
                 <span className="font-mono font-bold text-base px-2.5 py-0.5 rounded-lg bg-stone-950 border border-stone-700 text-amber-300">
-                  {plungeCount} {plungeCount === 1 ? 'раз' : plungeCount < 5 ? 'раза' : 'раз'}
+                  {plungeCount} {plungeCount === 1 ? 'раз' : plungeCount < 5 ? 'раза' : 'раз'} за 15 мин
                 </span>
               </div>
 
               <input
                 type="range"
                 min="1"
-                max="15"
+                max="10"
                 value={plungeCount}
                 onChange={(e) => {
                   setPlungeCount(Number(e.target.value));
                   playWoodTap(soundEnabled);
                 }}
-                className="w-full accent-amber-500 cursor-pointer"
+                className="w-full accent-rose-500 cursor-pointer"
               />
 
               <div className="flex justify-between text-[10px] text-stone-500 font-mono">
-                <span>1 раз (норма)</span>
-                <span>5 раз (перегрузка)</span>
-                <span>10 раз (опасность)</span>
-                <span>15 раз (катастрофа)</span>
+                <span>1 раз (вне сеанса)</span>
+                <span>3 раза (ангиоспазм)</span>
+                <span className="text-rose-400 font-bold">7 раз (запирание жара в ядре)</span>
+                <span className="text-red-500 font-bold">10 раз (сосудистый криз)</span>
               </div>
 
               {/* Dynamic Physiological Feedback */}
