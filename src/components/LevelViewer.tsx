@@ -398,12 +398,12 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
-                      <span><strong>Почему нельзя резко вставать:</strong> В парной до 20% крови ушло в расширенные капилляры кожи. Если гость резко вскочит — кровь под действием гравитации хлынет в ноги, мозг мгновенно обескровится, и человек рухнет в обморок! Сначала полежать 1-2 мин, потом сесть, сделать глоток воды, и только потом плавно вставать.</span>
+                      <span><strong>Почему не стоит резко вставать:</strong> В парной кровь активно приливает к согретой коже. Если подняться слишком быстро — может легко закружиться голова. Правило комфорта: после парения дать человеку спокойно полежать 1-2 минуты, затем плавно сесть, сделать глоток воды, и только потом вставать.</span>
                     </li>
                   </ul>
                 </div>
                 <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-300 font-mono">
-                  💡 Полежать 2 минуты после парения — золотое правило спасения от обморока.
+                  💡 1-2 минуты спокойного отдыха на полке после парения — залог ясной головы и мягкого самочувствия.
                 </div>
               </div>
 
@@ -422,7 +422,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   <ul className="text-xs text-stone-300 space-y-3 pt-1 list-none">
                     <li className="flex items-start gap-2">
                       <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
-                      <span><strong>Скользкий распаренный лист:</strong> Опавший влажный лист березы или дуба на мокром полу скользит опаснее льда! Обязательно смойте листья теплой водой из ковша перед тем, как человек опустит ноги на пол.</span>
+                      <span><strong>Чистота пола:</strong> Опавший распаренный лист на мокрой плитке или дереве становится очень скользким. Между заходами рекомендуется смывать опавшие листья и убирать лишнюю воду во избежание травмоопасных ситуаций.</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
@@ -435,7 +435,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   </ul>
                 </div>
                 <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-300 font-mono">
-                  💡 Всегда смывайте листья с пола до того, как человек сделает первый шаг.
+                  💡 Между заходами рекомендуется убирать опавшие листья и лишнюю воду во избежание травмоопасных ситуаций.
                 </div>
               </div>
 
@@ -465,7 +465,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-sky-400 font-bold shrink-0 mt-0.5">✓</span>
-                      <span><strong>Свой питьевой режим:</strong> Мастер отдает воду и соли в разы быстрее лежащего. Пить теплую воду с лимоном или морс каждые 15 минут.</span>
+                      <span><strong>Водно-солевой баланс:</strong> И мастер, и гость с потом теряют жизненно важные электролиты. Не забывайте регулярно восполнять водно-солевой баланс качественной минеральной водой (или водой с лимоном и щепоткой соли) каждые 15 минут.</span>
                     </li>
                   </ul>
                 </div>
