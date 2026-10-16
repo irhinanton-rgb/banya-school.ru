@@ -317,7 +317,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
         {/* Regular cards (1-4) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {level.learningPoints
-            .filter((p) => !p.isSpecialSafetyBlock)
+            .filter((p) => !p.isSpecialSafetyBlock && !p.isBroomPrepBlock)
             .map((point, idx) => (
               <div
                 key={idx}
@@ -509,6 +509,138 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               }
             }}
           />
+        )}
+
+        {/* DEDICATED PRE-PRACTICUM BLOCK: Выбор и подготовка главного инструмента мастера */}
+        {level.interactiveType === 'broom_techniques' && (
+          <div className="rounded-3xl border-2 border-amber-500/70 bg-gradient-to-br from-stone-950 via-amber-950/25 to-stone-950 p-6 sm:p-8 shadow-[0_0_40px_rgba(245,158,11,0.15)] space-y-5 relative overflow-hidden ring-1 ring-amber-500/30">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/30 pb-4 relative z-10">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono uppercase font-bold tracking-wider">
+                    🌿 ПЕРЕД ПРАКТИКУМОМ С ВЕНИКАМИ
+                  </span>
+                  <span className="text-xs font-mono text-amber-400 font-semibold">
+                    Шаг подготовки инструмента
+                  </span>
+                </div>
+                <h4 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 flex items-center gap-2">
+                  <span>Выбор и Подготовка Главного Инструмента Мастера</span>
+                </h4>
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-3xl">
+                  Прежде чем переходить к отработке 8 приёмов по видео, важно правильно взять веник в руки и довести его лист до шелковистого состояния без осыпания.
+                </p>
+              </div>
+
+              <div className="shrink-0 bg-stone-900/90 px-4 py-2 rounded-2xl border border-amber-500/40 text-left">
+                <span className="text-[10px] font-mono text-stone-400 block uppercase">Инструмент</span>
+                <span className="text-xs font-bold text-amber-300">Дуб / Берёза</span>
+              </div>
+            </div>
+
+            {/* 2-Part Structured Layout: Хват & Алгоритм запарки */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+              
+              {/* Part 1: Хват веника */}
+              <div className="rounded-2xl bg-stone-900/90 border border-amber-500/30 p-5 space-y-3 shadow-md flex flex-col justify-between">
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-lg shrink-0">
+                      🕊️
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono uppercase text-amber-400 font-bold tracking-wider block">
+                        Биомеханика руки
+                      </span>
+                      <h5 className="font-serif text-base font-bold text-amber-100">
+                        Правильный Хват Рукояти
+                      </h5>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-stone-300 leading-relaxed">
+                    Держите рукоять мягкой, расслабленной кистью — <strong className="text-amber-300">«как живую птицу: не задушить сильным сжатием, но и не дать выпорхнуть»</strong>.
+                  </p>
+
+                  <ul className="text-xs text-stone-300 space-y-2 pt-1 list-none">
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                      <span><strong>Свободное запястье:</strong> Рукоять лежит в пальцах, а не зажата намертво в кулаке. Запястье и локоть мягко пружинят.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                      <span><strong>Защита от усталости:</strong> При зажатом кулаке предплечье каменеет через 5 минут. Мягкий хват позволяет парить часами без боли.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-300 font-mono">
+                  💡 Движение венику задает импульс тела, а пальцы лишь мягко направляют крону.
+                </div>
+              </div>
+
+              {/* Part 2: Четкий алгоритм запарки */}
+              <div className="rounded-2xl bg-stone-900/90 border border-amber-500/30 p-5 space-y-3 shadow-md flex flex-col justify-between">
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-lg shrink-0">
+                      💧
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono uppercase text-emerald-400 font-bold tracking-wider block">
+                        Подготовка листа и веток
+                      </span>
+                      <h5 className="font-serif text-base font-bold text-emerald-100">
+                        Алгоритм Запарки Веника
+                      </h5>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-stone-300 space-y-2 pt-1">
+                    <div className="p-2.5 rounded-xl bg-stone-950/60 border border-stone-800 space-y-1">
+                      <strong className="text-amber-300 block text-[11px]">1. Смываем пыль и оставляем влагу:</strong>
+                      <span className="text-[11px] text-stone-300 leading-snug block">
+                        Окунаем веник в воду — смываем пыль и оставляем на листьях капли влаги для дальнейшего перехода в пар в пакете/под полотенцем.
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-stone-950/60 border border-stone-800 space-y-1">
+                      <strong className="text-sky-300 block text-[11px]">2. Ручки в воде (капиллярное питание):</strong>
+                      <span className="text-[11px] text-stone-300 leading-snug block">
+                        Ставим веник ручками в воду и накрываем пакетом/полотенцем (чтобы не пересыхал): капилляры веток впитывают воду, делая веник упругим и эластичным.
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-stone-950/60 border border-stone-800 space-y-1">
+                      <strong className="text-emerald-300 block text-[11px]">3. Молодой vs Старый лист:</strong>
+                      <span className="text-[11px] text-stone-300 leading-snug block">
+                        • <u>Молодой веник</u>: дойдет до рабочей кондиции прямо в процессе парения.
+                        <br />• <u>Старый грубый лист</u>: требует больше времени и тепла. Перед парением подержите над паром каменки (аккуратно — пар обжигает руки!).
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-300 font-mono">
+                  💡 Чем старше лист — тем дольше и горячее запарка.
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom cue leading into the video simulator */}
+            <div className="p-3.5 rounded-2xl bg-amber-950/30 border border-amber-500/30 flex items-center justify-between gap-3 text-xs text-amber-200 relative z-10">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎬</span>
+                <span>Инструмент подготовлен! Ниже начинается интерактивный видеотренажер 8 приемов:</span>
+              </div>
+              <span className="text-[11px] font-mono font-bold text-amber-400 shrink-0">
+                Смотрите видео ↓
+              </span>
+            </div>
+          </div>
         )}
 
         {level.interactiveType === 'broom_techniques' && (
