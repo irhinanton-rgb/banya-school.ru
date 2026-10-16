@@ -435,7 +435,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   </ul>
                 </div>
                 <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-300 font-mono">
-                  💡 Совет мастера: для отработки первых приёмов рекомендую брать тяжёлые веники, а для непосредственного парения — брать удобные и лёгкие веники.
+                  💡 Между заходами рекомендуется убирать опавшие листья и лишнюю воду во избежание травмоопасных ситуаций.
                 </div>
               </div>
 
@@ -630,14 +630,12 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
 
             </div>
 
-            {/* Bottom cue leading into the video simulator */}
-            <div className="p-3.5 rounded-2xl bg-amber-950/30 border border-amber-500/30 flex items-center justify-between gap-3 text-xs text-amber-200 relative z-10">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🎬</span>
-                <span>Инструмент подготовлен! Ниже начинается интерактивный видеотренажер 8 приемов:</span>
-              </div>
-              <span className="text-[11px] font-mono font-bold text-amber-400 shrink-0">
-                Смотрите видео ↓
+            {/* Совет мастера по весу веников */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/60 via-stone-900 to-amber-950/50 border border-amber-500/40 flex items-center gap-3 text-xs sm:text-sm text-amber-200 relative z-10 shadow-lg">
+              <span className="text-xl shrink-0">💡</span>
+              <span className="leading-relaxed font-medium">
+                <strong className="text-amber-300 font-bold block sm:inline mr-1">Совет мастера:</strong>
+                для отработки первых приёмов рекомендую брать тяжёлые веники, а для непосредственного парения — брать удобные и лёгкие веники.
               </span>
             </div>
           </div>
