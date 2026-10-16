@@ -385,25 +385,25 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                     1. Безопасность Гостя (Близкого)
                   </h5>
                   <p className="text-xs text-stone-300 leading-relaxed">
-                    Ваш близкий человек вам доверяет. Его здоровье — ваш высший приоритет:
+                    Ваш близкий человек вам доверяет. Защитите его от скрытых рисков:
                   </p>
-                  <ul className="text-xs text-stone-300 space-y-2.5 pt-1 list-none">
+                  <ul className="text-xs text-stone-300 space-y-3 pt-1 list-none">
                     <li className="flex items-start gap-2">
-                      <span className="text-rose-400 font-bold shrink-0">✕</span>
-                      <span><strong>Табу 37°C и алкоголь:</strong> Никогда не парить при температуре тела выше 37°C или в состоянии опьянения.</span>
+                      <span className="text-rose-400 font-bold shrink-0 mt-0.5">✕</span>
+                      <span><strong>Вред алкоголя (Табу):</strong> Алкоголь + жар = смертельный удар по миокарду. Этанол расширяет сосуды, а пар сгущает кровь. Возникает скачок давления, аритмия и риск сосудистой катастрофы. При опьянении или t&gt;37°C парение строго запрещено!</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
-                      <span><strong>Прохладная, но сухая шапка:</strong> В парной на голове гостя всегда <u>прохладная, но сухая шапка</u> (шерсть/войлок) либо прохладный компресс на шею! Мокрая горячая шапка создает «эффект кастрюли» и перегревает мозг.</span>
+                      <span className="text-emerald-400 font-bold shrink-0 mt-0.5">✓</span>
+                      <span><strong>Прохладная, но СУХАЯ шапка:</strong> На голове всегда прохладная, но <u>сухая</u> шапка (шерсть/войлок)! Сухая шапка держит воздушную подушку. Мокрая шапка моментально нагревается и превращается в кипящую кастрюлю, перегревая кору мозга.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
-                      <span><strong>Правило плавного выхода:</strong> Закончив парить, дайте полежать 1-2 минуты, сесть, дать воды, и только потом вставать.</span>
+                      <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
+                      <span><strong>Почему нельзя резко вставать:</strong> В парной до 20% крови ушло в расширенные капилляры кожи. Если гость резко вскочит — кровь под действием гравитации хлынет в ноги, мозг мгновенно обескровится, и человек рухнет в обморок! Сначала полежать 1-2 мин, потом сесть, сделать глоток воды, и только потом плавно вставать.</span>
                     </li>
                   </ul>
                 </div>
                 <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-300 font-mono">
-                  💡 Прохладная сухая шапка защищает сосуды головы от термического удара.
+                  💡 Полежать 2 минуты после парения — золотое правило спасения от обморока.
                 </div>
               </div>
 
@@ -419,23 +419,23 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   <p className="text-xs text-stone-300 leading-relaxed">
                     В арендованной бане или на даче много скрытых физических угроз:
                   </p>
-                  <ul className="text-xs text-stone-300 space-y-2.5 pt-1 list-none">
+                  <ul className="text-xs text-stone-300 space-y-3 pt-1 list-none">
                     <li className="flex items-start gap-2">
-                      <span className="text-amber-400 font-bold shrink-0">⚠️</span>
-                      <span><strong>Скользкий лист:</strong> Опавший распаренный лист на мокрой плитке скользит опаснее льда! Обязательно смыть ковшом до того, как человек встанет.</span>
+                      <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
+                      <span><strong>Скользкий распаренный лист:</strong> Опавший влажный лист березы или дуба на мокром полу скользит опаснее льда! Обязательно смойте листья теплой водой из ковша перед тем, как человек опустит ноги на пол.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-amber-400 font-bold shrink-0">⚠️</span>
-                      <span><strong>Траектория печи:</strong> Поддавая воду, стоять сбоку от пушки или дверцы каменки. Никогда не наклонять лицо над камнями.</span>
+                      <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
+                      <span><strong>Траектория печи:</strong> Поддавая воду в каменку, стоять сбоку от пушки или открытой дверцы. Никогда не наклонять лицо над камнями — выброс пара происходит со скоростью пушечного выстрела.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
-                      <span><strong>Залповое проветривание:</strong> Открыть окно и дверь между заходами на 1 минуту — свежий кислород важнее жара.</span>
+                      <span className="text-emerald-400 font-bold shrink-0 mt-0.5">✓</span>
+                      <span><strong>Залповое проветривание:</strong> Открыть окно и дверь между заходами на 1-2 минуты. В бане опасен не пар, а гипоксия — свежий кислород важнее жара.</span>
                     </li>
                   </ul>
                 </div>
                 <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-300 font-mono">
-                  💡 Всегда смывайте листья с пола перед тем, как предложить человеку встать с полка.
+                  💡 Всегда смывайте листья с пола до того, как человек сделает первый шаг.
                 </div>
               </div>
 
@@ -449,35 +449,39 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                     3. Безопасность Себя (Мастера)
                   </h5>
                   <p className="text-xs text-stone-300 leading-relaxed">
-                    Если вы сорвете спину или потеряете силы — парение закончится травмой:
+                    Если мастер сорвет спину или обессилит — сеанс закончится травмой:
                   </p>
-                  <ul className="text-xs text-stone-300 space-y-2.5 pt-1 list-none">
+                  <ul className="text-xs text-stone-300 space-y-3 pt-1 list-none">
                     <li className="flex items-start gap-2">
-                      <span className="text-sky-400 font-bold shrink-0">✓</span>
-                      <span><strong>Защита поясницы:</strong> В домашних банях полки часто низкие. Согните колени или встаньте на трапик. Спину колесом не сгибать!</span>
+                      <span className="text-sky-400 font-bold shrink-0 mt-0.5">✓</span>
+                      <span><strong>Подстройка под высоту полка:</strong>
+                        <br />• <u>Если полок слишком низкий</u>: положите гостя на дополнительный матрас (сенный, гречишный) либо расставьте ноги пошире в полуприседе (трапик под ноги ставить нельзя, иначе полок станет еще ниже!).
+                        <br />• <u>Если полок слишком высокий</u>: встаньте на деревянный трапик или наденьте обувь на высокой подошве. Спину колесом не гнуть!
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-sky-400 font-bold shrink-0">✓</span>
-                      <span><strong>Движение от стоп:</strong> Работайте волнообразно («банное тайчи»). Руки лишь направляют веник, толкает тело.</span>
+                      <span className="text-sky-400 font-bold shrink-0 mt-0.5">✓</span>
+                      <span><strong>«Банное тайчи»:</strong> Движение зарождается в перекате стоп и пружине коленей, проходя через расслабленный таз. Веник лишь продолжает этот волновой танец.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-sky-400 font-bold shrink-0">✓</span>
-                      <span><strong>Свой питьевой режим:</strong> Мастер потеет сильнее лежащего. Пить минеральную воду или морс каждые 15 минут.</span>
+                      <span className="text-sky-400 font-bold shrink-0 mt-0.5">✓</span>
+                      <span><strong>Свой питьевой режим:</strong> Мастер отдает воду и соли в разы быстрее лежащего. Пить теплую воду с лимоном или морс каждые 15 минут.</span>
                     </li>
                   </ul>
                 </div>
                 <div className="p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30 text-[11px] text-sky-300 font-mono">
-                  💡 Берегите спину: наклон совершается в тазобедренных суставах с прямой спиной.
+                  💡 На низком полке — шире ноги или доп. матрас. Трапик нужен только на высоком полке!
                 </div>
               </div>
 
             </div>
 
             {/* Footer Highlight */}
-            <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 flex items-center gap-3 text-xs text-emerald-200 relative z-10">
-              <span className="text-xl shrink-0">🌟</span>
-              <span className="leading-relaxed">
-                <strong>Главный закон домашнего мастера:</strong> Лучше не пропарить до конца, чем перегреть или травмировать близкого человека.
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-stone-900 to-amber-950/50 border border-emerald-500/40 flex items-center gap-3.5 text-xs sm:text-sm text-emerald-200 relative z-10 shadow-lg">
+              <span className="text-2xl shrink-0">🌟</span>
+              <span className="leading-relaxed font-medium">
+                <strong className="text-amber-300 font-bold text-sm block sm:inline mr-1">Главное правило:</strong>
+                лучше чуть-чуть недогреть, чем перегреть!
               </span>
             </div>
           </div>
