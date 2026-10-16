@@ -306,38 +306,182 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
         )}
       </div>
 
-      {/* Core Learning Cards (Burger King Microlearning Station Format) */}
+      {/* Core Learning Cards */}
       {level.id !== 4 && level.learningPoints && level.learningPoints.length > 0 && (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <h3 className="font-serif text-xl font-bold text-stone-100 flex items-center gap-2">
           <span>📖</span>
           <span>Ключевые Знания Станции</span>
         </h3>
 
+        {/* Regular cards (1-4) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {level.learningPoints.map((point, idx) => (
-            <div
-              key={idx}
-              className="rounded-xl border border-stone-800 bg-stone-900/80 p-5 space-y-2.5 flex flex-col justify-between hover:border-stone-700 transition-colors"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-xs font-mono text-amber-400">
-                  <span>0{idx + 1}.</span>
-                  <span className="font-semibold text-stone-200">{point.title}</span>
+          {level.learningPoints
+            .filter((p) => !p.isSpecialSafetyBlock)
+            .map((point, idx) => (
+              <div
+                key={idx}
+                className="rounded-xl border border-stone-800 bg-stone-900/80 p-5 space-y-2.5 flex flex-col justify-between hover:border-stone-700 transition-colors"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-mono text-amber-400">
+                    <span>0{idx + 1}.</span>
+                    <span className="font-semibold text-stone-200">{point.title}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                    {point.description}
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                  {point.description}
+
+                {point.highlight && (
+                  <div className="pt-2 text-xs text-amber-300/90 font-mono bg-stone-950/60 p-2.5 rounded-lg border border-stone-800">
+                    💡 {point.highlight}
+                  </div>
+                )}
+              </div>
+            ))}
+        </div>
+
+        {/* SPECIAL BIG HERO SAFETY BLOCK: Блок 5 во 2-м уровне */}
+        {level.learningPoints.some((p) => p.isSpecialSafetyBlock) && (
+          <div className="rounded-3xl border-2 border-emerald-500/70 bg-gradient-to-br from-stone-950 via-emerald-950/25 to-stone-950 p-6 sm:p-8 shadow-[0_0_40px_rgba(16,185,129,0.18)] space-y-6 relative overflow-hidden ring-1 ring-emerald-500/30">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Header of Block 5 */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-500/30 pb-4 relative z-10">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono uppercase font-bold tracking-wider">
+                    🛡️ БЛОК 05 · КЛЮЧЕВОЙ РУБЕЖ
+                  </span>
+                  <span className="text-xs font-mono text-emerald-400 font-semibold">
+                    Обязательно к изучению
+                  </span>
+                </div>
+                <h4 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 flex items-center gap-2">
+                  <span>Минимальная Базовая Безопасность</span>
+                </h4>
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-3xl">
+                  Обязательный свод правил для парения близких людей, жены и друзей <strong>дома, на даче или в арендованной бане</strong>. Простые и емкие правила, чтобы не навредить ни гостю, ни себе.
                 </p>
               </div>
 
-              {point.highlight && (
-                <div className="pt-2 text-xs text-amber-300/90 font-mono bg-stone-950/60 p-2.5 rounded-lg border border-stone-800">
-                  💡 {point.highlight}
-                </div>
-              )}
+              <div className="shrink-0 bg-stone-900/90 px-4 py-2.5 rounded-2xl border border-emerald-500/40 text-left">
+                <span className="text-[10px] font-mono text-stone-400 block uppercase">Формат парения</span>
+                <span className="text-xs font-bold text-emerald-300">Дом / Дача / Аренда</span>
+              </div>
             </div>
-          ))}
-        </div>
+
+            {/* 3 STRUCTURED COLUMNS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+              
+              {/* PART 1: БЕЗОПАСНОСТЬ ГОСТЯ */}
+              <div className="rounded-2xl bg-stone-900/90 border border-emerald-500/30 p-5 space-y-3.5 shadow-md flex flex-col justify-between">
+                <div className="space-y-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xl shrink-0">
+                    🧑‍🤝‍🧑
+                  </div>
+                  <h5 className="font-serif text-base font-bold text-emerald-200">
+                    1. Безопасность Гостя (Близкого)
+                  </h5>
+                  <p className="text-xs text-stone-300 leading-relaxed">
+                    Ваш близкий человек вам доверяет. Его здоровье — ваш высший приоритет:
+                  </p>
+                  <ul className="text-xs text-stone-300 space-y-2.5 pt-1 list-none">
+                    <li className="flex items-start gap-2">
+                      <span className="text-rose-400 font-bold shrink-0">✕</span>
+                      <span><strong>Табу 37°C и алкоголь:</strong> Никогда не парить при температуре тела выше 37°C или в состоянии опьянения.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                      <span><strong>Прохладная, но сухая шапка:</strong> В парной на голове гостя всегда <u>прохладная, но сухая шапка</u> (шерсть/войлок) либо прохладный компресс на шею! Мокрая горячая шапка создает «эффект кастрюли» и перегревает мозг.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                      <span><strong>Правило плавного выхода:</strong> Закончив парить, дайте полежать 1-2 минуты, сесть, дать воды, и только потом вставать.</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-300 font-mono">
+                  💡 Прохладная сухая шапка защищает сосуды головы от термического удара.
+                </div>
+              </div>
+
+              {/* PART 2: БЕЗОПАСНОСТЬ ПРОСТРАНСТВА */}
+              <div className="rounded-2xl bg-stone-900/90 border border-amber-500/30 p-5 space-y-3.5 shadow-md flex flex-col justify-between">
+                <div className="space-y-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl shrink-0">
+                    🧖‍♂️
+                  </div>
+                  <h5 className="font-serif text-base font-bold text-amber-200">
+                    2. Безопасность Пространства
+                  </h5>
+                  <p className="text-xs text-stone-300 leading-relaxed">
+                    В арендованной бане или на даче много скрытых физических угроз:
+                  </p>
+                  <ul className="text-xs text-stone-300 space-y-2.5 pt-1 list-none">
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-400 font-bold shrink-0">⚠️</span>
+                      <span><strong>Скользкий лист:</strong> Опавший распаренный лист на мокрой плитке скользит опаснее льда! Обязательно смыть ковшом до того, как человек встанет.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-400 font-bold shrink-0">⚠️</span>
+                      <span><strong>Траектория печи:</strong> Поддавая воду, стоять сбоку от пушки или дверцы каменки. Никогда не наклонять лицо над камнями.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                      <span><strong>Залповое проветривание:</strong> Открыть окно и дверь между заходами на 1 минуту — свежий кислород важнее жара.</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-300 font-mono">
+                  💡 Всегда смывайте листья с пола перед тем, как предложить человеку встать с полка.
+                </div>
+              </div>
+
+              {/* PART 3: БЕЗОПАСНОСТЬ СЕБЯ (МАСТЕРА) */}
+              <div className="rounded-2xl bg-stone-900/90 border border-sky-500/30 p-5 space-y-3.5 shadow-md flex flex-col justify-between">
+                <div className="space-y-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-xl shrink-0">
+                    🥋
+                  </div>
+                  <h5 className="font-serif text-base font-bold text-sky-200">
+                    3. Безопасность Себя (Мастера)
+                  </h5>
+                  <p className="text-xs text-stone-300 leading-relaxed">
+                    Если вы сорвете спину или потеряете силы — парение закончится травмой:
+                  </p>
+                  <ul className="text-xs text-stone-300 space-y-2.5 pt-1 list-none">
+                    <li className="flex items-start gap-2">
+                      <span className="text-sky-400 font-bold shrink-0">✓</span>
+                      <span><strong>Защита поясницы:</strong> В домашних банях полки часто низкие. Согните колени или встаньте на трапик. Спину колесом не сгибать!</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-sky-400 font-bold shrink-0">✓</span>
+                      <span><strong>Движение от стоп:</strong> Работайте волнообразно («банное тайчи»). Руки лишь направляют веник, толкает тело.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-sky-400 font-bold shrink-0">✓</span>
+                      <span><strong>Свой питьевой режим:</strong> Мастер потеет сильнее лежащего. Пить минеральную воду или морс каждые 15 минут.</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30 text-[11px] text-sky-300 font-mono">
+                  💡 Берегите спину: наклон совершается в тазобедренных суставах с прямой спиной.
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer Highlight */}
+            <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 flex items-center gap-3 text-xs text-emerald-200 relative z-10">
+              <span className="text-xl shrink-0">🌟</span>
+              <span className="leading-relaxed">
+                <strong>Главный закон домашнего мастера:</strong> Лучше не пропарить до конца, чем перегреть или травмировать близкого человека.
+              </span>
+            </div>
+          </div>
+        )}
       </div>
       )}
 
