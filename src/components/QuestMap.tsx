@@ -4,9 +4,10 @@ import { LevelId, UserProgress } from '../types/banya';
 import {
   CheckCircle2,
   Lock,
+  Award,
+  Crown,
   ArrowRight,
   Sparkles,
-  Award,
   BookOpen,
   Target,
   Zap,
@@ -322,6 +323,99 @@ export const QuestMap: React.FC<QuestMapProps> = ({
             );
           })}
         </div>
+        {/* DEDICATED SEPARATE MODULE: QUALIFYING FINAL EXAM & CERTIFICATION */}
+        <div className="mt-8 relative rounded-3xl bg-gradient-to-r from-amber-950/60 via-stone-900 to-amber-950/50 border-2 border-amber-500/50 p-6 sm:p-8 shadow-2xl overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+            <div className="flex items-start sm:items-center gap-5">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-500/30 via-stone-900 to-amber-950 border-2 border-amber-400 flex items-center justify-center text-3xl sm:text-4xl shadow-xl shrink-0">
+                👑
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono uppercase font-bold tracking-wider">
+                    Финальный Этап Школы
+                  </span>
+                  {progress.certifiedDate || (progress.completedLevels && progress.completedLevels.includes(7)) ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>АТТЕСТАЦИЯ ПРОЙДЕНА ✓</span>
+                    </span>
+                  ) : (progress.completedLevels && progress.completedLevels.length >= 7) ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono font-bold flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
+                      <span>ДОСТУП ОТКРЫТ!</span>
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full bg-stone-850 text-stone-400 border border-stone-700 text-[10px] font-mono flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-stone-500" />
+                      <span>Пройдено {progress.completedLevels?.length || 0} из 7 уровней</span>
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 flex items-center gap-2">
+                  <span>Выпускной Квалификационный Экзамен & Сертификация</span>
+                </h3>
+
+                <p className="text-xs sm:text-sm text-stone-300 max-w-2xl leading-relaxed">
+                  Кульминация всего обучения! Комплексный экзамен из 10 ситуационных задач от реальных гостей парной. Успешная сдача подтверждает вашу квалификацию и открывает официальный именной Сертификат Пармастера с уникальным номером и печатью школы.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0">
+              {progress.certifiedDate || (progress.completedLevels && progress.completedLevels.includes(7)) ? (
+                <>
+                  <button
+                    onClick={() => {
+                      if (onOpenCertificate) onOpenCertificate();
+                      playWoodTap(soundEnabled);
+                    }}
+                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Award className="w-4 h-4 text-stone-950" />
+                    <span>Посмотреть Сертификат</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (onStartExam) onStartExam();
+                      playWoodTap(soundEnabled);
+                    }}
+                    className="px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-850 text-stone-300 text-xs font-semibold transition-colors cursor-pointer border border-stone-800 flex items-center justify-center gap-1.5"
+                  >
+                    <span>Пересдать экзамен</span>
+                  </button>
+                </>
+              ) : (progress.completedLevels && progress.completedLevels.length >= 7) ? (
+                <button
+                  onClick={() => {
+                    if (onStartExam) onStartExam();
+                    playWoodTap(soundEnabled);
+                  }}
+                  className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-xl shadow-amber-500/30 active:scale-95 cursor-pointer flex items-center justify-center gap-2 animate-pulse"
+                >
+                  <Crown className="w-4 h-4 text-stone-950" />
+                  <span>Начать Финальный Экзамен →</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (onStartExam) onStartExam();
+                    playWoodTap(soundEnabled);
+                  }}
+                  className="px-6 py-3 rounded-xl bg-stone-850 hover:bg-stone-800 text-stone-300 hover:text-white border border-stone-700 text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Lock className="w-4 h-4 text-amber-500/70" />
+                  <span>Экзамен (откроется после 7 уровней)</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>

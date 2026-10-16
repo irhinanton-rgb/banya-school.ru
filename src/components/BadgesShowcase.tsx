@@ -23,7 +23,8 @@ interface BadgesShowcaseProps {
   onNavigateToLevel?: (levelId: LevelId) => void;
   onUnlockBadge?: (badgeId: BadgeId, xp: number) => void;
   soundEnabled?: boolean;
-  isLevel2Active?: boolean;
+  isLevel3Active?: boolean;
+  currentLevelId?: number;
 }
 
 export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
@@ -31,11 +32,13 @@ export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
   onNavigateToLevel,
   onUnlockBadge,
   soundEnabled = true,
-  isLevel2Active = false,
+  isLevel3Active = false,
+  currentLevelId = 1,
 }) => {
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [isChestModalOpen, setIsChestModalOpen] = useState<boolean>(false);
   const [isKeeperModalOpen, setIsKeeperModalOpen] = useState<boolean>(false);
+  const [showKeyHintModal, setShowKeyHintModal] = useState<boolean>(false);
 
   const hasGoldenKey = unlockedBadges.includes('golden_key');
   const unlockedCount = unlockedBadges.length;
@@ -46,8 +49,12 @@ export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
   };
 
   const handleOpenChest = () => {
-    setIsChestModalOpen(true);
     playWoodTap(soundEnabled);
+    if (!hasGoldenKey) {
+      setShowKeyHintModal(true);
+    } else {
+      setIsChestModalOpen(true);
+    }
   };
 
   const handleOpenKeeperChallenge = () => {
@@ -147,7 +154,8 @@ export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
         })}
       </div>
 
-      {/* SPECIAL INTERACTIVE BANNER: The Ancient Forged Chest of Secret Knowledge */}
+      {/* SPECIAL INTERACTIVE BANNER: The Ancient Forged Chest of Secret Knowledge (ONLY ON LEVEL 3+) */}
+      {currentLevelId >= 3 && (
       <div data-secret-chest-section className="relative rounded-2xl bg-gradient-to-r from-amber-950/40 via-stone-950 to-stone-900 border border-amber-500/40 p-5 sm:p-6 shadow-xl overflow-hidden z-10">
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -168,7 +176,7 @@ export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-mono uppercase font-bold tracking-wider">
-                  {isLevel2Active ? '⭐ Открыто на Уровне 2' : 'Секретные Знания'}
+                  {isLevel3Active ? '⭐ Сокрыто на Уровне 3' : 'Секретные Знания'}
                 </span>
                 {hasGoldenKey ? (
                   <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
@@ -185,17 +193,17 @@ export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
 
               <h4 className="font-serif text-lg sm:text-xl font-bold text-stone-100 flex items-center gap-2">
                 <span>Кованый Сундук Тайных Знаний</span>
-                {isLevel2Active && (
+                {isLevel3Active && (
                   <span className="text-xs px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-normal">
-                    Награда 2-го уровня
+                    Тайник 3-го уровня
                   </span>
                 )}
               </h4>
 
               <p className="text-xs text-stone-300 max-w-xl leading-relaxed">
-                {isLevel2Active && (
+                {isLevel3Active && (
                   <strong className="text-amber-300 font-medium block mb-1">
-                    🔓 Доступ открыт со 2-го уровня!
+                    🗝️ Сундук обнаружен на 3-м уровне! Чтобы открыть его, требуется Золотой Ключ.
                   </strong>
                 )}
                 Внутри сокрыты эксклюзивное полное видео непрерывной техники 8 приёмов венечного массажа и секретная техника «Ледяное Дыхание в жару».
@@ -234,6 +242,7 @@ export const BadgesShowcase: React.FC<BadgesShowcaseProps> = ({
           </div>
         </div>
       </div>
+      )}
 
       {/* MODAL 1: Item Inspection */}
       <ItemDetailModal

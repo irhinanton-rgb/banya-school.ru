@@ -57,7 +57,7 @@ export interface LevelData {
     description: string;
     highlight?: string;
   }[];
-  interactiveType: 'first_steam' | 'broom_techniques' | 'herbal_bar' | 'safety_triage' | 'emergency_cases' | 'master_growth' | 'final_exam';
+  interactiveType: 'first_steam' | 'broom_techniques' | 'herbal_bar' | 'safety_triage' | 'emergency_cases' | 'master_growth' | 'final_exam' | 'biomechanics_steam' | 'physiology_thermal' | 'guest_service';
   quiz: QuizQuestion[];
 }
 

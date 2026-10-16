@@ -5,6 +5,9 @@ import { MicroclimateSimulator } from './simulators/MicroclimateSimulator';
 import { BroomTechniquesSimulator } from './simulators/BroomTechniquesSimulator';
 import { HerbalBlenderSimulator } from './simulators/HerbalBlenderSimulator';
 import { GuestTriageSimulator } from './simulators/GuestTriageSimulator';
+import { BiomechanicsSteamSimulator } from './simulators/BiomechanicsSteamSimulator';
+import { PhysiologyThermalSimulator } from './simulators/PhysiologyThermalSimulator';
+import { GuestServiceSimulator } from './simulators/GuestServiceSimulator';
 import { playSuccessChime } from '../utils/audio';
 import confetti from '../utils/confetti';
 import {
@@ -364,6 +367,13 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
           <BroomTechniquesSimulator
             soundEnabled={soundEnabled}
             onGrantXp={onGrantXp}
+            unlockedBadges={progress.unlockedBadges}
+            onUnlockBadge={(badgeId, xp) => {
+              if (onUnlockBadge) onUnlockBadge(badgeId, xp);
+            }}
+            onNavigateToLevel={(lvlId) => {
+              if (onSelectLevel) onSelectLevel(lvlId);
+            }}
           />
         )}
 
@@ -398,6 +408,36 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
             onErgonomicsSafetyCompleted={() => {
               markTaskCompleted('ergonomics_safety');
             }}
+          />
+        )}
+        {level.interactiveType === 'biomechanics_steam' && (
+          <BiomechanicsSteamSimulator
+            soundEnabled={soundEnabled}
+            onGrantXp={(xp) => {
+              onGrantXp(xp);
+              markTaskCompleted('interactive');
+            }}
+            onSuccess={() => markTaskCompleted('interactive')}
+          />
+        )}
+        {level.interactiveType === 'physiology_thermal' && (
+          <PhysiologyThermalSimulator
+            soundEnabled={soundEnabled}
+            onGrantXp={(xp) => {
+              onGrantXp(xp);
+              markTaskCompleted('interactive');
+            }}
+            onSuccess={() => markTaskCompleted('interactive')}
+          />
+        )}
+        {level.interactiveType === 'guest_service' && (
+          <GuestServiceSimulator
+            soundEnabled={soundEnabled}
+            onGrantXp={(xp) => {
+              onGrantXp(xp);
+              markTaskCompleted('interactive');
+            }}
+            onSuccess={() => markTaskCompleted('interactive')}
           />
         )}
 

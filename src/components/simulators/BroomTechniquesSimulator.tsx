@@ -7,6 +7,9 @@ import {
   Sparkles,
   CheckCircle2,
   Video,
+  Key,
+  Unlock,
+  AlertCircle,
   ExternalLink,
   PlusCircle,
   Eye,
@@ -17,6 +20,9 @@ import {
 interface BroomTechniquesSimulatorProps {
   soundEnabled: boolean;
   onGrantXp?: (amount: number) => void;
+  unlockedBadges?: string[];
+  onUnlockBadge?: (badgeId: any, xp: number) => void;
+  onNavigateToLevel?: (levelId: any) => void;
 }
 
 export interface VideoSource {
@@ -137,6 +143,9 @@ function parseVideoSource(urlOrId?: string): VideoSource | null {
 export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> = ({
   soundEnabled,
   onGrantXp,
+  unlockedBadges = [],
+  onUnlockBadge,
+  onNavigateToLevel,
 }) => {
   // Custom video URLs state (persisted in localStorage for convenience)
   const [customVideos, setCustomVideos] = useState<Record<string, string>>(() => {
@@ -154,6 +163,8 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
     return withVideo || BROOM_TECHNIQUES[0];
   });
   const [studiedTechs, setStudiedTechs] = useState<string[]>([]);
+  const [showKeyFoundModal, setShowKeyFoundModal] = useState<boolean>(false);
+  const hasGoldenKey = unlockedBadges.includes('golden_key') || (typeof window !== 'undefined' && localStorage.getItem('banya_golden_key_awarded') === 'true');
 
   const [inputUrl, setInputUrl] = useState<string>('');
   const [isAddingVideo, setIsAddingVideo] = useState<boolean>(false);
@@ -461,18 +472,46 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
                 </button>
               )}
 
-              <button
-                onClick={() => handleMarkAsStudied(selectedTech.id)}
-                disabled={isStudied}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  isStudied
-                    ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/50 cursor-default'
-                    : 'bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold shadow-md cursor-pointer active:scale-95'
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>{isStudied ? 'Приём изучен ✓' : 'Отметить как изученный (+15 XP)'}</span>
-              </button>
+              {selectedTech.id === 'vibratsii' ? (
+                /* SPECIAL SECRET KEY BUTTON FOR VIBRATION TECHNIQUE */
+                <button
+                  type="button"
+                  onClick={() => {
+                    playSuccessChime(soundEnabled);
+                    if (!isStudied) {
+                      handleMarkAsStudied('vibratsii');
+                    }
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('banya_golden_key_awarded', 'true');
+                    }
+                    if (onUnlockBadge) {
+                      onUnlockBadge('golden_key', 50);
+                    }
+                    setShowKeyFoundModal(true);
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg active:scale-95 cursor-pointer ${
+                    hasGoldenKey
+                      ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-stone-950 border border-amber-300 ring-2 ring-amber-400/40 shadow-amber-500/30'
+                      : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 animate-pulse'
+                  }`}
+                >
+                  <Key className="w-4 h-4 text-stone-950" />
+                  <span>{hasGoldenKey ? 'Золотой Ключ у вас! (Посмотреть подсказку)' : '🗝️ Забрать Золотой Ключ от сундука (+50 XP)'}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleMarkAsStudied(selectedTech.id)}
+                  disabled={isStudied}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    isStudied
+                      ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/50 cursor-default'
+                      : 'bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold shadow-md cursor-pointer active:scale-95'
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{isStudied ? 'Приём изучен ✓' : 'Отметить как изученный (+15 XP)'}</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -532,6 +571,58 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
 
       </div>
 
-    </div>
+          {/* POPUP: Key Found - Tells student that Secret Chest is hidden on Level 3 */}
+      {showKeyFoundModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-md rounded-3xl border-2 border-amber-400 bg-stone-950 p-6 text-stone-100 shadow-[0_0_50px_rgba(245,158,11,0.35)] space-y-5 text-center">
+            
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-3xl mx-auto shadow-[0_0_25px_rgba(245,158,11,0.4)] animate-bounce">
+              🗝️
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-amber-400 bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/30">
+                Тайный артефакт найден!
+              </span>
+              <h3 className="font-serif text-2xl font-bold text-amber-200">
+                Вы получили Золотой Ключ!
+              </h3>
+              <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-500/30 text-xs sm:text-sm text-stone-200 leading-relaxed text-left space-y-2">
+                <p>
+                  🏆 <strong>Поздравляем!</strong> Вы отыскали секретный артефакт в технике вибрации.
+                </p>
+                <p className="text-amber-300 font-semibold">
+                  🔍 Но где же сам сундук? Сундук с тайными знаниями нужно искать на третьем уровне!
+                </p>
+                <p className="text-stone-400 text-xs">
+                  Переходите на 3-й уровень обучения — там вас ждет Кованый Сундук с полным видео непрерывной связки 8 приемов и техникой «Ледяное дыхание».
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowKeyFoundModal(false);
+                  if (onNavigateToLevel) onNavigateToLevel(3);
+                }}
+                className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Искать сундук на 3-м уровне →</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowKeyFoundModal(false)}
+                className="py-3 px-4 rounded-xl bg-stone-900 hover:bg-stone-850 text-stone-400 hover:text-stone-200 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Остаться здесь
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+</div>
   );
 };

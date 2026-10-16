@@ -557,6 +557,9 @@ export default function App() {
                     onSelectLevel={handleSelectLevel}
                     activeLevelId={progress.activeLevelId}
                     onOpenPricing={() => setShowPricingModal(true)}
+                    onStartExam={() => setShowExamModal(true)}
+                    onOpenCertificate={() => setShowCertificateModal(true)}
+                    soundEnabled={progress.soundEnabled}
                   />
                 </div>
               </div>
@@ -674,7 +677,8 @@ export default function App() {
                       onNavigateToLevel={handleSelectLevel}
                       onUnlockBadge={handleGrantBadge}
                       soundEnabled={progress.soundEnabled}
-                      isLevel2Active={currentLevelData.id === 2}
+                      isLevel3Active={currentLevelData.id === 3}
+                      currentLevelId={currentLevelData.id}
                     />
                   </>
                 )}
