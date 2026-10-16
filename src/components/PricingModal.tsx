@@ -169,6 +169,37 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             </div>
           )}
 
+          {/* HONEST MENTOR MANIFEST: Без иллюзий и пустых обещаний */}
+          <div className="rounded-2xl border-2 border-amber-500/40 bg-gradient-to-br from-stone-950 via-amber-950/20 to-stone-950 p-5 sm:p-6 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex items-start gap-4 relative z-10">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-xl sm:text-2xl shrink-0 shadow-inner">
+                🤝
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase font-bold text-amber-400 tracking-wider px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30">
+                    Честный манифест школы · Без иллюзий
+                  </span>
+                </div>
+
+                <h4 className="font-serif text-base sm:text-lg font-bold text-stone-100">
+                  Курс не сделает вас супер-мастером за один клик. И вот почему:
+                </h4>
+
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                  Ни один курс в мире и ни один банный гуру не сделает новичка великим мастером за несколько уроков. Настоящее мастерство нарабатывается исключительно <strong>личным опытом, сотнями часов у полка и насмотренностью</strong>.
+                </p>
+
+                <p className="text-xs sm:text-sm text-amber-200/90 leading-relaxed font-medium">
+                  Но нарабатывать опыт вслепую — значит учиться на сорванных спинах, ожогах близких и опасных обмороках. Этот курс даёт вам <strong>железобетонный фундамент</strong>: биомеханику, физиологию пара и культуру безопасности. Вы входите в ремесло подготовленными, экономя годы слепых проб и оберегая себя и гостей от критических ошибок!
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Pricing Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             
