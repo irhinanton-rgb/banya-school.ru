@@ -495,52 +495,121 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-4 mt-3 border-t border-stone-800/80 scrollbar-none">
-            <button
-              onClick={() => setActiveTab('blueprint')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === 'blueprint'
-                  ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
-                  : 'bg-stone-900/80 text-stone-400 hover:text-stone-200 hover:bg-stone-800'
-              }`}
-            >
-              <Sliders className="w-3.5 h-3.5" />
-              <span>Интерактивный макет и симуляция</span>
-            </button>
+          {/* Navigation Tabs: 3 Highlighted Action Cards */}
+          <div className="pt-3 mt-3 border-t border-stone-800/80 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-mono text-amber-300 uppercase tracking-wider">
+              <span className="flex items-center gap-1.5 font-bold">
+                <span>👉</span>
+                <span>Нажмите на раздел для изучения:</span>
+              </span>
+              <span className="text-stone-400 text-[10px]">3 интерактивных режима</span>
+            </div>
 
-            {/* Mission tab button hidden per user request; mechanics and handler kept in code */}
-            <button
-              onClick={() => setActiveTab('steamTypes')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === 'steamTypes'
-                  ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
-                  : 'bg-stone-900/80 text-stone-400 hover:text-stone-200 hover:bg-stone-800'
-              }`}
-            >
-              <Droplets className="w-3.5 h-3.5" />
-              <span>Мелкодисперсный vs Крупный пар</span>
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5">
+              {/* BUTTON 1: Макет и симуляция */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('blueprint');
+                  playWoodTap(soundEnabled);
+                }}
+                className={`relative px-3.5 py-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer shadow-lg active:scale-98 flex items-center gap-3 ${
+                  activeTab === 'blueprint'
+                    ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-stone-950 border-amber-300 ring-4 ring-amber-400/30 shadow-amber-500/25 scale-[1.02]'
+                    : 'bg-stone-900/90 hover:bg-stone-850 text-stone-200 border-amber-500/40 hover:border-amber-400 hover:ring-2 hover:ring-amber-500/20'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs shadow-inner ${
+                  activeTab === 'blueprint' ? 'bg-stone-950 text-amber-400' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                }`}>
+                  <Sliders className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className={`text-[10px] font-mono uppercase font-bold tracking-wider block ${
+                    activeTab === 'blueprint' ? 'text-stone-950' : 'text-amber-400'
+                  }`}>
+                    1. Макет печи
+                  </span>
+                  <span className={`text-xs font-serif font-bold block truncate ${
+                    activeTab === 'blueprint' ? 'text-stone-950' : 'text-stone-100'
+                  }`}>
+                    Тяга, шибер и горение
+                  </span>
+                </div>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('infrared')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === 'infrared'
-                  ? 'bg-amber-500 text-stone-950 shadow-md font-bold'
-                  : 'bg-stone-900/80 text-stone-400 hover:text-stone-200 hover:bg-stone-800'
-              }`}
-            >
-              <Radio className="w-3.5 h-3.5" />
-              <span>ИК-волны (Короткие vs Длинные)</span>
-            </button>
+              {/* BUTTON 2: Виды пара */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('steamTypes');
+                  playWoodTap(soundEnabled);
+                }}
+                className={`relative px-3.5 py-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer shadow-lg active:scale-98 flex items-center gap-3 ${
+                  activeTab === 'steamTypes'
+                    ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-stone-950 border-amber-300 ring-4 ring-amber-400/30 shadow-amber-500/25 scale-[1.02]'
+                    : 'bg-stone-900/90 hover:bg-stone-850 text-stone-200 border-amber-500/40 hover:border-amber-400 hover:ring-2 hover:ring-amber-500/20'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs shadow-inner ${
+                  activeTab === 'steamTypes' ? 'bg-stone-950 text-amber-400' : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                }`}>
+                  <Droplets className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className={`text-[10px] font-mono uppercase font-bold tracking-wider block ${
+                    activeTab === 'steamTypes' ? 'text-stone-950' : 'text-sky-400'
+                  }`}>
+                    2. Виды пара
+                  </span>
+                  <span className={`text-xs font-serif font-bold block truncate ${
+                    activeTab === 'steamTypes' ? 'text-stone-950' : 'text-stone-100'
+                  }`}>
+                    Мелкодисперсный vs Крупный
+                  </span>
+                </div>
+              </button>
 
-            {/* Кнопка парового пирога скрыта из интерфейса по запросу пользователя, но сохранена в коде */}
+              {/* BUTTON 3: Тепловое излучение */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('infrared');
+                  playWoodTap(soundEnabled);
+                }}
+                className={`relative px-3.5 py-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer shadow-lg active:scale-98 flex items-center gap-3 ${
+                  activeTab === 'infrared'
+                    ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-stone-950 border-amber-300 ring-4 ring-amber-400/30 shadow-amber-500/25 scale-[1.02]'
+                    : 'bg-stone-900/90 hover:bg-stone-850 text-stone-200 border-amber-500/40 hover:border-amber-400 hover:ring-2 hover:ring-amber-500/20'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs shadow-inner ${
+                  activeTab === 'infrared' ? 'bg-stone-950 text-amber-400' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                }`}>
+                  <Radio className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className={`text-[10px] font-mono uppercase font-bold tracking-wider block ${
+                    activeTab === 'infrared' ? 'text-stone-950' : 'text-rose-400'
+                  }`}>
+                    3. Тепловое излучение
+                  </span>
+                  <span className={`text-xs font-serif font-bold block truncate ${
+                    activeTab === 'infrared' ? 'text-stone-950' : 'text-stone-100'
+                  }`}>
+                    Мягкое ИК vs Жёсткое ИК
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            {/* Hidden ceremonies button kept for state compatibility */}
             <button
               onClick={() => setActiveTab('ceremonies')}
               className="hidden"
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>Паровой пирог и церемонии</span>
+              <span>Паровой пирог</span>
             </button>
           </div>
         </div>
