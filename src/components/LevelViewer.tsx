@@ -920,6 +920,38 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               </div>
             )}
 
+            {/* SPECIAL LEVEL 2 GRADUATION MESSAGE: Transition from Home Master to PRO Master */}
+            {level.id === 2 && (
+              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-amber-950/70 via-stone-950 to-amber-900/40 border-2 border-amber-400/80 text-left space-y-3 shadow-2xl relative overflow-hidden ring-2 ring-amber-400/20">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-xl shrink-0">
+                    👑
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono uppercase font-bold text-amber-400 tracking-wider block">
+                      Напутствие мастера · Итоги базового курса
+                    </span>
+                    <h4 className="font-serif font-bold text-stone-100 text-sm sm:text-base">
+                      Базовый рубеж успешно пройден!
+                    </h4>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-stone-900/90 border border-amber-500/30 space-y-2.5 relative z-10">
+                  <p className="text-xs sm:text-sm text-amber-100 leading-relaxed">
+                    «Вы освоили базу для дома и семьи. Ваши близкие теперь в надежных и заботливых руках! Но если вы чувствуете, что баня зовет вас дальше — парить людей профессионально, зарабатывать на этом и не выгорать на смене — добро пожаловать в закрытый клуб мастеров PRO на Уровнях 3–7. Ваш Золотой Ключ уже ждет свой сундук!»
+                  </p>
+                  
+                  <div className="flex items-center gap-2 text-[11px] font-mono text-amber-300/90 pt-1 border-t border-stone-800">
+                    <span>🗝️</span>
+                    <span>Сундук Тайных Знаний ждет вас на 3-м уровне в разделе фитотерапии!</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
               
