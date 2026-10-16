@@ -435,7 +435,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   </ul>
                 </div>
                 <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-300 font-mono">
-                  💡 Между заходами рекомендуется убирать опавшие листья и лишнюю воду во избежание травмоопасных ситуаций.
+                  💡 Совет мастера: для отработки первых приёмов рекомендую брать тяжёлые веники, а для непосредственного парения — брать удобные и лёгкие веники.
                 </div>
               </div>
 
