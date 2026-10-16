@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { LevelData, UserProgress, LevelId, BadgeId } from '../types/banya';
 import { BADGES } from '../data/courseData';
 import { MicroclimateSimulator } from './simulators/MicroclimateSimulator';
+import { HerbsEncyclopedia } from './herbs/HerbsEncyclopedia';
+import { BookOpen } from 'lucide-react';
 import { BroomTechniquesSimulator } from './simulators/BroomTechniquesSimulator';
 import { HerbalBlenderSimulator } from './simulators/HerbalBlenderSimulator';
 import { GuestTriageSimulator } from './simulators/GuestTriageSimulator';
@@ -243,15 +245,46 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
             )}
           </div>
 
-          <div className="md:col-span-4 rounded-xl bg-stone-950/80 border border-amber-500/20 p-4 space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
-              <Lightbulb className="h-4 w-4" />
-              <span>Интересный факт:</span>
+          {level.id === 3 ? (
+            /* BIG PROMINENT HERBS LIBRARY BUTTON FOR LEVEL 3 INSTEAD OF FACT */
+            <div className="md:col-span-4 rounded-2xl bg-gradient-to-br from-emerald-950/50 via-stone-950 to-amber-950/40 border-2 border-emerald-500/60 p-4 sm:p-5 flex flex-col justify-between shadow-xl ring-1 ring-emerald-500/30 space-y-3 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+              
+              <div className="space-y-1 relative z-10">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono uppercase font-bold tracking-wider">
+                    🌿 База Знаний Станции 3
+                  </span>
+                  <span className="text-xs font-mono text-emerald-400 font-semibold">22 растения</span>
+                </div>
+                <h4 className="font-serif font-bold text-base text-stone-100">
+                  Энциклопедия & Атлас Банных Трав
+                </h4>
+                <p className="text-xs text-stone-300 leading-snug">
+                  Свойства, рецепты запарки, народные приметы и фото 22 растений.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsHerbsLibraryOpen(true)}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 active:scale-95 cursor-pointer flex items-center justify-center gap-2 relative z-10"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Открыть Библиотеку Трав (22) →</span>
+              </button>
             </div>
-            <p className="text-xs text-stone-400 leading-relaxed italic">
-              «{level.interestingFact}»
-            </p>
-          </div>
+          ) : (
+            <div className="md:col-span-4 rounded-xl bg-stone-950/80 border border-amber-500/20 p-4 space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
+                <Lightbulb className="h-4 w-4" />
+                <span>Интересный факт:</span>
+              </div>
+              <p className="text-xs text-stone-400 leading-relaxed italic">
+                «{level.interestingFact}»
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Pro-Tip Bar */}
@@ -1259,6 +1292,49 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   Отлично, продолжить
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Fullscreen Modal: Библиотека Трав (22 растения) */}
+      {isHerbsLibraryOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-5xl my-auto max-h-[95vh] flex flex-col rounded-3xl bg-stone-950 border border-emerald-500/50 shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-950/90 via-stone-900 to-stone-950 border-b border-stone-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xl shrink-0">
+                  🌿
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono uppercase font-bold text-emerald-400 tracking-wider block">
+                    Полный Справочник Пармастера
+                  </span>
+                  <h3 className="font-serif font-bold text-base sm:text-xl text-stone-100">
+                    Библиотека Банных Растений (22 Вида)
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsHerbsLibraryOpen(false)}
+                className="p-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-stone-100 transition-colors border border-stone-700 cursor-pointer"
+                title="Закрыть энциклопедию"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body with HerbsEncyclopedia */}
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+              <HerbsEncyclopedia
+                soundEnabled={soundEnabled}
+                onGrantXp={onGrantXp}
+                onSelectForBrew={() => {
+                  setIsHerbsLibraryOpen(false);
+                }}
+              />
             </div>
           </div>
         </div>
