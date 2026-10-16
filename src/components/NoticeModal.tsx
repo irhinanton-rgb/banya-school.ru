@@ -16,7 +16,7 @@ export const InDevelopmentModal: React.FC<InDevelopmentModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-xs sm:max-w-sm rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/40 p-5 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.8)] text-center space-y-4">
+      <div className="relative w-full max-w-xs sm:max-w-sm max-h-[90vh] overflow-y-auto rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/40 p-5 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.8)] text-center space-y-4">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -78,7 +78,7 @@ export const LevelLockModal: React.FC<LevelLockModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-xs sm:max-w-sm rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/40 p-5 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.8)] text-center space-y-4">
+      <div className="relative w-full max-w-xs sm:max-w-sm max-h-[90vh] overflow-y-auto rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/40 p-5 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.8)] text-center space-y-4">
         {/* Close Button */}
         <button
           onClick={onClose}

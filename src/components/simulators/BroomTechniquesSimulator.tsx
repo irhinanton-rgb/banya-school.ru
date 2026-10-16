@@ -574,7 +574,7 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
           {/* POPUP: Key Found - Tells student that Secret Chest is hidden on Level 3 */}
       {showKeyFoundModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-md rounded-3xl border-2 border-amber-400 bg-stone-950 p-6 text-stone-100 shadow-[0_0_50px_rgba(245,158,11,0.35)] space-y-5 text-center">
+          <div className="relative w-full max-w-md max-h-[92vh] overflow-y-auto rounded-3xl border-2 border-amber-400 bg-stone-950 p-5 sm:p-6 text-stone-100 shadow-[0_0_50px_rgba(245,158,11,0.35)] space-y-4 text-center">
             
             <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-3xl mx-auto shadow-[0_0_25px_rgba(245,158,11,0.4)] animate-bounce">
               🗝️

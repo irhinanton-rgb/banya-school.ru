@@ -846,8 +846,9 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
 
       {/* Success Modal: Поздравления, заработанные очки, награды */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative max-w-lg w-full rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/60 p-6 sm:p-8 shadow-2xl text-center space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="relative max-w-lg w-full my-auto max-h-[92vh] flex flex-col rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/60 p-5 sm:p-7 shadow-2xl text-center overflow-hidden">
+            <div className="overflow-y-auto flex-1 pr-1 space-y-4 sm:space-y-5">
             <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
               <div className="absolute inset-0 rounded-3xl bg-amber-500/30 blur-xl animate-pulse" />
               <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-stone-950 flex items-center justify-center text-4xl shadow-xl ring-2 ring-amber-300/50">
@@ -952,8 +953,10 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               </div>
             )}
 
-            {/* Action buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+            </div>
+
+            {/* Action buttons (Sticky at bottom) */}
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-3 border-t border-stone-800/80 shrink-0">
               
 
               {level.id < 7 && onSelectLevel ? (
