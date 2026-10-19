@@ -42,6 +42,7 @@ interface SocialPostItem {
   title: string;
   keyTakeaway?: string;
   text: string;
+  imageUrl?: string;
 }
 
 const SOCIAL_POSTS: SocialPostItem[] = telegramPostsData as SocialPostItem[];
@@ -1185,6 +1186,32 @@ ${post.rubric ? `Рубрика: ${post.rubric}
                           </button>
                         </div>
                       </div>
+
+                      {post.imageUrl && (
+                        <div className="rounded-xl overflow-hidden border border-stone-700/80 bg-stone-950 relative group">
+                          <img
+                            src={post.imageUrl}
+                            alt={post.title}
+                            className="w-full h-44 sm:h-56 object-cover"
+                            loading="lazy"
+                          />
+                          <div className="p-2.5 bg-stone-950/90 border-t border-stone-800 flex items-center justify-between gap-2 text-[11px]">
+                            <span className="text-emerald-400 font-mono flex items-center gap-1">
+                              <span>🖼</span>
+                              <span>Иллюстрация синхронизирована ({post.imageUrl})</span>
+                            </span>
+                            <a
+                              href={post.imageUrl}
+                              download={`banya-post-${post.day}.jpg`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold transition-colors"
+                            >
+                              Скачать обложку ↓
+                            </a>
+                          </div>
+                        </div>
+                      )}
 
                       {post.keyTakeaway && (
                         <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 leading-relaxed">

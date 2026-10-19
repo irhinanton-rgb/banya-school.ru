@@ -68,6 +68,45 @@ function formatToVkText(rawText, postMeta = {}) {
   return `${header}${text}${takeaway}`;
 }
 
+function sendTelegramPhoto(token, chatId, photoUrl, captionHtml) {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
+      chat_id: chatId,
+      photo: photoUrl,
+      caption: captionHtml,
+      parse_mode: 'HTML',
+    });
+    const req = https.request(
+      {
+        hostname: 'api.telegram.org',
+        port: 443,
+        path: `/bot${token}/sendPhoto`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload),
+        },
+      },
+      (res) => {
+        let body = '';
+        res.on('data', (chunk) => (body += chunk));
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(body);
+            if (parsed.ok) resolve(parsed);
+            else reject(new Error(parsed.description || 'Telegram sendPhoto error'));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
 function sendTelegramMessage(token, chatId, htmlText) {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
@@ -185,13 +224,27 @@ export default async function handler(req, res) {
 
     const post = posts.find((p) => p.day === targetDay) || posts[0];
 
-    // 1. Publish to Telegram
+    // 1. Publish to Telegram (with image if post.imageUrl exists and caption <= 1024 chars)
     const htmlMessage = formatToTelegramHtml(post.text, post);
-    const tgResult = await sendTelegramMessage(
-      TELEGRAM_BOT_TOKEN,
-      TELEGRAM_CHAT_ID,
-      htmlMessage
-    );
+    let tgResult;
+    if (post.imageUrl && htmlMessage.length <= 1020) {
+      try {
+        tgResult = await sendTelegramPhoto(
+          TELEGRAM_BOT_TOKEN,
+          TELEGRAM_CHAT_ID,
+          `https://banya-school.ru${post.imageUrl}`,
+          htmlMessage
+        );
+      } catch {
+        tgResult = await sendTelegramMessage(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, htmlMessage);
+      }
+    } else {
+      tgResult = await sendTelegramMessage(
+        TELEGRAM_BOT_TOKEN,
+        TELEGRAM_CHAT_ID,
+        htmlMessage
+      );
+    }
 
     // 2. Publish to VKontakte (if VK_ACCESS_TOKEN and VK_GROUP_ID are configured)
     let vkResult = null;
