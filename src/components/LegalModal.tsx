@@ -195,8 +195,8 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   </div>
                   <div>
                     <span className="text-stone-500 block">E-mail для связи и поддержки:</span>
-                    <a href="mailto:irhinanton@gmail.com" className="text-amber-400 hover:underline">
-                      irhinanton@gmail.com
+                    <a href="mailto:irhin_anton@mail.ru" className="text-amber-400 hover:underline">
+                      irhin_anton@mail.ru
                     </a>
                   </div>
                   <div>

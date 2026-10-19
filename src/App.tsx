@@ -25,6 +25,7 @@ import { AuthModal } from './components/AuthModal';
 import { PricingModal } from './components/PricingModal';
 import { LegalModal } from './components/LegalModal';
 import { RequisitesPage } from './components/legal/RequisitesPage';
+import { PartnershipSection } from './components/PartnershipSection';
 import { CommunityClubModal } from './components/CommunityClubModal';
 import { UserProfileModal } from './components/profile/UserProfileModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
@@ -883,6 +884,9 @@ export default function App() {
         </div>
       )}
 
+      {/* Partnership & B2B Section */}
+      <PartnershipSection soundEnabled={progress.soundEnabled} />
+
       {/* Footer */}
       <footer className="w-full border-t border-stone-800/80 bg-stone-950 py-6 pb-24 md:pb-6 print:hidden">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
@@ -890,6 +894,13 @@ export default function App() {
             © {new Date().getFullYear()} Пармастер Квест: Путь к Мастерству · banya-school.ru
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            <a
+              href="#partnerships-section"
+              className="text-amber-400 hover:text-amber-300 transition-colors"
+            >
+              Сотрудничество и реклама
+            </a>
+            <span aria-hidden="true">·</span>
             <button
               onClick={() => handleOpenLegal('offer')}
               className="hover:text-stone-300 transition-colors cursor-pointer"
@@ -912,8 +923,6 @@ export default function App() {
             </button>
           </div>
         </div>
-
-
       </footer>
 
       {/* Mobile Sticky Bottom Navigation Bar */}

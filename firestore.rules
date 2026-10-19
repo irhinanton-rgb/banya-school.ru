@@ -14,8 +14,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == 'irhinanton@gmail.com' ||
-        request.auth.token.email == 'aniwalker1998@gmail.com'
+        request.auth.token.email == 'irhin_anton@mail.ru'
       );
     }
 
@@ -32,7 +31,7 @@ service cloud.firestore {
     }
 
     function isValidUserProfile(data) {
-      return data.uid is string && data.uid.size() <= 128 && data.uid == request.auth.uid
+      return data.uid is string && data.uid.size() <= 128 && (data.uid == request.auth.uid || isAdmin())
         && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100
         && (!('email' in data) || (data.email is string && data.email.size() <= 150))
         && (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() <= 32))
@@ -41,7 +40,7 @@ service cloud.firestore {
     }
 
     function isValidUserProgress(data) {
-      return data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid
+      return data.userId is string && data.userId.size() <= 128 && (data.userId == request.auth.uid || isAdmin())
         && data.name is string && data.name.size() <= 100
         && data.xp is number && data.xp >= 0 && data.xp <= 1000000
         && data.completedLevels is list && data.completedLevels.size() <= 50
@@ -58,7 +57,7 @@ service cloud.firestore {
         && (!('city' in data) || (data.city is string && data.city.size() <= 100))
         && (!('favoriteBrooms' in data) || (data.favoriteBrooms is list && data.favoriteBrooms.size() <= 20))
         && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64))
-        && !('isAdmin' in data);
+        && (!('isAdmin' in data) || (data.isAdmin is bool && isAdmin()));
     }
 
     function isValidCommunityMessage(data) {
@@ -79,7 +78,9 @@ service cloud.firestore {
           data.type == 'feedback' ||
           data.type == 'payment' ||
           data.type == 'registration' ||
-          data.type == 'payment_intent'
+          data.type == 'payment_intent' ||
+          data.type == 'b2b_inquiry' ||
+          data.type == 'ad_inquiry'
         )
         && data.message is string && data.message.size() >= 1 && data.message.size() <= 2000
         && data.createdAt is string && data.createdAt.size() <= 64
@@ -110,19 +111,19 @@ service cloud.firestore {
 
     // User profile document
     match /users/{userId} {
-      allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
-      allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProfile(incoming());
-      allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProfile(incoming())
+      allow get, list: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin()) && isValidUserProfile(incoming());
+      allow update: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin()) && isValidUserProfile(incoming())
                     && incoming().uid == existing().uid;
-      allow delete: if false;
+      allow delete: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
 
       // User progress subcollection
       match /progress/{progressId} {
         allow get, list: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
-        allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProgress(incoming());
-        allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProgress(incoming())
+        allow create: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin()) && isValidUserProgress(incoming());
+        allow update: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin()) && isValidUserProgress(incoming())
                       && incoming().userId == existing().userId;
-        allow delete: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
       }
     }
 

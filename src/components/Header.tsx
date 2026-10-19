@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { LevelId, UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
+import { isAdminEmail } from '../firebase/config';
 
 export interface HeaderProps {
   progress: UserProgress;
@@ -76,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const quickNavScrollRef = useRef<HTMLDivElement>(null);
 
-  const isAdmin = user?.email?.toLowerCase() === 'irhinanton@gmail.com' || Boolean(progress.isAdmin);
+  const isAdmin = isAdminEmail(user?.email) || Boolean(progress.isAdmin);
   const isMasterPro = isAdmin || progress.isPaid || progress.tariff === 'master_pro';
   const completedCount = progress.completedLevels ? progress.completedLevels.length : 0;
   const isCourseCompleted =

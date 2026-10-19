@@ -4,7 +4,15 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 
-export type AdminMessageType = 'question' | 'bug' | 'feedback' | 'payment' | 'registration' | 'payment_intent';
+export type AdminMessageType =
+  | 'question'
+  | 'bug'
+  | 'feedback'
+  | 'payment'
+  | 'registration'
+  | 'payment_intent'
+  | 'ad_inquiry'
+  | 'b2b_inquiry';
 
 export interface AdminMessagePayload {
   type: AdminMessageType;
@@ -137,6 +145,18 @@ export function formatTelegramMessageHtml(payload: AdminMessagePayload): string 
       `🕒 <b>Время:</b> ${time}`,
       ``,
       `💬 <b>Отзыв:</b>`,
+      message,
+    ];
+  } else if (payload.type === 'ad_inquiry' || payload.type === 'b2b_inquiry') {
+    lines = [
+      `🤝 <b>[СОТРУДНИЧЕСТВО / РЕКЛАМА] Заявка от партнёра на banya-school.ru</b>`,
+      ``,
+      `🏢 <b>Имя / Компания:</b> ${userName}`,
+      userEmail ? `📱 <b>Контакт:</b> <code>${userEmail}</code>` : '',
+      payload.referralSource ? `📌 <b>Направление:</b> ${escapeTgHtml(payload.referralSource)}` : '',
+      `🕒 <b>Время:</b> ${time}`,
+      ``,
+      `💬 <b>Предложение / Детали:</b>`,
       message,
     ];
   } else {

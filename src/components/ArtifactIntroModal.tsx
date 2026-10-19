@@ -17,7 +17,7 @@ export const ArtifactIntroModal: React.FC<ArtifactIntroModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
       <div 
-        className="relative max-w-xl w-full max-h-[92vh] overflow-y-auto rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/40 p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.85)] text-stone-100 space-y-6"
+        className="relative max-w-xl w-full rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border border-amber-500/40 p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.85)] text-stone-100 space-y-6"
         role="dialog"
         aria-modal="true"
       >

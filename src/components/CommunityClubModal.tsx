@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
+import { isAdminEmail } from '../firebase/config';
 import {
   CommunityMessage,
   HomeworkSubmission,
@@ -66,9 +67,7 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
   initialTab = 'chat',
 }) => {
   const { user } = useAuth();
-  const isAdmin =
-    user?.email?.toLowerCase() === 'irhinanton@gmail.com' ||
-    Boolean(progress.isAdmin);
+  const isAdmin = isAdminEmail(user?.email) || Boolean(progress.isAdmin);
   const [bannedUserIds, setBannedUserIds] = useState<string[]>(() => getBannedUsers());
   const [activeTab, setActiveTab] = useState<'chat' | 'webinar' | 'homework'>(initialTab);
 
@@ -155,7 +154,7 @@ export const CommunityClubModal: React.FC<CommunityClubModalProps> = ({
     playWoodTap(progress.soundEnabled);
 
     const authorName = user?.displayName || progress.name || 'Ученик Квеста';
-    const authorRole = user?.email?.includes('irhinanton') ? 'mentor' : 'student';
+    const authorRole = isAdminEmail(user?.email) ? 'mentor' : 'student';
 
     const newMsg = await sendCommunityMessage({
       authorId: user?.uid || 'guest_user',

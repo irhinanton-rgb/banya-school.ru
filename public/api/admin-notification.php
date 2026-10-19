@@ -94,6 +94,18 @@ if ($type === 'registration') {
         "💬 <b>Отзыв:</b>",
         $message
     ];
+} elseif ($type === 'ad_inquiry' || $type === 'b2b_inquiry') {
+    $lines = [
+        "🤝 <b>[СОТРУДНИЧЕСТВО / РЕКЛАМА] Заявка от партнёра на banya-school.ru</b>",
+        "",
+        "🏢 <b>Имя / Компания:</b> {$userName}",
+        $userEmail ? "📱 <b>Контакт:</b> <code>{$userEmail}</code>" : "",
+        $referralSource ? "📌 <b>Направление:</b> {$referralSource}" : "",
+        "🕒 <b>Время:</b> {$time}",
+        "",
+        "💬 <b>Предложение / Детали:</b>",
+        $message
+    ];
 } else {
     $levelSuffix = $currentLevel ? " (Станция {$currentLevel})" : "";
     $lines = [

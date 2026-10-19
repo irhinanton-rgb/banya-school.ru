@@ -63,8 +63,8 @@ export interface ForumComment {
   createdAt: string;
 }
 
-const STORAGE_POSTS_KEY = 'banya_school_forum_posts_v1';
-const STORAGE_COMMENTS_KEY = 'banya_school_forum_comments_v1';
+const STORAGE_POSTS_KEY = 'banya_school_forum_posts_v2';
+const STORAGE_COMMENTS_KEY = 'banya_school_forum_comments_v2';
 
 export const CATEGORY_LABELS: Record<ForumCategory, { label: string; icon: string }> = {
   courses: { label: 'Авторские курсы & Программы', icon: '🎓' },
@@ -95,7 +95,7 @@ export const INITIAL_FORUM_POSTS: ForumPost[] = [
     authorName: 'Антон Ирхин',
     authorRole: 'mentor',
     authorCity: 'Россия',
-    authorTelegram: '@irhinanton',
+    authorTelegram: '@BatyaVBane',
     price: 'Бесплатно для сообщества',
     programSteps: [
       { title: 'Модуль 1', duration: '2 часа', description: 'Биомеханика стойки, постановка кистевого хвата и дыхание в парной.' },
@@ -105,7 +105,7 @@ export const INITIAL_FORUM_POSTS: ForumPost[] = [
     tags: ['обучение', 'постановка рук', 'эргономика', 'авторский курс'],
     likesCount: 38,
     likedBy: [],
-    commentsCount: 3,
+    commentsCount: 0,
     createdAt: 'Октябрь 2026',
     isPinned: true
   },
@@ -124,10 +124,10 @@ export const INITIAL_FORUM_POSTS: ForumPost[] = [
 • На лицо — прохладный веер из сибирской пихты.
 
 Используйте в своей практике и адаптируйте под свои парные!`,
-    authorId: 'master_vitaly',
-    authorName: 'Виталий Смирнов',
-    authorRole: 'master',
-    authorCity: 'Санкт-Петербург',
+    authorId: 'mentor_anton',
+    authorName: 'Антон Ирхин',
+    authorRole: 'mentor',
+    authorCity: 'Россия',
     price: 'Открытый опыт',
     programSteps: [
       { title: '1. Аромазнакомство', duration: '8 мин', description: 'Мягкий бесконтактный прогрев, подача настоя таволги, ингаляция пихтой.' },
@@ -137,7 +137,7 @@ export const INITIAL_FORUM_POSTS: ForumPost[] = [
     tags: ['программа парения', 'донник', 'пихта', 'релакс', 'техкарта'],
     likesCount: 24,
     likedBy: [],
-    commentsCount: 2,
+    commentsCount: 0,
     createdAt: 'Октябрь 2026',
     isPinned: false
   },
@@ -150,59 +150,25 @@ export const INITIAL_FORUM_POSTS: ForumPost[] = [
     summary: 'Практический опыт замены речного базальта на колотый жадеит и нефрит: разница в теплоёмкости, отсутствие пыли и лёгкий пар 500°C.',
     content: `Многие экономят на закладке и засыпают в каменку дешевый габбро-диабаз, а потом жалуются, что камни трескаются за пару месяцев и пылят серой пылью в легкие.
 
-Я перевёл свои коммерческие печи на колотый жадеит (в ядро) и сортовой нефрит (наверх).
-Результаты за год:
+В коммерческих и семейных печах закрытого типа я рекомендую колотый жадеит (в ядро) и сортовой нефрит (наверх).
+Результаты:
 1. Жадеит держит 550°C без разрушения и не дает ни грамма песка.
 2. Теплоёмкость на 20% выше: печь требует меньше дров для поддержания ядреного пара.
-3. Пар получается ультрамелким и прозрачным — гости в восторге.
-
-Делитесь в комментариях, у кого какие камни лежат в печи!`,
-    authorId: 'master_sergey',
-    authorName: 'Сергей Дронов',
-    authorRole: 'pro',
-    authorCity: 'Екатеринбург',
+3. Пар получается ультрамелким и прозрачным — гости в восторге.`,
+    authorId: 'mentor_anton',
+    authorName: 'Антон Ирхин',
+    authorRole: 'mentor',
+    authorCity: 'Россия',
     tags: ['печь', 'камни', 'жадеит', 'нефрит', 'закрытая каменка'],
     likesCount: 19,
     likedBy: [],
-    commentsCount: 4,
+    commentsCount: 0,
     createdAt: 'Октябрь 2026',
     isPinned: false
   }
 ];
 
-export const INITIAL_FORUM_COMMENTS: Record<string, ForumComment[]> = {
-  post_seed_1: [
-    {
-      id: 'comm_1',
-      postId: 'post_seed_1',
-      authorId: 'student_1',
-      authorName: 'Дмитрий Волков',
-      authorRole: 'Мастер-стажёр',
-      text: 'Антон, спасибо за акцент на работу ног! Раньше после 3 гостей поясница отваливалась, а как начал переносить вес тела — могу парить весь день без усталости.',
-      createdAt: '2 дня назад'
-    },
-    {
-      id: 'comm_2',
-      postId: 'post_seed_1',
-      authorId: 'mentor_anton',
-      authorName: 'Антон Ирхин',
-      authorRole: 'Наставник',
-      text: 'Дмитрий, именно в этом суть банного мастерства! Сохраняем собственное здоровье, чтобы дарить силу гостям.',
-      createdAt: 'Вчера'
-    }
-  ],
-  post_seed_2: [
-    {
-      id: 'comm_3',
-      postId: 'post_seed_2',
-      authorId: 'master_elena',
-      authorName: 'Елена Румянцева',
-      authorRole: 'Пармейстер',
-      text: 'Шикарная программа! Мы добавили в финал ещё проливку головы отваром ромашки — клиенты просто спят на кушетке.',
-      createdAt: '1 день назад'
-    }
-  ]
-};
+export const INITIAL_FORUM_COMMENTS: Record<string, ForumComment[]> = {};
 
 // --- Storage & Sync Helpers ---
 

@@ -1,31 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Check,
+  Crown,
   Sparkles,
   ShieldCheck,
+  Award,
+  Flame,
   CreditCard,
   QrCode,
   Zap,
-  Award,
-  BookOpen,
   Lock,
   ArrowRight,
-  Flame,
-  HelpCircle,
-  FileText,
-  FlaskConical,
   AlertCircle,
+  FlaskConical,
+  CheckCircle2,
+  Building2,
+  Tag,
+  Phone,
+  Briefcase,
 } from 'lucide-react';
-import { useAuth } from '../firebase/AuthContext';
 import { UserProgress } from '../types/banya';
+import { useAuth } from '../firebase/AuthContext';
 import { sendAdminMessage } from '../firebase/adminMessageService';
+import { playWoodTap } from '../utils/audio';
 
 interface PricingModalProps {
   isOpen: boolean;
   onClose: () => void;
   progress: UserProgress;
-  onActivatePaidTier: (orderId?: string) => Promise<void>;
+  onPurchaseSuccess?: (orderId: string) => void;
+  onActivatePaidTier?: (orderId?: string) => Promise<void> | void;
   onOpenLegal?: (tab: 'offer' | 'privacy' | 'requisites') => void;
 }
 
@@ -33,147 +38,206 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   isOpen,
   onClose,
   progress,
-  onActivatePaidTier,
   onOpenLegal,
 }) => {
   const { user } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState<'sbp' | 'card' | 'tpay'>('sbp');
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  // Lead capture contact field for guests / buyers before redirecting to YooKassa
+  const [buyerContact, setBuyerContact] = useState<string>(
+    user?.email || user?.phoneNumber || ''
+  );
+  const [buyerName, setBuyerName] = useState<string>(
+    user?.displayName || progress.name || ''
+  );
+  const [promoCodeInput, setPromoCodeInput] = useState<string>('');
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (!buyerContact && (user?.email || user?.phoneNumber)) {
+        setBuyerContact(user.email || user.phoneNumber || '');
+      }
+      if (!buyerName && (user?.displayName || progress.name)) {
+        setBuyerName(user?.displayName || progress.name || '');
+      }
+    }
+  }, [isOpen, user?.email, user?.phoneNumber, user?.displayName, progress.name]);
 
   if (!isOpen) return null;
 
-  const isAlreadyPaid = progress.isPaid || progress.tariff === 'master_pro';
+  const isAlreadyPaid = Boolean(
+    progress.isAdmin || progress.isPaid || progress.tariff === 'master_pro'
+  );
 
-  const handleInitiatePayment = async (amount: number = 3390) => {
-    setIsProcessing(true);
+  const basePrice = 3390;
+  const finalPrice = appliedPromo ? 3050 : basePrice;
+
+  const handleApplyPromo = () => {
+    playWoodTap(progress.soundEnabled);
+    const code = promoCodeInput.trim().toUpperCase();
+    if (code === 'BATYA10' || code === 'PAR10' || code === 'BANYA10') {
+      setAppliedPromo(code);
+      setPromoMessage('Скидка 10% активирована: стоимость курса 3 050 ₽');
+    } else {
+      setAppliedPromo(null);
+      setPromoMessage('Промокод не найден (подписчикам @BatyaVBane доступен код BATYA10)');
+    }
+  };
+
+  const handleInitiatePayment = async (customAmount?: number) => {
+    playWoodTap(progress.soundEnabled);
     setPaymentError(null);
-    try {
-      let data: any = null;
-      const paymentPayload = {
-        amount,
-        description:
-          amount === 10
-            ? 'Тестовый платёж 10 ₽ (Курс Пармастера banya-school.ru)'
-            : 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)',
-        userId: user?.uid || null,
-        userEmail: user?.email || null,
-      };
 
-      // 1. Query available backend payment endpoints (both root and ISPmanager virtual host path)
-      const candidateEndpoints = [
-        '/www/banya-school.ru/api/create-payment.php',
+    const amountToPay = customAmount || finalPrice;
+    const trimmedContact = buyerContact.trim() || user?.email || user?.phoneNumber || '';
+    const trimmedName =
+      buyerName.trim() || user?.displayName || progress.name || 'Ученик курса';
+
+    // Require contact for non-logged-in guests on full course payment so lead is never lost
+    if (!customAmount && !trimmedContact) {
+      setPaymentError(
+        'Пожалуйста, укажите ваш телефон, @Telegram или Email для отправки чека и закрепления именного сертификата.'
+      );
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const orderId = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+
+      try {
+        localStorage.setItem('banya_pending_order_id', orderId);
+        if (trimmedContact) {
+          localStorage.setItem('banya_buyer_contact', trimmedContact);
+        }
+      } catch {
+        // ignore storage errors
+      }
+
+      // Immediately notify admin in Telegram (@ParmasterQuest_bot) with real buyer contact
+      sendAdminMessage({
+        type: 'payment_intent',
+        userId: user?.uid || 'guest',
+        userName: trimmedName,
+        userEmail: trimmedContact || 'Контакт не указан',
+        phoneNumber: trimmedContact,
+        orderId,
+        amount: amountToPay,
+        message: `Ученик нажал кнопку оплаты (${amountToPay} ₽, метод: ${selectedMethod.toUpperCase()}${
+          appliedPromo ? `, промокод: ${appliedPromo}` : ''
+        }). Заказ: ${orderId}. Контакт: ${trimmedContact || 'не указан'}`,
+      });
+
+      const endpoints = [
         '/api/create-payment.php',
+        '/www/banya-school.ru/api/create-payment.php',
+        'https://banya-school.ru/api/create-payment.php',
         '/api/create-payment',
       ];
 
-      for (const endpoint of candidateEndpoints) {
-        if (data?.confirmationUrl) break;
+      let responseData: any = null;
+      let lastError = 'Не удалось соединиться с платёжным шлюзом ЮKassa.';
+
+      for (const endpoint of endpoints) {
         try {
-          const res = await fetch(endpoint, {
+          const response = await fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(paymentPayload),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              orderId,
+              amount: amountToPay,
+              paymentMethod: selectedMethod,
+              userEmail: trimmedContact.includes('@') && !trimmedContact.startsWith('@')
+                ? trimmedContact
+                : user?.email || 'student@banya-school.ru',
+              userName: trimmedName,
+              returnUrl: `${window.location.origin}/?payment_success=1&order_id=${orderId}`,
+            }),
           });
-          const contentType = res.headers.get('content-type') || '';
-          if (res.ok && contentType.includes('application/json')) {
-            const parsed = await res.json();
-            if (parsed.success && parsed.confirmationUrl) {
-              data = parsed;
-              break;
-            }
+
+          const text = await response.text();
+          if (!text || text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+            continue;
           }
-        } catch (err) {
-          console.warn(`Payment endpoint ${endpoint} failed:`, err);
-        }
-      }
 
-      if (data?.confirmationUrl) {
-        try {
-          localStorage.setItem(
-            'pq_pending_payment',
-            JSON.stringify({
-              orderId: data.orderId,
-              paymentId: data.paymentId,
-              amount: data.amount,
-              createdAt: Date.now(),
-            })
-          );
+          const parsed = JSON.parse(text);
+          if (parsed && parsed.confirmationUrl) {
+            responseData = parsed;
+            break;
+          } else if (parsed && parsed.error) {
+            lastError = parsed.error;
+          }
         } catch {
-          // ignore storage quota errors
+          // try next candidate endpoint
         }
-        // Redirect directly to YooKassa checkout
-        window.location.href = data.confirmationUrl;
-        return;
       }
 
-      // 3. Fallback: Notify Anton immediately in Telegram so the client is contacted directly
-      sendAdminMessage({
-        type: 'payment_intent',
-        message: `Ученик нажал кнопку оплаты (${amount} ₽), но соединение с ЮKassa требует ручного подтверждения.`,
-        amount,
-        userId: user?.uid || 'guest',
-        userName: user?.displayName || progress.name || 'Ученик',
-        userEmail: user?.email || '',
-      });
-
-      throw new Error(
-        data?.error || 
-        'Шлюз ЮKassa обрабатывает запрос. Заявка с вашими контактами отправлена лично Антону в Telegram! Связаться напрямую: @Anton_Irkhin'
-      );
-    } catch (e: any) {
-      console.error('Payment initiation error:', e);
-      setPaymentError(e.message || 'Ошибка соединения с ЮKassa. Попробуйте еще раз.');
-    } finally {
+      if (responseData && responseData.confirmationUrl) {
+        window.location.href = responseData.confirmationUrl;
+      } else {
+        setPaymentError(lastError);
+        setIsProcessing(false);
+      }
+    } catch {
+      setPaymentError('Ошибка при инициализации платежа. Попробуйте ещё раз.');
       setIsProcessing(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-5 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-4xl rounded-t-3xl sm:rounded-3xl border-t sm:border border-amber-600/40 bg-stone-950 text-stone-100 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[94vh]">
-        
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md p-0 sm:p-4 overflow-y-auto">
+      <div className="relative w-full max-w-4xl rounded-t-3xl sm:rounded-3xl border-t sm:border border-stone-800 bg-stone-950 shadow-2xl overflow-hidden my-auto max-h-[94vh] flex flex-col">
         {/* Mobile Swipe Handle */}
-        <div className="w-12 h-1 bg-stone-700/80 rounded-full mx-auto my-2 sm:hidden shrink-0" />
+        <div className="w-12 h-1 bg-stone-700/80 rounded-full mx-auto mt-2.5 sm:hidden shrink-0" />
 
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-amber-950/80 via-stone-900 to-amber-950/80 border-b border-stone-800 p-4 sm:p-6 shrink-0">
-          <button
-            onClick={onClose}
-            className="absolute top-3 sm:top-4 right-3 sm:right-4 p-2 rounded-full bg-stone-900/80 hover:bg-stone-800 text-stone-400 hover:text-stone-100 transition-colors border border-stone-700/60 cursor-pointer"
-            title="Закрыть"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl shrink-0 shadow-inner">
-              👑
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-mono uppercase tracking-wider mb-1">
-                <span>Официальный онлайн-курс</span>
+        <div className="relative p-5 sm:p-7 border-b border-stone-800/80 bg-gradient-to-r from-stone-900 via-amber-950/30 to-stone-900 shrink-0">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 text-amber-300 text-xs font-mono uppercase tracking-wider">
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span>Образовательная платформа «Пармастер Квест»</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold text-amber-100">
-                Тарифы Обучения и Доступ к Курсу
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-100">
+                Выберите формат обучения
               </h2>
+              <p className="text-xs sm:text-sm text-stone-400 max-w-xl">
+                Откройте все 7 станций квеста, интерактивные тренажёры, проверку заданий и получите именной номерной Сертификат Пармейстера
+              </p>
             </div>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 text-stone-400 hover:text-stone-100 border border-stone-800 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 sm:p-8 space-y-8 overflow-y-auto">
-          
+        <div className="p-5 sm:p-8 space-y-7 overflow-y-auto">
           {/* Status Banner if already paid */}
           {isAlreadyPaid && (
             <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-sm flex items-center justify-between gap-3 shadow-lg">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xl shrink-0">
-                  ✅
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-emerald-100">У вас активирован полный доступ «Мастер Пара PRO»</h4>
-                  <p className="text-xs text-emerald-300/80">Все 7 станций квеста, симуляторы, аттестация и сертификат открыты без ограничений.</p>
+                  <h4 className="font-bold text-emerald-100">
+                    У вас активирован полный доступ «Мастер Пара PRO»
+                  </h4>
+                  <p className="text-xs text-emerald-300/80">
+                    Все 7 станций квеста, симуляторы, аттестация и сертификат открыты без ограничений.
+                  </p>
                 </div>
               </div>
               <div className="text-xs font-mono px-3 py-1.5 rounded-lg bg-emerald-900/60 border border-emerald-500/40 font-semibold">
@@ -182,20 +246,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             </div>
           )}
 
-          {/* HONEST MENTOR MANIFEST: Без иллюзий и пустых обещаний */}
-          <div className="rounded-2xl border-2 border-amber-500/40 bg-gradient-to-br from-stone-950 via-amber-950/20 to-stone-950 p-5 sm:p-6 shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
+          {/* HONEST MENTOR MANIFEST */}
+          <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-br from-stone-950 via-amber-950/20 to-stone-950 p-5 sm:p-6 shadow-xl relative overflow-hidden">
             <div className="flex items-start gap-4 relative z-10">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-xl sm:text-2xl shrink-0 shadow-inner">
-                🤝
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 border border-amber-400/50 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                <ShieldCheck className="w-6 h-6" />
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono uppercase font-bold text-amber-400 tracking-wider px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30">
-                    Честный манифест школы · Без иллюзий
-                  </span>
+                <div className="text-[11px] font-mono uppercase font-bold text-amber-400 tracking-wider">
+                  Честный манифест школы · Без иллюзий
                 </div>
 
                 <h4 className="font-serif text-base sm:text-lg font-bold text-stone-100">
@@ -203,11 +263,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 </h4>
 
                 <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                  Ни один курс в мире и ни один банный гуру не сделает новичка великим мастером за несколько уроков. Настоящее мастерство нарабатывается исключительно <strong>личным опытом, сотнями часов у полка и насмотренностью</strong>.
+                  Ни один курс в мире и ни один банный гуру не сделает новичка великим мастером за несколько уроков. Настоящее мастерство нарабатывается исключительно{' '}
+                  <strong>личным опытом, сотнями часов у полка и насмотренностью</strong>.
                 </p>
 
                 <p className="text-xs sm:text-sm text-amber-200/90 leading-relaxed font-medium">
-                  Но нарабатывать опыт вслепую — значит учиться на сорванных спинах, ожогах близких и опасных обмороках. Этот курс даёт вам <strong>железобетонный фундамент</strong>: биомеханику, физиологию пара и культуру безопасности. Вы входите в ремесло подготовленными, экономя годы слепых проб и оберегая себя и гостей от критических ошибок!
+                  Но нарабатывать опыт вслепую — значит учиться на сорванных спинах, ожогах близких и опасных обмороках. Этот курс даёт вам{' '}
+                  <strong>железобетонный фундамент</strong>: биомеханику, физиологию пара и культуру безопасности. Вы входите в ремесло подготовленными, экономя годы слепых проб!
                 </p>
               </div>
             </div>
@@ -215,50 +277,47 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
           {/* Pricing Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            
             {/* Free Plan */}
             <div className="relative rounded-2xl border border-stone-800 bg-stone-900/50 p-6 flex flex-col justify-between">
               <div>
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-mono uppercase tracking-wider text-stone-400">
-                    Стартовый тариф
-                  </span>
-                  <span className="px-2.5 py-1 rounded-full bg-stone-800 text-stone-300 text-xs font-medium">
-                    Базовый
-                  </span>
+                <div className="flex justify-between items-center mb-3 text-xs font-mono text-stone-400">
+                  <span className="uppercase tracking-wider">Стартовый тариф</span>
+                  <span className="text-stone-300">Базовый доступ</span>
                 </div>
                 <h3 className="text-xl font-serif font-bold text-stone-200 mb-1">
                   Вольный Слушатель
                 </h3>
                 <p className="text-xs text-stone-400 mb-4">
-                  Ознакомление с основами банной традиции и микроклиматом
+                  Ознакомление с микроклиматом парной, церемонией первого пара и 8 приёмами веника
                 </p>
 
                 <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-3xl font-serif font-bold text-stone-100">0 ₽</span>
+                  <span className="text-3xl font-serif font-bold text-stone-100 tabular-nums">
+                    0 ₽
+                  </span>
                   <span className="text-xs text-stone-500">бесплатно навсегда</span>
                 </div>
 
                 <div className="space-y-3 text-xs text-stone-300">
                   <div className="flex items-center gap-2.5">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Уровень 1: Анатомия Русской Бани</span>
+                    <span>Уровень 1: Вход в Банное Дело (Микроклимат и Первый пар)</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Уровень 2: Банная Гигиена и Безопасность</span>
+                    <span>Уровень 2: Анатомия Пара и Веники (8 базовых приёмов)</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Базовый симулятор микроклимата</span>
+                    <span>Интерактивный экзамен по печи и симулятор первого пара</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-stone-500">
                     <Lock className="w-4 h-4 text-stone-600 shrink-0" />
-                    <span>Уровни 3–7 (Веники, Травы, ЧП, Мастерство)</span>
+                    <span>Уровни 3–7 (Паровой пирог, Безопасность, Фитотека, ЧП, Сервис)</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-stone-500">
                     <Lock className="w-4 h-4 text-stone-600 shrink-0" />
-                    <span>Итоговый экзамен и Именной Сертификат</span>
+                    <span>Финальная аттестация и Именной Сертификат с номером</span>
                   </div>
                 </div>
               </div>
@@ -266,9 +325,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               <div className="pt-6">
                 <button
                   onClick={onClose}
-                  className="w-full py-2.5 px-4 rounded-xl border border-stone-700 bg-stone-800/80 hover:bg-stone-700 text-stone-300 text-xs font-semibold transition-colors"
+                  className="w-full py-2.5 px-4 rounded-xl border border-stone-700 bg-stone-800/80 hover:bg-stone-700 text-stone-300 text-xs font-semibold transition-colors cursor-pointer"
                 >
-                  Текущий базовый доступ
+                  Продолжить на базовом тарифе
                 </button>
               </div>
             </div>
@@ -290,33 +349,39 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   Мастер Пара PRO
                 </h3>
                 <p className="text-xs text-amber-200/80 mb-4">
-                  Полная подготовка профессионального пармастера под ключ
+                  Полная система подготовки пармастера от фундамента до именного диплома
                 </p>
 
-                <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-3xl font-serif font-bold text-amber-300">3 390 ₽</span>
-                  <span className="text-sm text-stone-500 line-through">6 990 ₽</span>
-                  <span className="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                    -52%
+                <div className="flex items-baseline gap-2.5 mb-5">
+                  <span className="text-3xl font-serif font-bold text-amber-300 tabular-nums">
+                    {finalPrice.toLocaleString('ru-RU')} ₽
+                  </span>
+                  <span className="text-sm text-stone-500 line-through tabular-nums">
+                    6 990 ₽
+                  </span>
+                  <span className="text-xs text-emerald-400 font-mono font-semibold">
+                    {appliedPromo ? 'Скидка по промокоду' : 'Выгода 52%'}
                   </span>
                 </div>
 
-                <div className="space-y-3 text-xs text-stone-200">
+                <div className="space-y-2.5 text-xs text-stone-200">
                   <div className="flex items-center gap-2.5">
                     <Check className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span className="font-semibold text-amber-100">Все 7 станций квеста без ограничений</span>
+                    <span className="font-semibold text-amber-100">
+                      Все 7 станций квеста и закрытые сундуки знаний
+                    </span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <Check className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Тренажер работы вениками и ритмики</span>
+                    <span>Полные видеоразборы техники веников и биомеханики</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <Check className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Симулятор первой помощи и ЧП в парной</span>
+                    <span>Симулятор ЧП, первой помощи и диагностики гостя</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <Check className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Атлас ароматерапии, трав и запарок</span>
+                    <span>Полная «Фитотека Мастера» (30+ трав, запарок и противопоказаний)</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <Award className="w-4 h-4 text-amber-400 shrink-0" />
@@ -324,20 +389,63 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                       Именной верифицированный Сертификат с номером
                     </span>
                   </div>
-                  <div className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Бессрочный доступ к обновлениям</span>
-                  </div>
                 </div>
               </div>
 
-              {/* Payment Methods and Action */}
-              <div className="pt-6 space-y-4">
+              {/* Payment Methods, Contact Capture, Promo Code & Action */}
+              <div className="pt-5 space-y-3.5">
                 {!isAlreadyPaid ? (
                   <>
-                    <div className="space-y-2">
+                    {/* Buyer Contact Capture so lead is never anonymous */}
+                    <div className="p-3 rounded-xl bg-stone-950/90 border border-stone-800 space-y-2">
+                      <label className="text-[11px] font-mono text-amber-300/90 flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span>Ваш телефон, @Telegram или Email (для чека и диплома) *</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={buyerContact}
+                        onChange={(e) => setBuyerContact(e.target.value)}
+                        placeholder="+7 (999) 000-00-00, @telegram или почта"
+                        className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-xs text-stone-100 placeholder:text-stone-500 focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    {/* Promo Code Input */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <Tag className="w-3.5 h-3.5 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            value={promoCodeInput}
+                            onChange={(e) => setPromoCodeInput(e.target.value)}
+                            placeholder="Промокод (если есть)"
+                            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-stone-950 border border-stone-800 text-xs text-stone-200 placeholder:text-stone-500 focus:outline-none focus:border-amber-500 font-mono uppercase"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleApplyPromo}
+                          className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-xs text-stone-300 font-semibold cursor-pointer transition-colors"
+                        >
+                          Применить
+                        </button>
+                      </div>
+                      {promoMessage && (
+                        <p
+                          className={`text-[11px] font-mono ${
+                            appliedPromo ? 'text-emerald-400' : 'text-amber-300/80'
+                          }`}
+                        >
+                          {promoMessage}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
                       <label className="text-[11px] font-mono text-stone-400 uppercase tracking-wide block">
-                        Выберите удобный способ оплаты:
+                        Способ оплаты (ЮKassa):
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         <button
@@ -387,7 +495,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                     )}
 
                     <button
-                      onClick={() => handleInitiatePayment(3390)}
+                      onClick={() => handleInitiatePayment(finalPrice)}
                       disabled={isProcessing}
                       className="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:opacity-50"
                     >
@@ -398,34 +506,113 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                         </span>
                       ) : (
                         <>
-                          <span>Оплатить 3 390 ₽ через ЮKassa</span>
+                          <span>
+                            Оплатить {finalPrice.toLocaleString('ru-RU')} ₽ через ЮKassa
+                          </span>
                           <ArrowRight className="w-4 h-4" />
                         </>
                       )}
                     </button>
 
-                    {/* Test Payment Button (10 RUB) requested by Anton */}
+                    {/* Test Payment Button (10 RUB) */}
                     <div className="pt-2 border-t border-stone-800/80">
                       <button
                         type="button"
                         onClick={() => handleInitiatePayment(10)}
                         disabled={isProcessing}
-                        className="w-full py-2.5 px-4 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-amber-500/30 hover:border-amber-500/60 text-stone-300 hover:text-amber-200 text-xs font-mono transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50 shadow-sm"
+                        className="w-full py-2 px-4 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-amber-500/30 hover:border-amber-500/60 text-stone-300 hover:text-amber-200 text-xs font-mono transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50"
                       >
                         <FlaskConical className="w-4 h-4 text-amber-400 shrink-0" />
-                        <span>🧪 Проверить оплату: тестовый платёж 10 ₽</span>
+                        <span>Проверить эквайринг: тестовый платёж 10 ₽</span>
                       </button>
-                      <p className="text-[10px] text-stone-500 text-center mt-1 font-mono">
-                        Спишет 10 ₽ реальными деньгами через ЮKassa для проверки эквайринга
-                      </p>
                     </div>
                   </>
                 ) : (
                   <div className="w-full py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-center font-bold text-xs">
-                    ✓ Курс успешно оплачен и активен
+                    Курс успешно оплачен и активен
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* CERTIFICATE VISUAL PREVIEW CARD */}
+          <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 max-w-xl">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-amber-400">
+                <Award className="w-4 h-4" />
+                <span>Итоговый документ выпускника</span>
+              </div>
+              <h4 className="font-serif text-lg sm:text-xl font-bold text-stone-100">
+                Как выглядит ваш Именной Сертификат Пармейстера
+              </h4>
+              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                После прохождения 7 станций и сдачи итогового теста формируется персональный диплом в высоком разрешении (для печати в рамку в парную или размещения в портфолио) с индивидуальным номером и подписью основателя школы Антона Ирхина.
+              </p>
+            </div>
+
+            {/* Miniature Certificate Preview */}
+            <div className="w-full md:w-72 shrink-0 rounded-xl border-2 border-amber-500/60 bg-gradient-to-br from-stone-950 via-amber-950/30 to-stone-950 p-4 shadow-2xl space-y-2.5 text-center relative">
+              <div className="text-[9px] font-mono uppercase tracking-widest text-amber-400">
+                Школа Банного Мастерства · banya-school.ru
+              </div>
+              <div className="font-serif text-sm font-bold text-amber-200 border-b border-amber-500/30 pb-1.5">
+                СЕРТИФИКАТ ПАРМЕЙСТЕРА
+              </div>
+              <div className="text-xs font-serif font-bold text-stone-100 py-1">
+                {buyerName || progress.name || 'Ваше Имя и Фамилия'}
+              </div>
+              <div className="text-[10px] text-stone-400 leading-tight">
+                Успешно прошёл аттестацию по курсу «Пармастер Квест: Путь к Мастерству»
+              </div>
+              <div className="pt-2 flex items-center justify-between border-t border-stone-800 text-[9px] font-mono text-amber-300/90">
+                <span>№ PQ-2026-PRO</span>
+                <span>Наставник: А. Ирхин</span>
+              </div>
+            </div>
+          </div>
+
+          {/* B2B CORPORATE TRAINING BLOCK (INACTIVE / COMING SOON) */}
+          <div className="rounded-2xl border border-stone-800 bg-stone-900/40 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 opacity-80">
+            <div className="space-y-1 max-w-xl">
+              <div className="flex items-center gap-2 text-xs font-mono text-stone-400">
+                <Building2 className="w-3.5 h-3.5 text-amber-400/80" />
+                <span>Корпоративный тариф B2B</span>
+                <span>·</span>
+                <span className="text-amber-400 font-semibold">В разработке (Скоро)</span>
+              </div>
+              <h4 className="font-serif text-base font-bold text-stone-200">
+                Обучение и аттестация команд для банных и SPA-комплексов
+              </h4>
+              <p className="text-xs text-stone-400 leading-relaxed">
+                Пакетное подключение от 3 до 20 пармастеров комплекса с контролем сдачи экзамена по безопасности и ПМП.
+              </p>
+            </div>
+
+            <div className="shrink-0 flex flex-col items-stretch sm:items-end gap-2">
+              <button
+                type="button"
+                disabled
+                className="px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-500 font-mono text-xs font-semibold cursor-not-allowed flex items-center justify-center gap-1.5"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Скоро открытие B2B</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  setTimeout(() => {
+                    document
+                      .getElementById('partnerships-section')
+                      ?.scrollIntoView({ behavior: 'smooth' });
+                  }, 150);
+                }}
+                className="text-[11px] font-mono text-amber-400 hover:text-amber-300 underline flex items-center justify-center sm:justify-end gap-1 cursor-pointer"
+              >
+                <Briefcase className="w-3 h-3" />
+                <span>Партнёрам и рекламодателям →</span>
+              </button>
             </div>
           </div>
 
@@ -438,16 +625,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   100% Легально и Безопасно для Самозанятых (НПД)
                 </h4>
                 <p className="text-stone-400 mt-1 leading-relaxed">
-                  Продажа курса осуществляется в полном соответствии с Федеральным законом № 422-ФЗ. После проведения оплаты формируется электронный фискальный чек ФНС России (приложение «Мой налог»), который автоматически отправляется на ваш e-mail.
+                  Продажа курса осуществляется в полном соответствии с Федеральным законом № 422-ФЗ. После проведения оплаты формируется электронный фискальный чек ФНС России (приложение «Мой налог»), который автоматически отправляется Заказчику.
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stone-800 text-[11px] text-stone-400">
               <div className="flex items-center gap-3">
-                <span>🔒 Защита платежей по стандарту PCI DSS</span>
+                <span>Защита платежей по стандарту PCI DSS</span>
                 <span>•</span>
-                <span>Безопасная сделка</span>
+                <span>Безопасная сделка ЮKassa</span>
               </div>
               <div className="flex items-center gap-3">
                 {onOpenLegal && (

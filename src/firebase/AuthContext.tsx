@@ -13,9 +13,11 @@ import {
   RecaptchaVerifier,
   ConfirmationResult,
   getAdditionalUserInfo,
+  deleteUser,
 } from 'firebase/auth';
-import { auth } from './config';
+import { auth, isAdminEmail, isTestAccountEmail } from './config';
 import { sendUserRegistrationNotification } from './adminMessageService';
+import { deleteUserFromDatabase, purgeTestAccountsFromDatabase } from './progressSync';
 
 export type AuthProviderType = 'google' | 'password' | 'phone' | 'unknown';
 
@@ -102,7 +104,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('pq_admin_session');
     } catch {}
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser && isTestAccountEmail(currentUser.email)) {
+        try {
+          await deleteUserFromDatabase(currentUser.uid);
+          await deleteUser(currentUser).catch(() => {});
+          await signOut(auth).catch(() => {});
+        } catch {
+          // ignore
+        }
+        setUser(null);
+        setAuthMethod('unknown');
+        setLoading(false);
+        return;
+      }
+
+      if (currentUser && isAdminEmail(currentUser.email)) {
+        purgeTestAccountsFromDatabase().catch(() => {});
+      }
+
       setUser(currentUser);
       if (currentUser?.providerData && currentUser.providerData.length > 0) {
         const pId = currentUser.providerData[0].providerId;

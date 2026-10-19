@@ -10,6 +10,29 @@ import {
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
+// Sole owner & administrator account
+export const ADMIN_EMAIL = 'irhin_anton@mail.ru';
+
+// Known test accounts that must be purged from database and sessions
+export const TEST_ACCOUNT_EMAILS = [
+  'aniwalker1998@gmail.com',
+  'irhinanton@gmail.com',
+  'test@banya-school.ru',
+  'test@test.ru',
+  'demo@banya-school.ru',
+];
+
+export function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  return email.trim().toLowerCase() === ADMIN_EMAIL;
+}
+
+export function isTestAccountEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  return normalized !== ADMIN_EMAIL && TEST_ACCOUNT_EMAILS.includes(normalized);
+}
+
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore with robust long polling & multi-tab offline caching

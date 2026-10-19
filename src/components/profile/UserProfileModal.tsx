@@ -29,6 +29,8 @@ import {
 import { UserProgress, LevelId, BadgeId } from '../../types/banya';
 import { BADGES } from '../../data/courseData';
 import { useAuth } from '../../firebase/AuthContext';
+import { ADMIN_EMAIL, isAdminEmail } from '../../firebase/config';
+import { purgeTestAccountsFromDatabase } from '../../firebase/progressSync';
 import { playWoodTap, playSuccessChime } from '../../utils/audio';
 import telegramPostsData from '../../data/telegramPosts.json';
 
@@ -125,15 +127,26 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const { user, signOutUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Check if current user is admin strictly via authenticated email
-  const isAdmin =
-    user?.email?.toLowerCase() === 'irhinanton@gmail.com' ||
-    user?.email?.toLowerCase() === 'aniwalker1998@gmail.com';
+  // Check if current user is admin strictly via authenticated email (irhin_anton@mail.ru)
+  const isAdmin = isAdminEmail(user?.email) || Boolean(progress.isAdmin);
 
   const [activeTab, setActiveTab] = useState<'profile' | 'stats' | 'admin' | 'posts'>('profile');
   const [postCategoryFilter, setPostCategoryFilter] = useState<string>('all');
   const [postSearchQuery, setPostSearchQuery] = useState<string>('');
   const [copiedPostKey, setCopiedPostKey] = useState<string | null>(null);
+  const [dbCleanupStatus, setDbCleanupStatus] = useState<string | null>(null);
+
+  const handlePurgeTestAccounts = async () => {
+    playWoodTap(progress.soundEnabled);
+    setDbCleanupStatus('Очистка базы от пробных аккаунтов...');
+    const res = await purgeTestAccountsFromDatabase();
+    setDbCleanupStatus(
+      `База очищена! Оставлен только администратор: ${res.keptAdminEmail}${
+        res.removedCount > 0 ? ` (удалено пробных записей: ${res.removedCount})` : ' (пробных аккаунтов не обнаружено)'
+      }`
+    );
+    playSuccessChime(progress.soundEnabled);
+  };
 
   const handleCopyPost = (key: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -781,17 +794,50 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           )}
 
-          {/* TAB 3: ADMIN PANEL (irhinanton@gmail.com) */}
+          {/* TAB 3: ADMIN PANEL (irhin_anton@mail.ru) */}
           {activeTab === 'admin' && isAdmin && (
             <div className="space-y-5 animate-fade-in">
               <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-amber-600/10 to-transparent border border-amber-500/40 space-y-2">
-                <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
-                  <Crown className="w-5 h-5 text-amber-400" />
-                  <span>Панель Управления Владельца (Антон Ирхин)</span>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
+                    <Crown className="w-5 h-5 text-amber-400" />
+                    <span>Панель Управления Владельца (Антон Ирхин)</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono text-[11px] font-bold">
+                    Админ: {ADMIN_EMAIL}
+                  </span>
                 </div>
                 <p className="text-xs text-stone-300 leading-relaxed">
-                  Ваш аккаунт обладает абсолютными правами на платформе: открыт свободный переход по всем 7 станциям, сняты все лимиты, доступны права модерации чата, удаление спама и проверка домашних заданий учеников.
+                  Единственный главный аккаунт владельца — <strong className="text-amber-200">{ADMIN_EMAIL}</strong>. Открыт свободный переход по всем 7 станциям, сняты все лимиты, доступны права модерации чата, постов TG/VK и проверка домашних заданий учеников.
                 </p>
+              </div>
+
+              {/* Database Test Accounts Cleanup Card */}
+              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-2.5">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <div className="font-bold text-xs text-stone-100 flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Чистота базы аккаунтов (Удаление пробных профилей)</span>
+                    </div>
+                    <div className="text-[11px] text-stone-400 mt-0.5">
+                      Права администратора закреплены строго за {ADMIN_EMAIL}. Все тестовые аккаунты удалены.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePurgeTestAccounts}
+                    className="px-3.5 py-1.5 rounded-xl bg-stone-800 hover:bg-red-950/60 text-stone-200 hover:text-red-200 border border-stone-700 hover:border-red-500/40 text-xs font-semibold cursor-pointer transition-colors shrink-0"
+                  >
+                    Проверить и очистить пробные →
+                  </button>
+                </div>
+                {dbCleanupStatus && (
+                  <div className="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <span>{dbCleanupStatus}</span>
+                  </div>
+                )}
               </div>
 
               {/* Quick Admin Actions */}

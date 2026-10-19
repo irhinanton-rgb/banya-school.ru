@@ -123,8 +123,8 @@ export const RequisitesPage: React.FC<RequisitesPageProps> = ({ onBackToMain, on
 
                 <div className="p-4 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1">
                   <span className="text-stone-500 font-mono text-[11px] block uppercase">E-mail для связи и обращений:</span>
-                  <a href="mailto:irhinanton@gmail.com" className="text-amber-400 hover:underline font-mono">
-                    irhinanton@gmail.com
+                  <a href="mailto:irhin_anton@mail.ru" className="text-amber-400 hover:underline font-mono">
+                    irhin_anton@mail.ru
                   </a>
                 </div>
 
@@ -230,7 +230,7 @@ export const RequisitesPage: React.FC<RequisitesPageProps> = ({ onBackToMain, on
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
                   Заказчик вправе запросить возврат средств в течение <strong>14 календарных дней</strong> с момента оплаты (до завершения изучения более чем 2 уровней программы).
-                  Для оформления возврата достаточно направить заявление в свободной форме на электронную почту: <a href="mailto:irhinanton@gmail.com" className="text-amber-400 underline font-mono">irhinanton@gmail.com</a>.
+                  Для оформления возврата достаточно направить заявление в свободной форме на электронную почту: <a href="mailto:irhin_anton@mail.ru" className="text-amber-400 underline font-mono">irhin_anton@mail.ru</a>.
                   Возврат денежных средств осуществляется на ту же банковскую карту или счёт, с которого была произведена оплата, в срок от 1 до 5 рабочих дней.
                 </p>
               </div>
@@ -247,7 +247,7 @@ export const RequisitesPage: React.FC<RequisitesPageProps> = ({ onBackToMain, on
             <p><strong>1. Общие положения:</strong> Настоящий документ является публичной офертой Самозанятого Ирхина Антона (ИНН: 614007827150) и определяет условия предоставления доступа к онлайн-сервису «Пармастер Квест» (banya-school.ru).</p>
             <p><strong>2. Акцепт оферты:</strong> Акцептом настоящей оферты признается оплата любого из платных тарифов доступа либо прохождение регистрации на сайте.</p>
             <p><strong>3. Стоимость:</strong> Стоимость доступа фиксируется в рублях РФ на странице «Тарифы» на момент оплаты. НДС не облагается в связи с применением режима НПД (ФЗ № 422-ФЗ).</p>
-            <p><strong>4. Контакты:</strong> Исполнитель: Ирхин Антон, ИНН: 614007827150, e-mail: irhinanton@gmail.com.</p>
+            <p><strong>4. Контакты:</strong> Исполнитель: Ирхин Антон, ИНН: 614007827150, e-mail: irhin_anton@mail.ru.</p>
           </div>
         )}
 
@@ -269,7 +269,7 @@ export const RequisitesPage: React.FC<RequisitesPageProps> = ({ onBackToMain, on
         <div className="max-w-4xl mx-auto px-4 space-y-1">
           <div>© 2026 Пармастер Квест — Школа Банного Мастерства. Все права защищены.</div>
           <div className="font-mono text-stone-400">
-            Исполнитель: Самозанятый Ирхин Антон | ИНН: 614007827150 | irhinanton@gmail.com
+            Исполнитель: Самозанятый Ирхин Антон | ИНН: 614007827150 | irhin_anton@mail.ru
           </div>
         </div>
       </footer>
