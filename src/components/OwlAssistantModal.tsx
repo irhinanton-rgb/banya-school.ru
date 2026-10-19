@@ -94,6 +94,8 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
       let reply = instantExpert || 'Твой вопрос принят мудрой Совой PQ! Для успешного прохождения квеста изучай теорию на станциях, внимательно следи за кондициями 60/60 и закрепляй знания в симуляторах. Ух! 🦉';
 
       try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
         const res = await fetch('/api/assistant-ai', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -102,7 +104,9 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
             currentLevel: progress.activeLevelId || 1,
             studentName: resolvedStudentName,
           }),
+          signal: controller.signal,
         });
+        clearTimeout(timer);
 
         if (res.ok) {
           const ct = res.headers.get('content-type') || '';
@@ -132,8 +136,8 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
       };
       setChatHistory(prev => [...prev, owlMsg]);
 
-      // 2. Also send to Admin via Firestore + Telegram in background
-      sendAdminMessage({
+      // 2. Deliver question + Owl's answer to Anton's Telegram helper bot (@ParmasterQuest_bot)
+      await sendAdminMessage({
         type: 'question',
         message: question,
         answer: reply,
@@ -142,7 +146,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
         userName: userName || progress.name || 'Гость курса',
         userEmail: userContact || user?.email || '',
         referralSource: referralSource === 'Другое' ? customReferral : referralSource,
-      }).catch(err => console.warn('Background admin send warning:', err));
+      });
 
     } catch (err: any) {
       console.error('Error handling question:', err);

@@ -27,6 +27,10 @@ export interface AdminMessageRecord extends AdminMessagePayload {
   status: 'new' | 'reviewed' | 'resolved';
 }
 
+// Helper bot @ParmasterQuest_bot for student questions, bugs, feedback, registrations & payments
+const PARMASTER_BOT_TOKEN = '8683515876:AAHzMeka0nuQG0Hc1lTJCNuPZRogpg-Lw_0';
+const ADMIN_CHAT_ID = '471147423';
+
 // In-memory deduplication cache to prevent duplicate broadcasts within 15 seconds
 const recentDispatches = new Map<string, number>();
 
@@ -45,70 +49,236 @@ function isDuplicate(key: string): boolean {
   return false;
 }
 
+function escapeTgHtml(str: string): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+export function formatTelegramMessageHtml(payload: AdminMessagePayload): string {
+  const time = new Date().toLocaleString('ru-RU');
+  const userName = escapeTgHtml(payload.userName || 'Гость курса');
+  const userEmail = payload.userEmail ? escapeTgHtml(payload.userEmail) : '';
+  const phone = payload.phoneNumber ? escapeTgHtml(payload.phoneNumber) : '';
+  const message = escapeTgHtml(payload.message || '');
+  const amount = payload.amount
+    ? typeof payload.amount === 'number'
+      ? `${payload.amount} ₽`
+      : escapeTgHtml(String(payload.amount))
+    : '3 390 ₽';
+
+  let lines: string[] = [];
+
+  if (payload.type === 'registration') {
+    const method =
+      payload.authMethod === 'google'
+        ? 'Google 🌐'
+        : payload.authMethod === 'phone'
+        ? 'Телефон 📱'
+        : 'Email / Пароль ✉️';
+
+    lines = [
+      `🌱 <b>[РЕГИСТРАЦИЯ] Новый банный ученик на PQ!</b>`,
+      ``,
+      `👤 <b>Имя:</b> ${userName}`,
+      userEmail ? `📧 <b>Email:</b> <code>${userEmail}</code>` : '',
+      phone ? `📱 <b>Телефон:</b> <code>${phone}</code>` : '',
+      `🔑 <b>Способ:</b> ${method}`,
+      payload.referralSource ? `🔍 <b>Источник:</b> ${escapeTgHtml(payload.referralSource)}` : '',
+      `🕒 <b>Время:</b> ${time}`,
+      ``,
+      `🌿 <i>Ученик начал путь в онлайн-школе «Пармастер Квест».</i>`,
+    ];
+  } else if (payload.type === 'payment') {
+    lines = [
+      `🎉 <b>[ОПЛАТА КУРСА] Новый студент «Мастер Пара PRO»!</b>`,
+      ``,
+      `🎓 <b>Тариф:</b> «Мастер Пара PRO» (Полный курс)`,
+      `💰 <b>Сумма оплаты:</b> ${amount}`,
+      `👤 <b>Ученик:</b> ${userName}`,
+      userEmail ? `📧 <b>Email:</b> <code>${userEmail}</code>` : '',
+      payload.orderId ? `🧾 <b>Заказ:</b> <code>${escapeTgHtml(payload.orderId)}</code>` : '',
+      `🕒 <b>Время:</b> ${time}`,
+      ``,
+      `👑 <i>Доступ ко всем станциям и симуляторам активирован на banya-school.ru!</i>`,
+    ];
+  } else if (payload.type === 'payment_intent') {
+    lines = [
+      `🛒 <b>[ЗАЯВКА НА ОПЛАТУ КУРСА] Ученик открыл окно оплаты</b>`,
+      ``,
+      `🎓 <b>Тариф:</b> «Мастер Пара PRO» (${amount})`,
+      `👤 <b>Ученик:</b> ${userName}`,
+      userEmail ? `📧 <b>Контакт:</b> <code>${userEmail}</code>` : '',
+      phone ? `📱 <b>Телефон:</b> <code>${phone}</code>` : '',
+      `🕒 <b>Время:</b> ${time}`,
+      ``,
+      `💬 <b>Детали:</b> ${message}`,
+    ];
+  } else if (payload.type === 'bug') {
+    lines = [
+      `🐞 <b>[Баг-репорт] Сообщение об ошибке с сайта</b>`,
+      ``,
+      `👤 <b>От:</b> ${userName}`,
+      userEmail ? `📧 <b>Контакт:</b> <code>${userEmail}</code>` : '',
+      `🕒 <b>Время:</b> ${time}`,
+      ``,
+      `💬 <b>Описание неполадки:</b>`,
+      message,
+    ];
+  } else if (payload.type === 'feedback') {
+    lines = [
+      `⭐ <b>[Отзыв] Впечатления ученика о курсе</b>`,
+      ``,
+      `👤 <b>Ученик:</b> ${userName}`,
+      userEmail ? `📧 <b>Контакт:</b> <code>${userEmail}</code>` : '',
+      payload.referralSource ? `🔍 <b>Откуда узнал:</b> ${escapeTgHtml(payload.referralSource)}` : '',
+      `🕒 <b>Время:</b> ${time}`,
+      ``,
+      `💬 <b>Отзыв:</b>`,
+      message,
+    ];
+  } else {
+    lines = [
+      `🦉 <b>[Сова PQ] Вопрос ученика на сайте banya-school.ru</b>`,
+      ``,
+      `👤 <b>Ученик:</b> ${userName}${payload.currentLevel ? ` (Станция ${payload.currentLevel})` : ''}`,
+      userEmail ? `📧 <b>Контакт:</b> <code>${userEmail}</code>` : '',
+      payload.referralSource ? `🔍 <b>Источник:</b> ${escapeTgHtml(payload.referralSource)}` : '',
+      `🕒 <b>Время:</b> ${time}`,
+      ``,
+      `❓ <b>Вопрос ученика:</b>`,
+      message,
+    ];
+    if (payload.answer) {
+      lines.push(``, `💡 <b>Ответ Совы PQ:</b>`, escapeTgHtml(payload.answer));
+    }
+  }
+
+  return lines.filter(Boolean).join('\n');
+}
+
 /**
- * Dispatch notification to the server-side /api/admin-notification proxy
- * so Telegram Bot tokens remain strictly server-side and are never exposed in client bundles.
+ * 1. Direct browser -> Telegram Bot API (@ParmasterQuest_bot)
  */
-export async function sendServerTelegramNotification(payload: AdminMessagePayload): Promise<boolean> {
+export async function sendDirectTelegram(payload: AdminMessagePayload): Promise<boolean> {
+  const text = formatTelegramMessageHtml(payload);
   try {
-    const res = await fetch('/api/admin-notification', {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5500);
+    const res = await fetch(`https://api.telegram.org/bot${PARMASTER_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        ...payload,
-        createdAt: new Date().toLocaleString('ru-RU'),
+        chat_id: ADMIN_CHAT_ID,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timer);
     if (!res.ok) return false;
     const data = await res.json();
-    return Boolean(data?.success);
+    return Boolean(data?.ok);
   } catch (err) {
-    console.warn('Server Telegram notification error:', err);
+    console.warn('Direct Telegram API call failed, trying server proxy:', err);
     return false;
   }
 }
 
 /**
- * Send inquiry, bug report, feedback, registration, or payment notification to Firestore & Server Telegram Proxy
+ * 2. Server proxy fallback (/api/admin-notification.php on PHP hosting or /api/admin-notification on Node)
+ */
+export async function sendServerTelegramNotification(payload: AdminMessagePayload): Promise<boolean> {
+  const candidateEndpoints = [
+    '/api/admin-notification.php',
+    '/www/banya-school.ru/api/admin-notification.php',
+    '/api/admin-notification',
+  ];
+
+  const bodyStr = JSON.stringify({
+    ...payload,
+    createdAt: new Date().toLocaleString('ru-RU'),
+  });
+
+  for (const endpoint of candidateEndpoints) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 6000);
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: bodyStr,
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data?.success === true || (data?.ok === true && data?.response?.ok !== false)) {
+          return true;
+        }
+      }
+    } catch {
+      // try next candidate endpoint
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Send inquiry, bug report, feedback, registration, or payment notification to @ParmasterQuest_bot & Firestore.
+ * IMPORTANT: Telegram delivery runs FIRST so slow/blocked Firestore connections never block notifications.
  */
 export async function sendAdminMessage(payload: AdminMessagePayload): Promise<boolean> {
   const cleanMessage = String(payload.message || '').trim().slice(0, 2000);
   if (!cleanMessage) return false;
 
-  // Deduplicate identical triggers (e.g. from React strict-mode re-renders or rapid clicks)
   const dedupeKey = `${payload.type}_${payload.orderId || ''}_${cleanMessage}`;
   if (isDuplicate(dedupeKey)) {
     return true;
   }
 
+  const normalizedPayload: AdminMessagePayload = {
+    ...payload,
+    message: cleanMessage,
+  };
+
   const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
   const nowIso = new Date().toISOString();
 
-  // 1. Save to Firestore admin_messages collection (conforming strictly to security rules)
+  // 1. Fire Firestore save asynchronously in background (never block Telegram delivery!)
   try {
     const docRef = doc(db, 'admin_messages', messageId);
-    await setDoc(docRef, {
+    setDoc(docRef, {
       id: messageId,
-      type: payload.type,
+      type: normalizedPayload.type,
       message: cleanMessage,
-      userId: String(payload.userId || 'guest').slice(0, 128),
-      userName: String(payload.userName || 'Гость курса').slice(0, 100),
-      userEmail: String(payload.userEmail || '').slice(0, 150),
-      referralSource: String(payload.referralSource || '').slice(0, 100),
+      userId: String(normalizedPayload.userId || 'guest').slice(0, 128),
+      userName: String(normalizedPayload.userName || 'Гость курса').slice(0, 100),
+      userEmail: String(normalizedPayload.userEmail || '').slice(0, 150),
+      referralSource: String(normalizedPayload.referralSource || '').slice(0, 100),
       status: 'new',
       createdAt: nowIso,
+    }).catch((err) => {
+      console.warn('Firestore background log skipped:', err);
     });
   } catch (err) {
-    console.warn('Could not save message to firestore (will still deliver Telegram notification):', err);
+    console.warn('Could not initiate Firestore log:', err);
   }
 
-  // 2. Send Telegram notification via secure backend route
-  await sendServerTelegramNotification({
-    ...payload,
-    message: cleanMessage,
-  });
+  // 2. Deliver to Telegram helper bot (@ParmasterQuest_bot):
+  // Try server PHP/Node proxy first; if unavailable or blocked on hosting, send directly from browser
+  let delivered = await sendServerTelegramNotification(normalizedPayload);
+  if (!delivered) {
+    delivered = await sendDirectTelegram(normalizedPayload);
+  }
 
-  return true;
+  return delivered;
 }
 
 /**
@@ -141,10 +311,11 @@ export async function sendUserRegistrationNotification(params: {
   authMethod?: string;
   referralSource?: string;
 }): Promise<boolean> {
-  const methodLabel = params.authMethod === 'google' 
-    ? 'Google' 
-    : params.authMethod === 'phone' 
-      ? 'Телефон' 
+  const methodLabel =
+    params.authMethod === 'google'
+      ? 'Google'
+      : params.authMethod === 'phone'
+      ? 'Телефон'
       : 'Email';
 
   return sendAdminMessage({

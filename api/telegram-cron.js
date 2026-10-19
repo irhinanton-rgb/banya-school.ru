@@ -3,177 +3,230 @@ import path from 'path';
 import https from 'https';
 
 // BatyaVBane auto-publishing bot (@BatyaVBanyeBot) and channel (@BatyaVBane)
-const TELEGRAM_BOT_TOKEN = process.env.BATYA_BOT_TOKEN || process.env.TELEGRAM_PUBLISH_BOT_TOKEN || '7992502826:AAFaVxzLifwnqRGnV1q3OhUmx4Ykz2C5OBU';
-const TELEGRAM_CHAT_ID = process.env.BATYA_CHANNEL_ID || process.env.TELEGRAM_CHANNEL_ID || '@BatyaVBane';
+const TELEGRAM_BOT_TOKEN = process.env.BATYA_BOT_TOKEN || process.env.TELEGRAM_PUBLISH_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '7992502826:AAFaVxzLifwnqRGnV1q3OhUmx4Ykz2C5OBU';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHANNEL_ID || process.env.TELEGRAM_CHAT_ID || '@BatyaVBane';
 
-const VK_ACCESS_TOKEN = process.env.VK_ACCESS_TOKEN || 'vk1.a.1y5Haqf_ujhVhQCDET6yww5f4IbAQ1s2e5MyCo9dSLkuuCxZ8sduqFEtbWwRXduGSH_1Psl06QqmGPjZAW49Z7haUlbYoFQ41phVaxI8WywulnukFznXP_iUwE_-8s_0HfXEP-fcg_PSefXzWbEtW-VnbB1cX_lrjEOxd58dC_ULXRrKfX7obVphtUCTEbY7HHJyf_ygQlHKoaWLIsLasg';
-const VK_GROUP_ID = process.env.VK_GROUP_ID || '242053676';
+// VKontakte auto-publishing configuration
+const VK_ACCESS_TOKEN = process.env.VK_ACCESS_TOKEN || '';
+const VK_GROUP_ID = process.env.VK_GROUP_ID || ''; // ID группы без минуса (например: 215489301)
 
-function markdownToTelegramHtml(text) {
-  let html = text
+// Anchor date to automatically cycle through the 30 days (Day 1 = 2026-10-15)
+const START_DATE = process.env.TELEGRAM_CRON_START_DATE || '2026-10-15';
+
+function formatToTelegramHtml(rawText, postMeta = {}) {
+  let html = rawText
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-  html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+  // Bold: **text** -> <b>text</b>
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+
+  // Italic: *text* -> <i>text</i>
+  html = html.replace(/\*([^*\n]+)\*/g, '<i>$1</i>');
+
+  // Links: [label](url) -> <a href="url">label</a>
   html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2">$1</a>');
 
-  return html;
+  const headerBadge = postMeta.rubric
+    ? `<b>${postMeta.rubric}</b> • <i>День ${postMeta.day}/30</i>\n\n`
+    : '';
+
+  const takeawayBlock = postMeta.keyTakeaway
+    ? `\n\n📌 <b>Главный вывод Бати:</b>\n<i>${postMeta.keyTakeaway}</i>`
+    : '';
+
+  return `${headerBadge}${html}${takeawayBlock}`;
 }
 
-// Post to Telegram Channel
-function postToTelegram(post) {
-  return new Promise((resolve) => {
-    const messageHtml = markdownToTelegramHtml(post.text);
+/**
+ * Formats post text into clean plain text with links for VKontakte wall.post
+ */
+function formatToVkText(rawText, postMeta = {}) {
+  let text = rawText;
+
+  // Convert [label](url) -> label (url) unless label already contains the domain
+  text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, (match, label, url) => {
+    if (label.includes('banya-school.ru')) {
+      return url;
+    }
+    return `${label} (${url})`;
+  });
+
+  // Strip **bold** and *italic* markdown markers for clean VK reading
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+  text = text.replace(/\*([^*\n]+)\*/g, '$1');
+
+  const header = postMeta.rubric
+    ? `${postMeta.rubric} | День ${postMeta.day}/30\n\n`
+    : '';
+
+  const takeaway = postMeta.keyTakeaway
+    ? `\n\n📌 Главный вывод Бати:\n${postMeta.keyTakeaway}`
+    : '';
+
+  return `${header}${text}${takeaway}`;
+}
+
+function sendTelegramMessage(token, chatId, htmlText) {
+  return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
-      chat_id: TELEGRAM_CHAT_ID,
-      text: messageHtml,
+      chat_id: chatId,
+      text: htmlText,
       parse_mode: 'HTML',
       disable_web_page_preview: false,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: '🌿 Банная Академия & Справочник',
-              url: 'https://banya-school.ru'
-            }
-          ]
-        ]
-      }
     });
 
-    const request = https.request(
+    const req = https.request(
       {
         hostname: 'api.telegram.org',
         port: 443,
-        path: `/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        path: `/bot${token}/sendMessage`,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(payload)
-        }
+          'Content-Length': Buffer.byteLength(payload),
+        },
       },
-      resp => {
-        let data = '';
-        resp.on('data', chunk => { data += chunk; });
-        resp.on('end', () => {
+      (res) => {
+        let body = '';
+        res.on('data', (chunk) => (body += chunk));
+        res.on('end', () => {
           try {
-            resolve(JSON.parse(data));
+            const parsed = JSON.parse(body);
+            if (parsed.ok) resolve(parsed);
+            else reject(new Error(parsed.description || 'Telegram API error'));
           } catch (e) {
-            resolve({ ok: false, error: e.message });
+            reject(e);
           }
         });
       }
     );
-    request.on('error', (err) => resolve({ ok: false, error: err.message }));
-    request.write(payload);
-    request.end();
+
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
   });
 }
 
-// Post to VK Community Wall
-function postToVk(post) {
-  return new Promise((resolve) => {
-    const cleanText = post.text
-      .replace(/\*\*/g, '')
-      .replace(/\*/g, '')
-      .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '$1: $2');
-
-    const message = `${cleanText}\n\n📖 Интерактивный Банный Справочник и Симуляторы: https://banya-school.ru`;
+function sendVkWallPost(accessToken, groupId, messageText) {
+  return new Promise((resolve, reject) => {
+    const cleanGroupId = String(groupId).replace(/^-/, '').trim();
+    const ownerId = `-${cleanGroupId}`;
 
     const params = new URLSearchParams({
-      v: '5.199',
-      access_token: VK_ACCESS_TOKEN,
-      owner_id: `-${VK_GROUP_ID}`,
+      owner_id: ownerId,
       from_group: '1',
-      message: message
+      message: messageText,
+      attachments: 'https://banya-school.ru',
+      access_token: accessToken,
+      v: '5.199',
     });
 
-    const request = https.request(
+    const payload = params.toString();
+
+    const req = https.request(
       {
         hostname: 'api.vk.com',
         port: 443,
         path: '/method/wall.post',
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': Buffer.byteLength(payload),
+        },
       },
-      resp => {
-        let data = '';
-        resp.on('data', chunk => { data += chunk; });
-        resp.on('end', () => {
+      (res) => {
+        let body = '';
+        res.on('data', (chunk) => (body += chunk));
+        res.on('end', () => {
           try {
-            resolve(JSON.parse(data));
+            const parsed = JSON.parse(body);
+            if (parsed.response && parsed.response.post_id) {
+              resolve(parsed.response);
+            } else {
+              reject(new Error(parsed.error?.error_msg || 'VK API wall.post error'));
+            }
           } catch (e) {
-            resolve({ error: e.message });
+            reject(e);
           }
         });
       }
     );
-    request.on('error', (err) => resolve({ error: err.message }));
-    request.write(params.toString());
-    request.end();
+
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
   });
 }
 
 export default async function handler(req, res) {
   try {
-    // Allow execution only from Vercel Cron, authorized CRON_SECRET bearer token, or local dev
+    // Require CRON_SECRET authorization so external callers cannot spam the channel
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers?.authorization || '';
-    const isVercelCron = Boolean(req.headers?.['x-vercel-cron']);
-    const host = String(req.headers?.host || '').toLowerCase();
-    const isLocalhost = host.startsWith('localhost') || host.startsWith('127.0.0.1');
-
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}` && !isVercelCron && !isLocalhost) {
-      return res.status(401).json({ success: false, error: 'Unauthorized' });
-    }
-    if (!cronSecret && !isVercelCron && !isLocalhost) {
-      return res.status(401).json({ success: false, error: 'Cron trigger only' });
+    const queryKey = req.query?.key || '';
+    if (!cronSecret || (authHeader !== `Bearer ${cronSecret}` && queryKey !== cronSecret)) {
+      return res.status(401).json({ error: 'Unauthorized cron trigger' });
     }
 
-    const postsPath = path.join(process.cwd(), 'src/data/telegramPosts.json');
-    const posts = JSON.parse(fs.readFileSync(postsPath, 'utf8'));
+    const postsPath = path.join(process.cwd(), 'src', 'data', 'telegramPosts.json');
+    const posts = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
 
-    // Determine target day of post
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const diff = now - start;
-    const oneDay = 1000 * 60 * 60 * 24;
-    const dayOfYear = Math.floor(diff / oneDay);
+    // Allow manual day override via ?day=1..30 or calculate automatically from START_DATE
+    let targetDay = req.query?.day ? parseInt(req.query.day, 10) : null;
 
-    const queryDay = req.query && req.query.day ? parseInt(req.query.day, 10) : null;
-    const targetDay = (queryDay && queryDay >= 1 && queryDay <= posts.length) ? queryDay : ((dayOfYear % posts.length) + 1);
+    if (!targetDay || isNaN(targetDay)) {
+      const start = new Date(START_DATE).getTime();
+      const now = Date.now();
+      const diffDays = Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
+      targetDay = (diffDays % posts.length) + 1;
+    }
 
-    const post = posts.find(p => p.day === targetDay) || posts[0];
+    const post = posts.find((p) => p.day === targetDay) || posts[0];
 
-    // Publish in parallel to Telegram and VK
-    const [tgRes, vkRes] = await Promise.all([
-      postToTelegram(post),
-      postToVk(post)
-    ]);
+    // 1. Publish to Telegram
+    const htmlMessage = formatToTelegramHtml(post.text, post);
+    const tgResult = await sendTelegramMessage(
+      TELEGRAM_BOT_TOKEN,
+      TELEGRAM_CHAT_ID,
+      htmlMessage
+    );
+
+    // 2. Publish to VKontakte (if VK_ACCESS_TOKEN and VK_GROUP_ID are configured)
+    let vkResult = null;
+    let vkError = null;
+    if (VK_ACCESS_TOKEN && VK_GROUP_ID) {
+      try {
+        const vkText = formatToVkText(post.text, post);
+        vkResult = await sendVkWallPost(VK_ACCESS_TOKEN, VK_GROUP_ID, vkText);
+      } catch (err) {
+        vkError = err.message;
+        console.warn('VK auto-post warning:', err.message);
+      }
+    }
 
     return res.status(200).json({
       success: true,
-      day: post.day,
+      publishedDay: post.day,
+      rubric: post.rubric,
       title: post.title,
       telegram: {
-        ok: tgRes.ok,
-        message_id: tgRes.result?.message_id || null,
-        error: tgRes.description || tgRes.error || null
+        channel: TELEGRAM_CHAT_ID,
+        messageId: tgResult.result?.message_id,
       },
-      vk: {
-        ok: !!vkRes.response?.post_id,
-        post_id: vkRes.response?.post_id || null,
-        error: vkRes.error?.error_msg || vkRes.error || null
-      }
+      vk: VK_ACCESS_TOKEN && VK_GROUP_ID
+        ? {
+            groupId: VK_GROUP_ID,
+            postId: vkResult?.post_id || null,
+            error: vkError,
+          }
+        : 'skipped (set VK_ACCESS_TOKEN and VK_GROUP_ID in env to enable)',
     });
   } catch (error) {
+    console.error('Auto-Publish Cron Error:', error);
     return res.status(500).json({
-      success: false,
-      error: error.message
+      error: error.message || 'Failed to publish daily post',
     });
   }
 }

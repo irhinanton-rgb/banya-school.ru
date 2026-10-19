@@ -272,37 +272,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Desktop Dropdown Menu Modal */}
               {dropdownOpen && (
                 <div className="absolute left-0 mt-2.5 w-64 rounded-2xl bg-stone-900 border border-stone-700/80 shadow-2xl p-2 z-50 animate-fadeIn backdrop-blur-xl">
-                  {/* 1. Тренажеры (доступны с 3-го уровня) */}
-                  <button
-                    onClick={handleSimulatorsClick}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
-                      activeTab === 'simulators'
-                        ? 'bg-amber-500/20 text-amber-200'
-                        : isLevel3Unlocked
-                        ? 'text-stone-300 hover:bg-stone-800 hover:text-white'
-                        : 'text-stone-400 hover:bg-stone-800/80'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Flame className={`w-4 h-4 shrink-0 ${isLevel3Unlocked ? 'text-amber-400' : 'text-stone-500'}`} />
-                      <div>
-                        <div className={`font-semibold ${isLevel3Unlocked ? 'text-stone-100' : 'text-stone-300'}`}>
-                          Тренажеры и Симуляторы
-                        </div>
-                        <div className="text-[10px] text-stone-400">
-                          {isLevel3Unlocked ? 'Ритмика, веники и ЧП в парной' : 'Откроются на 3-й станции'}
-                        </div>
-                      </div>
-                    </div>
-                    {!isLevel3Unlocked && (
-                      <span className="flex items-center gap-1 text-[9px] font-mono text-amber-400/90 bg-stone-950 px-1.5 py-0.5 rounded border border-stone-800">
-                        <Lock className="w-2.5 h-2.5" />
-                        <span>3 ур.</span>
-                      </span>
-                    )}
-                  </button>
-
-                  {/* 2. Справочник (доступен с 3-го уровня) */}
+                  {/* 1. Справочник (доступен с 3-го уровня) */}
                   <button
                     onClick={handleHandbookClick}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
@@ -553,29 +523,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </button>
 
-            {/* 3. Тренажеры (только с 3 уровня) */}
-            <button
-              onClick={handleSimulatorsClick}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap transition-all cursor-pointer text-xs ${
-                activeTab === 'simulators' && isLevel3Unlocked
-                  ? 'bg-amber-500 text-stone-950 font-bold shadow-sm'
-                  : isLevel3Unlocked
-                  ? 'bg-stone-900/90 text-stone-300 border border-stone-800 hover:border-amber-500/40'
-                  : 'bg-stone-900/60 text-stone-400 border border-stone-850'
-              }`}
-            >
-              {isLevel3Unlocked ? (
-                <Flame className="w-3.5 h-3.5 text-amber-400" />
-              ) : (
-                <Lock className="w-3 h-3 text-amber-400/80" />
-              )}
-              <span>Тренажеры</span>
-              {!isLevel3Unlocked && (
-                <span className="text-[9px] font-mono text-amber-400/90 ml-0.5">3 ур.</span>
-              )}
-            </button>
-
-            {/* 4. Справочник (только с 3 уровня) */}
+            {/* 3. Справочник (только с 3 уровня) */}
             <button
               onClick={handleHandbookClick}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap transition-all cursor-pointer text-xs ${
@@ -853,45 +801,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </span>
                 </button>
 
-                {/* 3. Тренажеры & Симуляторы (с 3-го уровня) */}
-                <button
-                  onClick={handleSimulatorsClick}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    activeTab === 'simulators' && isLevel3Unlocked
-                      ? 'bg-amber-500/15 border-amber-500/50 text-amber-200'
-                      : isLevel3Unlocked
-                      ? 'bg-stone-900/60 border-stone-800/80 hover:bg-stone-900 text-stone-200'
-                      : 'bg-stone-900/40 border-stone-850 text-stone-400'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-stone-900 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                      {isLevel3Unlocked ? (
-                        <Flame className="w-4 h-4" />
-                      ) : (
-                        <Lock className="w-4 h-4 text-amber-400/80" />
-                      )}
-                    </div>
-                    <div>
-                      <div className={`font-semibold text-xs ${isLevel3Unlocked ? 'text-stone-100' : 'text-stone-300'}`}>
-                        Тренажеры & Симуляторы
-                      </div>
-                      <div className="text-[10px] text-stone-400">
-                        {isLevel3Unlocked ? 'Ритмика, веники и ЧП в парной' : 'Доступно с 3-го уровня'}
-                      </div>
-                    </div>
-                  </div>
-                  {!isLevel3Unlocked ? (
-                    <span className="flex items-center gap-1 text-[10px] font-mono text-amber-400/90 bg-stone-950 px-2 py-0.5 rounded-full border border-stone-800">
-                      <Lock className="w-2.5 h-2.5" />
-                      <span>3 ур.</span>
-                    </span>
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-stone-500" />
-                  )}
-                </button>
-
-                {/* 4. Банный Справочник (с 3-го уровня) */}
+                {/* 3. Банный Справочник (с 3-го уровня) */}
                 <button
                   onClick={handleHandbookClick}
                   className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer ${

@@ -21,11 +21,28 @@ import {
   Trash2,
   Unlock,
   ExternalLink,
+  Copy,
+  Send,
+  Share2,
+  Search,
 } from 'lucide-react';
 import { UserProgress, LevelId, BadgeId } from '../../types/banya';
 import { BADGES } from '../../data/courseData';
 import { useAuth } from '../../firebase/AuthContext';
 import { playWoodTap, playSuccessChime } from '../../utils/audio';
+import telegramPostsData from '../../data/telegramPosts.json';
+
+interface SocialPostItem {
+  day: number;
+  week?: number;
+  category?: string;
+  rubric?: string;
+  title: string;
+  keyTakeaway?: string;
+  text: string;
+}
+
+const SOCIAL_POSTS: SocialPostItem[] = telegramPostsData as SocialPostItem[];
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -113,7 +130,17 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     user?.email?.toLowerCase() === 'irhinanton@gmail.com' ||
     user?.email?.toLowerCase() === 'aniwalker1998@gmail.com';
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'stats' | 'admin'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'stats' | 'admin' | 'posts'>('profile');
+  const [postCategoryFilter, setPostCategoryFilter] = useState<string>('all');
+  const [postSearchQuery, setPostSearchQuery] = useState<string>('');
+  const [copiedPostKey, setCopiedPostKey] = useState<string | null>(null);
+
+  const handleCopyPost = (key: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedPostKey(key);
+    playWoodTap(progress.soundEnabled);
+    setTimeout(() => setCopiedPostKey(null), 2000);
+  };
 
   // Form State
   const [name, setName] = useState<string>(user?.displayName || progress.name || 'Пармастер');
@@ -365,17 +392,31 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </button>
 
             {isAdmin && (
-              <button
-                onClick={() => setActiveTab('admin')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'admin'
-                    ? 'bg-amber-500 text-stone-950 font-bold shadow-sm ring-1 ring-amber-400'
-                    : 'bg-amber-950/40 text-amber-300 border border-amber-500/30 hover:bg-amber-900/50'
-                }`}
-              >
-                <Crown className="w-3.5 h-3.5 text-amber-400" />
-                <span>Панель Администратора</span>
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab('admin')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeTab === 'admin'
+                      ? 'bg-amber-500 text-stone-950 font-bold shadow-sm ring-1 ring-amber-400'
+                      : 'bg-amber-950/40 text-amber-300 border border-amber-500/30 hover:bg-amber-900/50'
+                  }`}
+                >
+                  <Crown className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Панель Администратора</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('posts')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeTab === 'posts'
+                      ? 'bg-amber-500 text-stone-950 font-bold shadow-sm ring-1 ring-amber-400'
+                      : 'bg-amber-950/40 text-amber-300 border border-amber-500/30 hover:bg-amber-900/50'
+                  }`}
+                >
+                  <Send className="w-3.5 h-3.5 text-amber-400" />
+                  <span>📱 Посты TG & VK ({SOCIAL_POSTS.length})</span>
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -831,6 +872,26 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   </div>
                 )}
 
+                {/* Telegram & VK Posts Manager Button (Admin Only) */}
+                <div className="p-3.5 rounded-xl bg-gradient-to-r from-amber-950/40 via-stone-900 to-stone-900 border border-amber-500/40 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-bold text-xs text-amber-300 flex items-center gap-1.5">
+                      <Send className="w-3.5 h-3.5 text-amber-400" />
+                      <span>📱 Контент-план: Посты для Telegram & ВКонтакте (30 дней)</span>
+                    </div>
+                    <div className="text-[11px] text-stone-400 mt-0.5">
+                      Доступно только администратору: готовые тексты постов для @BatyaVBane и ВК
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('posts')}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold cursor-pointer shrink-0 transition-colors"
+                  >
+                    Открыть посты (30) →
+                  </button>
+                </div>
+
                 {/* Reset Progress */}
                 <div className="pt-2">
                   <button
@@ -850,6 +911,171 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     </span>
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: ADMIN-ONLY TELEGRAM & VK POSTS MANAGER */}
+          {activeTab === 'posts' && isAdmin && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-stone-900 to-stone-900 border border-amber-500/30 space-y-3">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div>
+                    <div className="text-[11px] font-mono uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <Crown className="w-3.5 h-3.5" />
+                      <span>Закрытый раздел администратора</span>
+                    </div>
+                    <h3 className="font-serif text-base sm:text-lg font-bold text-stone-100 mt-0.5">
+                      30 авторских постов для Telegram (@BatyaVBane) и ВК
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('admin')}
+                    className="px-3 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer"
+                  >
+                    ← Назад в админ-панель
+                  </button>
+                </div>
+
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={postSearchQuery}
+                    onChange={(e) => setPostSearchQuery(e.target.value)}
+                    placeholder="Поиск по теме, дню или ключевому слову..."
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-100 placeholder:text-stone-500 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Category Filter */}
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { id: 'all', label: 'Все 30' },
+                    { id: 'climate', label: '☁️ Пар и печь' },
+                    { id: 'techniques', label: '🥁 Приёмы' },
+                    { id: 'brooms', label: '🍃 Веники' },
+                    { id: 'herbs', label: '🌿 Фитотека' },
+                    { id: 'physiology', label: '🧬 Внутренние процессы' },
+                    { id: 'safety', label: '🛡 Безопасность' },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setPostCategoryFilter(cat.id)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer ${
+                        postCategoryFilter === cat.id
+                          ? 'bg-amber-500 text-stone-950 font-bold'
+                          : 'bg-stone-950 text-stone-300 border border-stone-800 hover:border-amber-500/40'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Posts List */}
+              <div className="space-y-3">
+                {SOCIAL_POSTS.filter((p) => {
+                  const q = postSearchQuery.toLowerCase();
+                  const matchesQ =
+                    !q ||
+                    p.title.toLowerCase().includes(q) ||
+                    p.text.toLowerCase().includes(q) ||
+                    (p.rubric && p.rubric.toLowerCase().includes(q)) ||
+                    String(p.day) === q;
+                  const matchesCat =
+                    postCategoryFilter === 'all' || p.category === postCategoryFilter;
+                  return matchesQ && matchesCat;
+                }).map((post) => {
+                  const cleanVkText = post.text
+                    .replace(/\*\*(.*?)\*\*/g, '$1')
+                    .replace(/\*(.*?)\*/g, '$1')
+                    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '$1 ($2)');
+
+                  return (
+                    <div
+                      key={post.day}
+                      className="rounded-2xl border border-stone-800 bg-stone-900/80 p-4 space-y-3 hover:border-amber-500/30 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-[11px] font-bold">
+                              День {post.day} • Неделя {post.week || Math.ceil(post.day / 7.5)}
+                            </span>
+                            {post.rubric && (
+                              <span className="px-2 py-0.5 rounded-md bg-stone-950 border border-stone-800 text-stone-300 text-[11px]">
+                                {post.rubric}
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="font-serif text-sm sm:text-base font-bold text-stone-100">
+                            {post.title}
+                          </h4>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPost(`tg-${post.day}`, post.text)}
+                            className="px-2.5 py-1.5 rounded-xl bg-stone-950 hover:bg-stone-800 border border-stone-700 text-[11px] text-amber-300 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            {copiedPostKey === `tg-${post.day}` ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>TG скопирован</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Для TG</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleCopyPost(
+                                `vk-${post.day}`,
+                                `${post.rubric ? `${post.rubric} | День ${post.day}/30\n\n` : ''}${cleanVkText}${
+                                  post.keyTakeaway ? `\n\n📌 Главный вывод Бати:\n${post.keyTakeaway}` : ''
+                                }`
+                              )
+                            }
+                            className="px-2.5 py-1.5 rounded-xl bg-stone-950 hover:bg-stone-800 border border-stone-700 text-[11px] text-sky-300 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            {copiedPostKey === `vk-${post.day}` ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>ВК скопирован</span>
+                              </>
+                            ) : (
+                              <>
+                                <Share2 className="w-3.5 h-3.5" />
+                                <span>Для ВК</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {post.keyTakeaway && (
+                        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 leading-relaxed">
+                          <strong>💎 Главный инсайт:</strong> {post.keyTakeaway}
+                        </div>
+                      )}
+
+                      <div className="p-3.5 rounded-xl bg-stone-950/90 border border-stone-800/80 text-xs text-stone-200 whitespace-pre-line leading-relaxed max-h-60 overflow-y-auto">
+                        {cleanVkText}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
