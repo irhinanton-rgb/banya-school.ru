@@ -4,17 +4,13 @@ import { BroomTechnique } from '../../types/banya';
 import { playWoodTap, playSuccessChime } from '../../utils/audio';
 import {
   Play,
-  Sparkles,
   CheckCircle2,
   Video,
   Key,
-  Unlock,
-  AlertCircle,
-  ExternalLink,
   PlusCircle,
-  Eye,
   Layers,
-  HelpCircle,
+  ArrowRight,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface BroomTechniquesSimulatorProps {
@@ -32,12 +28,10 @@ export interface VideoSource {
   serviceLabel: string;
 }
 
-// Convert and strictly validate Russian and international video links into secure embed URLs
 function parseVideoSource(urlOrId?: string): VideoSource | null {
   if (!urlOrId || !urlOrId.trim()) return null;
   const raw = urlOrId.trim();
 
-  // 1. Direct HTML5 video file (.mp4, .webm, .ogg, or local /videos/ path)
   if (
     raw.match(/\.(mp4|webm|ogg|m4v)(\?.*)?$/i) ||
     raw.startsWith('/videos/') ||
@@ -51,7 +45,6 @@ function parseVideoSource(urlOrId?: string): VideoSource | null {
     };
   }
 
-  // 2. VK Video (ВКонтакте) — works reliably without VPN across Russia
   if (raw.includes('vk.com/video_ext.php') || raw.includes('vkvideo.ru/video_ext.php')) {
     return {
       type: 'vk',
@@ -68,7 +61,6 @@ function parseVideoSource(urlOrId?: string): VideoSource | null {
     };
   }
 
-  // 3. Rutube (Рутуб) — Russian national video platform
   const rutubeEmbedMatch = raw.match(/rutube\.ru\/play\/embed\/([a-zA-Z0-9]+)/i);
   if (rutubeEmbedMatch) {
     return {
@@ -86,7 +78,6 @@ function parseVideoSource(urlOrId?: string): VideoSource | null {
     };
   }
 
-  // 4. Kinescope (Кинескоп) — specialized video platform for online schools
   const kinescopeMatch = raw.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9_-]+)/i);
   if (kinescopeMatch) {
     return {
@@ -96,7 +87,6 @@ function parseVideoSource(urlOrId?: string): VideoSource | null {
     };
   }
 
-  // 5. YouTube (preserved as fallback)
   const ytEmbed = raw.match(/^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com)\/embed\/([a-zA-Z0-9_-]{11})/);
   if (ytEmbed) {
     return {
@@ -147,7 +137,6 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
   onUnlockBadge,
   onNavigateToLevel,
 }) => {
-  // Custom video URLs state (persisted in localStorage for convenience)
   const [customVideos, setCustomVideos] = useState<Record<string, string>>(() => {
     try {
       const saved = localStorage.getItem('banya_technique_videos');
@@ -158,22 +147,30 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
   });
 
   const [selectedTech, setSelectedTech] = useState<BroomTechnique>(() => {
-    // Default to the first technique that has a video attached (e.g. Омахивание)
     const withVideo = BROOM_TECHNIQUES.find((t) => !!t.videoUrl);
     return withVideo || BROOM_TECHNIQUES[0];
   });
   const [studiedTechs, setStudiedTechs] = useState<string[]>([]);
   const [showKeyFoundModal, setShowKeyFoundModal] = useState<boolean>(false);
-  const hasGoldenKey = unlockedBadges.includes('golden_key') || (typeof window !== 'undefined' && localStorage.getItem('banya_golden_key_awarded') === 'true');
+  const hasGoldenKey =
+    unlockedBadges.includes('golden_key') ||
+    (typeof window !== 'undefined' && localStorage.getItem('banya_golden_key_awarded') === 'true');
 
   const [inputUrl, setInputUrl] = useState<string>('');
   const [isAddingVideo, setIsAddingVideo] = useState<boolean>(false);
   const [videoError, setVideoError] = useState<boolean>(false);
 
-  // Active video URL for current technique (prioritize non-empty custom video, else fallback to predefined videoUrl)
   const customVal = customVideos[selectedTech.id];
-  const activeVideoUrl = (customVal && customVal.trim() !== '') ? customVal.trim() : (selectedTech.videoUrl || '');
+  const activeVideoUrl =
+    customVal && customVal.trim() !== '' ? customVal.trim() : selectedTech.videoUrl || '';
   const parsedVideo = parseVideoSource(activeVideoUrl);
+
+  const currentIdx = BROOM_TECHNIQUES.findIndex((t) => t.id === selectedTech.id);
+  const prevTech = currentIdx > 0 ? BROOM_TECHNIQUES[currentIdx - 1] : null;
+  const nextTech =
+    currentIdx >= 0 && currentIdx < BROOM_TECHNIQUES.length - 1
+      ? BROOM_TECHNIQUES[currentIdx + 1]
+      : null;
 
   useEffect(() => {
     setVideoError(false);
@@ -205,7 +202,7 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
     try {
       localStorage.setItem('banya_technique_videos', JSON.stringify(updated));
     } catch {
-      // ignore storage error
+      // ignore
     }
     setIsAddingVideo(false);
     playSuccessChime(soundEnabled);
@@ -226,356 +223,462 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
   const isStudied = studiedTechs.includes(selectedTech.id);
 
   return (
-    <div className="rounded-2xl border border-stone-800 bg-stone-900/90 p-5 sm:p-6 space-y-6">
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800 pb-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-            <span>🌿</span>
-            <span>Видео-Практикум Венечного Мастерства</span>
-          </div>
+    <div className="space-y-6">
+      {/* =================================================================== */}
+      {/* ШАГ 1. ПОДГОТОВКА ИНСТРУМЕНТА, ХВАТ И ТОЧКА СТАРТА (ПОСЛЕДОВАТЕЛЬНО) */}
+      {/* =================================================================== */}
+      <div className="rounded-3xl border border-stone-800 bg-stone-900/95 p-6 sm:p-8 space-y-6 shadow-xl">
+        <div className="border-b border-stone-800 pb-4">
+          <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
+            🌿 Шаг 1 из 3 · Подготовка к работе с вениками
+          </span>
           <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mt-1">
-            8 Приёмов Венечного Массажа (Видеодемонстрация)
+            Как правильно взять веник, запарить лист и с чего начать парение
           </h3>
+          <p className="text-xs sm:text-sm text-stone-400 mt-0.5">
+            Прежде чем включить видео 8 приёмов, усвойте три базовых правила работы с веником.
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-stone-950 border border-stone-800 px-3.5 py-1.5 text-xs font-mono text-stone-300">
-            Изучено приёмов:{' '}
-            <span className="text-amber-400 font-bold">
-              {studiedTechs.length} / {BROOM_TECHNIQUES.length}
-            </span>
+        <div className="space-y-5 text-sm sm:text-base text-stone-200 leading-relaxed">
+          <div className="space-y-1.5">
+            <h4 className="font-serif text-base sm:text-lg font-bold text-amber-300">
+              1. Точка старта — всегда со стоп (снизу вверх)
+            </h4>
+            <p className="text-stone-300">
+              Контактное парение всегда начинается <strong>со стоп гостя</strong>, а не со спины или шеи. Стопы — нижняя поворотная точка большого круга кровообращения. Прогревая стопы и икры первыми, вы раскрываете периферические сосуды, запускаете лимфоток и исключаете опасный прилив крови к голове.
+            </p>
+          </div>
+
+          <div className="space-y-1.5 pt-4 border-t border-stone-800/80">
+            <h4 className="font-serif text-base sm:text-lg font-bold text-amber-300">
+              2. Хват веника: «Как живую птицу — не задушить и не выпустить»
+            </h4>
+            <p className="text-stone-300">
+              Если вцепиться в ручку веника «мёртвой хваткой», предплечья забьются и одеревенеют уже через 5 минут. Держите рукоять мягкой, расслабленной кистью: пальцы и запястье свободно пружинят, а само движение рождается от переката стоп и мягких коленей (принцип «Банного тай-чи»). <em>Совет: для тренировки первых движений берите веники потяжелее, а для реального парения гостя — лёгкие и сбалансированные.</em>
+            </p>
+          </div>
+
+          <div className="space-y-1.5 pt-4 border-t border-stone-800/80">
+            <h4 className="font-serif text-base sm:text-lg font-bold text-emerald-300">
+              3. Алгоритм запарки веника (никакого крутого кипятка!)
+            </h4>
+            <p className="text-stone-300">
+              Крутой кипяток (100°C) «варит» лист дуба или берёзы, превращая веник в тяжёлую скользкую тряпку, которая осыпается за 5 минут. Правильная подготовка состоит из трёх простых действий:
+            </p>
+            <p className="text-stone-300 pl-3 border-l-2 border-emerald-500/40">
+              <strong>Шаг А:</strong> Ополосните веник в прохладной или тёплой воде — смойте пыль и оставьте капли влаги на листве.<br />
+              <strong>Шаг Б:</strong> Поставьте веник <u>ручками в воду</u>, а крону накройте пакетом или влажным полотенцем — капилляры древесины напитают ветки изнутри, сделав их гибкими и упругими.<br />
+              <strong>Шаг В:</strong> Молодой свежий веник дойдёт до шелковистой кондиции сам в тепле парной, а сухой прошлогодний веник перед парением прогрейте 1–2 минуты в паре над каменкой (берегите руки от ожога!).
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Secret Chest & Full Video Hint Banner */}
-      <div className="rounded-xl bg-gradient-to-r from-amber-950/40 via-stone-900 to-amber-950/30 border border-amber-500/40 p-3.5 flex items-center gap-3 text-xs shadow-md">
-        <span className="text-2xl shrink-0 animate-bounce">🧰</span>
-        <div className="text-stone-300 leading-relaxed">
-          <strong className="text-amber-300 font-semibold">Секретный тайник:</strong> Где-то спрятан <span className="text-amber-200 font-bold">Сундук с тайными знаниями</span>, в котором сокрыто полное видео непрерывной техники парения из 8 приёмов и секретная техника «Ледяное Дыхание в жару»! Чтобы открыть его замок, предстоит отыскать Золотой Ключ.
+      {/* =================================================================== */}
+      {/* ШАГ 2. ВИДЕОТЕКА: 8 ПРИЁМОВ ВЕНЕЧНОГО МАССАЖА */}
+      {/* =================================================================== */}
+      <div className="rounded-3xl border border-stone-800 bg-stone-900/95 p-5 sm:p-7 space-y-5 shadow-xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800 pb-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
+              <span>🎬</span>
+              <span>Шаг 2 из 3 · Видео-Практикум</span>
+            </div>
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mt-1">
+              8 базовых приёмов, собранных в единую технику парения
+            </h3>
+            <p className="text-xs sm:text-sm text-stone-400 mt-0.5">
+              <strong>Приём</strong> — это отдельное движение веником, а <strong>техника</strong> — их последовательная связка от 1-го до 8-го шага.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
+            <div className="rounded-xl bg-stone-950 border border-stone-800 px-3.5 py-2 text-xs font-mono text-stone-300">
+              Изучено приёмов:{' '}
+              <span className="text-amber-400 font-bold">
+                {studiedTechs.length} / {BROOM_TECHNIQUES.length}
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Technique Selector Pills */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
-        {BROOM_TECHNIQUES.map((tech) => {
-          const isSelected = selectedTech.id === tech.id;
-          const isItemStudied = studiedTechs.includes(tech.id);
-          const hasVideo = !!(customVideos[tech.id] || tech.videoUrl);
+        {/* Secret Key Hint */}
+        <div className="rounded-xl bg-amber-950/30 border border-amber-500/30 p-3 flex items-center gap-3 text-xs text-stone-300">
+          <span className="text-xl shrink-0">🗝️</span>
+          <span>
+            <strong className="text-amber-300">Секрет уровня:</strong> В приёме №4 («Вибрации») спрятан <strong>Золотой Ключ</strong> от Кованого Сундука с полным непрерывным видео связки всех 8 приёмов (сам сундук ждёт вас на 3-м уровне).
+          </span>
+        </div>
 
-          return (
-            <button
-              key={tech.id}
-              onClick={() => handleSelectTech(tech)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0 cursor-pointer ${
-                isSelected
-                  ? 'bg-amber-500 text-stone-950 font-bold shadow-md'
-                  : 'bg-stone-950 hover:bg-stone-800 text-stone-300 border border-stone-800'
-              }`}
-            >
-              {isItemStudied && (
-                <CheckCircle2
-                  className={`w-3.5 h-3.5 shrink-0 ${
-                    isSelected ? 'text-stone-950' : 'text-emerald-400'
-                  }`}
-                />
-              )}
-              {hasVideo && !isItemStudied && (
-                <Video
-                  className={`w-3.5 h-3.5 shrink-0 ${
-                    isSelected ? 'text-stone-950' : 'text-red-400'
-                  }`}
-                />
-              )}
-              <span>{tech.name}</span>
-              {hasVideo && (
-                <span
-                  className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
-                    isSelected
-                      ? 'bg-stone-950/20 text-stone-950'
-                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                  }`}
-                >
-                  Видео
+        {/* Technique Selector Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
+          {BROOM_TECHNIQUES.map((tech, index) => {
+            const isSelected = selectedTech.id === tech.id;
+            const isItemStudied = studiedTechs.includes(tech.id);
+            const hasVideo = !!(customVideos[tech.id] || tech.videoUrl);
+
+            return (
+              <button
+                key={tech.id}
+                type="button"
+                onClick={() => handleSelectTech(tech)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+                  isSelected
+                    ? 'bg-amber-500 text-stone-950 font-bold shadow-md'
+                    : 'bg-stone-950 hover:bg-stone-800 text-stone-300 border border-stone-800'
+                }`}
+              >
+                {isItemStudied ? (
+                  <CheckCircle2
+                    className={`w-3.5 h-3.5 shrink-0 ${
+                      isSelected ? 'text-stone-950' : 'text-emerald-400'
+                    }`}
+                  />
+                ) : hasVideo ? (
+                  <Video
+                    className={`w-3.5 h-3.5 shrink-0 ${
+                      isSelected ? 'text-stone-950' : 'text-amber-400'
+                    }`}
+                  />
+                ) : null}
+                <span>
+                  {index + 1}. {tech.name}
                 </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+              </button>
+            );
+          })}
+        </div>
 
-      {/* Main Content Layout: Video Slot on Left, Technique Card on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        
-        {/* Left: Video Player Box / Embed Frame */}
-        <div className="lg:col-span-7 rounded-2xl border border-stone-800 bg-stone-950 p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden shadow-inner">
-          
-          {/* Ambient Lighting */}
-          <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-amber-600/10 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-emerald-600/10 blur-3xl pointer-events-none" />
-
-          {/* Video Container (16:9 Aspect Ratio) */}
-          <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-900 border border-stone-800/80 shadow-2xl flex flex-col items-center justify-center">
-            {parsedVideo ? (
-              parsedVideo.type === 'html5' ? (
-                videoError ? (
-                  <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center bg-stone-950/90 text-stone-300 space-y-3">
-                    <div className="h-12 w-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl border border-amber-500/30">
-                      📹
+        {/* Main Content Layout: Video Slot on Left, Technique Card on Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* Left: Video Player Box */}
+          <div className="lg:col-span-7 rounded-2xl border border-stone-800 bg-stone-950 p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden shadow-inner">
+            <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-900 border border-stone-800/80 shadow-2xl flex flex-col items-center justify-center">
+              {parsedVideo ? (
+                parsedVideo.type === 'html5' ? (
+                  videoError ? (
+                    <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center bg-stone-950/90 text-stone-300 space-y-3">
+                      <div className="h-12 w-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl border border-amber-500/30">
+                        📹
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-amber-200 text-sm">
+                          Видеофайл приёма «{selectedTech.name}»
+                        </h4>
+                        <p className="text-xs text-stone-400 mt-1 max-w-sm leading-relaxed">
+                          Путь: <code className="text-amber-300 font-mono text-[11px] bg-stone-900 px-1.5 py-0.5 rounded border border-stone-800">{parsedVideo.directUrl}</code>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingVideo(true)}
+                        className="px-3.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-medium border border-stone-700 transition-colors cursor-pointer"
+                      >
+                        Вставить ссылку на VK / Rutube / Диск
+                      </button>
+                    </div>
+                  ) : (
+                    <video
+                      key={parsedVideo.directUrl}
+                      src={parsedVideo.directUrl}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      onError={() => setVideoError(true)}
+                      onEnded={() => handleMarkAsStudied(selectedTech.id)}
+                      className="w-full h-full object-contain bg-black"
+                    >
+                      Ваш браузер не поддерживает встроенное воспроизведение видео.
+                    </video>
+                  )
+                ) : (
+                  <iframe
+                    src={parsedVideo.embedUrl}
+                    title={`Видео приёма: ${selectedTech.name}`}
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowFullScreen
+                  />
+                )
+              ) : (
+                <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center relative bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900">
+                  <div className="relative z-10 flex flex-col items-center space-y-3 max-w-sm">
+                    <div className="h-14 w-14 rounded-2xl bg-stone-800/90 border border-stone-700/80 flex items-center justify-center shadow-lg">
+                      <Play className="w-6 h-6 text-amber-400 fill-current ml-0.5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-amber-200 text-sm">
-                        Видеофайл приёма «{selectedTech.name}»
+                      <h4 className="font-serif text-base sm:text-lg font-bold text-stone-200">
+                        Видеодемонстрация: «{selectedTech.name}»
                       </h4>
-                      <p className="text-xs text-stone-400 mt-1 max-w-sm leading-relaxed">
-                        Путь в проекте: <code className="text-amber-300 font-mono text-[11px] bg-stone-900 px-1.5 py-0.5 rounded border border-stone-800">{parsedVideo.directUrl}</code>
-                      </p>
-                      <p className="text-[11px] text-stone-500 mt-2 max-w-xs mx-auto">
-                        Загрузите файл видео в папку <strong className="text-stone-300">public/videos/</strong> на GitHub, либо укажите ссылку на VK Видео / Rutube / Облако.
+                      <p className="text-xs text-stone-400 mt-1">
+                        Добавьте ссылку на видео (VK Видео, Rutube, Kinescope или MP4).
                       </p>
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsAddingVideo(true)}
-                      className="px-3.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-medium border border-stone-700 transition-colors cursor-pointer"
+                      onClick={() => setIsAddingVideo(!isAddingVideo)}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all border border-amber-500/30 cursor-pointer"
                     >
-                      Вставить ссылку на VK / Rutube / Диск
+                      <PlusCircle className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{isAddingVideo ? 'Скрыть форму' : 'Добавить ссылку на видео'}</span>
                     </button>
                   </div>
-                ) : (
-                  <video
-                    key={parsedVideo.directUrl}
-                    src={parsedVideo.directUrl}
-                    controls
-                    playsInline
-                    preload="metadata"
-                    onError={() => setVideoError(true)}
-                    className="w-full h-full object-contain bg-black"
-                  >
-                    Ваш браузер не поддерживает встроенное воспроизведение видео.
-                  </video>
-                )
-              ) : (
-                <iframe
-                  src={parsedVideo.embedUrl}
-                  title={`Видео приёма: ${selectedTech.name}`}
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                  allowFullScreen
-                />
-              )
-            ) : (
-              /* Sleek Video Placeholder for Russian & International Video Hostings */
-              <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center relative bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900">
-                {/* Decorative video backdrop lines */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.08)_0%,transparent_70%)]" />
+                </div>
+              )}
+            </div>
 
-                <div className="relative z-10 flex flex-col items-center space-y-3 max-w-sm">
-                  <div className="h-16 w-16 rounded-2xl bg-stone-800/90 border border-stone-700/80 flex items-center justify-center shadow-lg group">
-                    <div className="h-12 w-12 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
-                      <Play className="w-6 h-6 fill-current ml-0.5" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-stone-800 border border-stone-700 text-stone-300 text-[11px] font-mono mb-1.5">
-                      🎬 VK Видео / Rutube / Kinescope / MP4
-                    </span>
-                    <h4 className="font-serif text-base sm:text-lg font-bold text-stone-200">
-                      Видеодемонстрация: «{selectedTech.name}»
-                    </h4>
-                    <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                      Встройте видео с любого российского сервиса (работает быстро и без VPN у всех учеников).
-                    </p>
-                  </div>
-
-                  {/* Button to open quick URL input */}
+            {isAddingVideo && (
+              <form
+                onSubmit={handleSaveVideoUrl}
+                className="mt-4 p-4 rounded-xl bg-stone-900 border border-amber-500/30 space-y-3"
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium text-amber-300 flex items-center gap-1.5">
+                    <Video className="w-4 h-4 text-amber-400" />
+                    <span>Ссылка на видео для «{selectedTech.name}»:</span>
+                  </span>
+                  {activeVideoUrl && (
+                    <button
+                      type="button"
+                      onClick={handleClearVideo}
+                      className="text-[11px] text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                    >
+                      Сбросить
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={inputUrl}
+                    onChange={(e) => setInputUrl(e.target.value)}
+                    placeholder="Ссылка VK, Rutube, Kinescope или /videos/..."
+                    className="flex-1 bg-stone-950 border border-stone-700 rounded-lg px-3 py-2 text-xs text-stone-200 placeholder:text-stone-500 focus:outline-none focus:border-amber-500"
+                  />
                   <button
-                    onClick={() => setIsAddingVideo(!isAddingVideo)}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all border border-amber-500/30 cursor-pointer shadow-sm active:scale-95"
+                    type="submit"
+                    className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs cursor-pointer transition-colors"
                   >
-                    <PlusCircle className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{isAddingVideo ? 'Скрыть форму' : 'Добавить ссылку на видео'}</span>
+                    Сохранить
                   </button>
                 </div>
-              </div>
+              </form>
             )}
-          </div>
 
-          {/* Quick Video URL Form (Collapsible) */}
-          {isAddingVideo && (
-            <form
-              onSubmit={handleSaveVideoUrl}
-              className="mt-4 p-4 rounded-xl bg-stone-900 border border-amber-500/30 space-y-3 animate-fade-in"
-            >
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-amber-300 flex items-center gap-1.5">
-                  <Video className="w-4 h-4 text-amber-400" />
-                  <span>Вставить видео для «{selectedTech.name}»:</span>
-                </span>
-                {activeVideoUrl && (
-                  <button
-                    type="button"
-                    onClick={handleClearVideo}
-                    className="text-[11px] text-rose-400 hover:text-rose-300 underline cursor-pointer"
-                  >
-                    Удалить видео
-                  </button>
-                )}
+            {/* Bottom Bar under video */}
+            <div className="mt-4 pt-3 border-t border-stone-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-stone-400 font-mono">
+                <span>Приём {currentIdx + 1} из 8</span>
+                <span>·</span>
+                <span className="text-amber-300 font-semibold">{selectedTech.zone}</span>
               </div>
 
               <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={inputUrl}
-                  onChange={(e) => setInputUrl(e.target.value)}
-                  placeholder="Ссылка VK (vk.com/video...), Rutube, Kinescope или файл .mp4"
-                  className="flex-1 bg-stone-950 border border-stone-700 rounded-lg px-3 py-2 text-xs text-stone-200 placeholder:text-stone-500 focus:outline-none focus:border-amber-500"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs cursor-pointer transition-colors"
-                >
-                  Сохранить
-                </button>
+                {!isAddingVideo && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingVideo(true)}
+                    className="text-stone-400 hover:text-amber-300 text-xs transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    <span>{activeVideoUrl ? 'Своя ссылка' : 'Вставить видео'}</span>
+                  </button>
+                )}
+
+                {selectedTech.id === 'vibratsii' ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playSuccessChime(soundEnabled);
+                      if (!isStudied) {
+                        handleMarkAsStudied('vibratsii');
+                      }
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('banya_golden_key_awarded', 'true');
+                      }
+                      if (onUnlockBadge) {
+                        onUnlockBadge('golden_key', 50);
+                      }
+                      setShowKeyFoundModal(true);
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg active:scale-95 cursor-pointer ${
+                      hasGoldenKey
+                        ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-stone-950 border border-amber-300'
+                        : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 animate-pulse'
+                    }`}
+                  >
+                    <Key className="w-4 h-4 text-stone-950" />
+                    <span>
+                      {hasGoldenKey
+                        ? 'Золотой Ключ у вас! (Открыть подсказку)'
+                        : '🗝️ Забрать Золотой Ключ (+50 XP)'}
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleMarkAsStudied(selectedTech.id)}
+                    disabled={isStudied}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      isStudied
+                        ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/50 cursor-default'
+                        : 'bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold shadow-md cursor-pointer active:scale-95'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{isStudied ? 'Приём изучен ✓' : 'Изучено (+15 XP)'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Clean Technique Card + Sequential Step Navigation */}
+          <div className="lg:col-span-5 rounded-2xl border border-stone-800 bg-stone-950/80 p-5 sm:p-6 space-y-4 flex flex-col justify-between shadow-lg">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+                <span className="text-xs font-mono uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Приём {currentIdx + 1} из 8</span>
+                </span>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-stone-800 text-stone-300 font-mono">
+                  Темп: {selectedTech.tempo}
+                </span>
               </div>
 
-              <div className="text-[10px] text-stone-400 space-y-1">
-                <div className="text-stone-300 font-medium">Поддерживаемые форматы без VPN:</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px]">
-                  <div>• <strong>VK Видео</strong>: <code className="text-amber-300">vk.com/video-123_456</code> или код плеера</div>
-                  <div>• <strong>Rutube</strong>: <code className="text-amber-300">rutube.ru/video/...</code> или embed</div>
-                  <div>• <strong>Kinescope</strong>: <code className="text-amber-300">kinescope.io/...</code> (для курсов)</div>
-                  <div>• <strong>Прямой MP4</strong>: <code className="text-amber-300">/videos/opakhivanie.mp4</code> или URL</div>
+              <div>
+                <h4 className="font-serif text-2xl font-bold text-stone-100">
+                  {currentIdx + 1}. {selectedTech.name}
+                </h4>
+                <p className="text-xs sm:text-sm text-stone-300 mt-1.5 leading-relaxed">
+                  {selectedTech.description}
+                </p>
+              </div>
+
+              <div className="space-y-3 pt-1 text-xs sm:text-sm">
+                <div className="p-3 rounded-xl bg-amber-950/25 border border-amber-800/40 space-y-1">
+                  <strong className="text-amber-300 block font-semibold text-xs">
+                    🎯 Зачем нужен:
+                  </strong>
+                  <p className="text-amber-100/90 leading-relaxed text-xs">
+                    {selectedTech.purpose}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-stone-900 border border-stone-800/80 space-y-1">
+                  <strong className="text-stone-200 block font-semibold text-xs">
+                    👐 Как выполнять:
+                  </strong>
+                  <p className="text-stone-300 leading-relaxed text-xs">
+                    {selectedTech.execution}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-emerald-950/25 border border-emerald-800/40 space-y-1">
+                  <strong className="text-emerald-300 block font-semibold text-xs">
+                    ✨ Что чувствует гость:
+                  </strong>
+                  <p className="text-emerald-100/90 leading-relaxed italic text-xs">
+                    {selectedTech.guestSensations}
+                  </p>
                 </div>
               </div>
-            </form>
-          )}
-
-          {/* Bottom Bar under video: Status and Studied Action */}
-          <div className="mt-4 pt-3 border-t border-stone-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 text-stone-400 font-mono">
-              <span>Зона:</span>
-              <span className="text-amber-300 font-semibold">{selectedTech.zone}</span>
             </div>
 
-            <div className="flex items-center gap-2">
-              {!isAddingVideo && (
+            {/* Sequential Prev / Next Technique Buttons */}
+            <div className="pt-3 border-t border-stone-800 flex items-center justify-between gap-2">
+              {prevTech ? (
                 <button
-                  onClick={() => setIsAddingVideo(true)}
-                  className="text-stone-400 hover:text-amber-300 text-xs transition-colors flex items-center gap-1"
+                  type="button"
+                  onClick={() => handleSelectTech(prevTech)}
+                  className="px-3 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 text-xs font-medium border border-stone-800 transition-colors cursor-pointer flex items-center gap-1.5"
                 >
-                  <PlusCircle className="w-3.5 h-3.5" />
-                  <span>{activeVideoUrl ? 'Изменить видео' : 'Вставить видео'}</span>
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Пред.</span>
                 </button>
+              ) : (
+                <div />
               )}
 
-              {selectedTech.id === 'vibratsii' ? (
-                /* SPECIAL SECRET KEY BUTTON FOR VIBRATION TECHNIQUE */
+              {nextTech ? (
                 <button
                   type="button"
                   onClick={() => {
-                    playSuccessChime(soundEnabled);
-                    if (!isStudied) {
-                      handleMarkAsStudied('vibratsii');
-                    }
-                    if (typeof window !== 'undefined') {
-                      localStorage.setItem('banya_golden_key_awarded', 'true');
-                    }
-                    if (onUnlockBadge) {
-                      onUnlockBadge('golden_key', 50);
-                    }
-                    setShowKeyFoundModal(true);
+                    if (!isStudied) handleMarkAsStudied(selectedTech.id);
+                    handleSelectTech(nextTech);
                   }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg active:scale-95 cursor-pointer ${
-                    hasGoldenKey
-                      ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-stone-950 border border-amber-300 ring-2 ring-amber-400/40 shadow-amber-500/30'
-                      : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 animate-pulse'
-                  }`}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <Key className="w-4 h-4 text-stone-950" />
-                  <span>{hasGoldenKey ? 'Золотой Ключ у вас! (Посмотреть подсказку)' : '🗝️ Забрать Золотой Ключ от сундука (+50 XP)'}</span>
+                  <span>Следующий: {currentIdx + 2}. {nextTech.name}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               ) : (
-                <button
-                  onClick={() => handleMarkAsStudied(selectedTech.id)}
-                  disabled={isStudied}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    isStudied
-                      ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/50 cursor-default'
-                      : 'bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold shadow-md cursor-pointer active:scale-95'
-                  }`}
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{isStudied ? 'Приём изучен ✓' : 'Отметить как изученный (+15 XP)'}</span>
-                </button>
+                <span className="text-xs font-mono text-emerald-400 font-bold">
+                  Все 8 приёмов просмотрены ✓
+                </span>
               )}
             </div>
           </div>
-
         </div>
-
-        {/* Right: Technique Anatomy & Pedagogical Instructions */}
-        <div className="lg:col-span-5 rounded-2xl border border-stone-800 bg-stone-950/80 p-5 sm:p-6 space-y-4 flex flex-col justify-between shadow-lg">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-3">
-              <span className="text-xs font-mono uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5" />
-                <span>Карточка приёма</span>
-              </span>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-stone-800 text-stone-300 font-mono font-medium">
-                Темп: {selectedTech.tempo}
-              </span>
-            </div>
-
-            <div>
-              <h4 className="font-serif text-2xl font-bold text-stone-100">
-                {selectedTech.name}
-              </h4>
-              <p className="text-xs sm:text-sm text-stone-300 mt-2 leading-relaxed">
-                {selectedTech.description}
-              </p>
-            </div>
-
-            <div className="space-y-3 pt-2 text-xs">
-              <div className="p-3 rounded-xl bg-amber-950/25 border border-amber-800/40 space-y-1">
-                <strong className="text-amber-300 block font-semibold flex items-center gap-1.5">
-                  <span>🎯</span> Для чего и на что направлен:
-                </strong>
-                <p className="text-amber-100/90 leading-relaxed">{selectedTech.purpose}</p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-stone-900 border border-stone-800/80 space-y-1">
-                <strong className="text-stone-200 block font-semibold flex items-center gap-1.5">
-                  <span>👐</span> Как выполняют (механика):
-                </strong>
-                <p className="text-stone-300 leading-relaxed">{selectedTech.execution}</p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-800/40 space-y-1">
-                <strong className="text-emerald-300 block font-semibold flex items-center gap-1.5">
-                  <span>✨</span> Ощущения гостя:
-                </strong>
-                <p className="text-emerald-100/90 leading-relaxed italic">{selectedTech.guestSensations}</p>
-              </div>
-
-              <div className="p-2.5 rounded-xl bg-stone-900/60 border border-stone-800 text-[11px] flex items-center justify-between gap-2">
-                <span className="text-stone-400 font-medium">📍 Рабочая зона:</span>
-                <span className="text-stone-200 font-mono text-right">{selectedTech.zone}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
 
-          {/* POPUP: Key Found - Tells student that Secret Chest is hidden on Level 3 */}
+      {/* =================================================================== */}
+      {/* ШАГ 3. ПАМЯТКА ДОМАШНЕЙ БЕЗОПАСНОСТИ (КОМПАКТНО И ПОСЛЕДОВАТЕЛЬНО) */}
+      {/* =================================================================== */}
+      <div className="rounded-3xl border border-stone-800 bg-stone-900/95 p-6 sm:p-8 space-y-5 shadow-xl">
+        <div className="border-b border-stone-800 pb-4">
+          <span className="text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold">
+            🛡️ Шаг 3 из 3 · Базовая безопасность дома и на даче
+          </span>
+          <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mt-1">
+            Как безопасно пропарить близкого человека: 3 зоны внимания
+          </h3>
+          <p className="text-xs sm:text-sm text-stone-400 mt-0.5">
+            Главное правило домашнего пармастера: <strong>лучше чуть-чуть недогреть, чем перегреть!</strong>
+          </p>
+        </div>
+
+        <div className="space-y-4 text-sm sm:text-base text-stone-200 leading-relaxed">
+          <div className="space-y-1">
+            <h4 className="font-serif text-base sm:text-lg font-bold text-emerald-300">
+              1. Защита Гостя (Близкого человека)
+            </h4>
+            <p className="text-stone-300">
+              • <strong>Полное табу на алкоголь и температуру &gt;37°C:</strong> алкоголь расширяет сосуды, а жар сгущает кровь — это прямой риск скачка давления и аритмии.<br />
+              • <strong>На голове — прохладная, но СУХАЯ шапка:</strong> сухая шерсть или войлок держат воздушный термос. Мокрая шапка в парной быстро нагревается и превращается в кипящий компресс.<br />
+              • <strong>Не вставать резко после парения:</strong> дайте человеку спокойно полежать 1–2 минуты на полке, затем плавно сесть, сделать глоток воды и только потом вставать.
+            </p>
+          </div>
+
+          <div className="space-y-1 pt-4 border-t border-stone-800/80">
+            <h4 className="font-serif text-base sm:text-lg font-bold text-amber-300">
+              2. Защита Пространства
+            </h4>
+            <p className="text-stone-300">
+              • <strong>Чистый пол без скользких листьев:</strong> между заходами обязательно смывайте с пола опавшие распаренные листья и лишнюю воду.<br />
+              • <strong>Подача воды только сбоку от печи:</strong> никогда не наклоняйте лицо над открытой дверцей каменки — выброс пара вылетает со скоростью пушечного выстрела.<br />
+              • <strong>Свежий воздух:</strong> проветривайте парную залпом на 1–2 минуты между заходами.
+            </p>
+          </div>
+
+          <div className="space-y-1 pt-4 border-t border-stone-800/80">
+            <h4 className="font-serif text-base sm:text-lg font-bold text-sky-300">
+              3. Защита Себя (Спины и сил мастера)
+            </h4>
+            <p className="text-stone-300">
+              • <strong>Прямая спина и подстройка под полок:</strong> если полок <u>слишком низкий</u> — расставьте ноги шире в полуприседе или положите гостя на дополнительный матрас (трапик под ноги ставить нельзя — полок станет ещё ниже!). Трапик под ноги нужен только тогда, когда полок <u>слишком высокий</u>.<br />
+              • <strong>Водно-солевой баланс:</strong> каждые 15 минут пейте тёплую минеральную воду или воду с лимоном и щепоткой соли.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* POPUP: Key Found */}
       {showKeyFoundModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-md max-h-[92vh] overflow-y-auto rounded-3xl border-2 border-amber-400 bg-stone-950 p-5 sm:p-6 text-stone-100 shadow-[0_0_50px_rgba(245,158,11,0.35)] space-y-4 text-center">
-            
             <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-3xl mx-auto shadow-[0_0_25px_rgba(245,158,11,0.4)] animate-bounce">
               🗝️
             </div>
@@ -589,13 +692,13 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
               </h3>
               <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-500/30 text-xs sm:text-sm text-stone-200 leading-relaxed text-left space-y-2">
                 <p>
-                  🏆 <strong>Поздравляем!</strong> Вы отыскали секретный артефакт в технике вибрации.
+                  🏆 <strong>Поздравляем!</strong> Вы отыскали секретный артефакт в приёме «Вибрации».
                 </p>
                 <p className="text-amber-300 font-semibold">
-                  🔍 Но где же сам сундук? Сундук с тайными знаниями нужно искать на третьем уровне!
+                  🔍 Сундук с тайными знаниями ждёт вас на 3-м уровне!
                 </p>
                 <p className="text-stone-400 text-xs">
-                  Переходите на 3-й уровень обучения — там вас ждет Кованый Сундук с полным видео непрерывной связки 8 приемов и техникой «Ледяное дыхание».
+                  На 3-м уровне вы сможете открыть этим ключом Кованый Сундук с полным непрерывным видео связки всех 8 приёмов и техникой «Ледяное дыхание».
                 </p>
               </div>
             </div>
@@ -619,10 +722,9 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
                 Остаться здесь
               </button>
             </div>
-
           </div>
         </div>
       )}
-</div>
+    </div>
   );
 };

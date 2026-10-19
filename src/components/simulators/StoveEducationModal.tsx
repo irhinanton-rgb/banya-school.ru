@@ -84,16 +84,16 @@ export const StoveEducationModal: React.FC<StoveEducationModalProps> = ({
   const [activeMission, setActiveMission] = useState<MissionId | null>('mission_ignite');
   const [missionToast, setMissionToast] = useState<string | null>(null);
 
-  // Intro dialog state (shown when opened with inactive background)
-  const [showIntroPopup, setShowIntroPopup] = useState<boolean>(true);
+  // Intro dialog state (disabled by default so user goes straight to interactive stove)
+  const [showIntroPopup, setShowIntroPopup] = useState<boolean>(false);
 
   // Combustion Mode Info Popup State
   const [activeModePopup, setActiveModePopup] = useState<CombustionModeDetails | null>(null);
 
-  // Reset intro popup whenever modal is opened
+  // Reset mode popup whenever modal is opened
   useEffect(() => {
     if (isOpen) {
-      setShowIntroPopup(true);
+      setShowIntroPopup(false);
       setActiveModePopup(null);
     }
   }, [isOpen]);

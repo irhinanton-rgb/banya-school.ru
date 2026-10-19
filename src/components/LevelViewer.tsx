@@ -212,96 +212,18 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
           )}
         </div>
 
-        {/* Task Title & Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          <div className="md:col-span-8 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-stone-300">
-              <Zap className="h-4 w-4 text-amber-400" />
-              <span>Задание: {level.taskTitle}</span>
-            </div>
-
-            {level.tasks && level.tasks.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                {level.tasks.map((task) => {
-                  const isDone = isCompleted || hasCompletedQuiz || localCompletedTasks.includes(task.id);
-                  return (
-                    <div
-                      key={task.id}
-                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-mono transition-all ${
-                        isDone
-                          ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
-                          : 'bg-stone-950/60 border-stone-800 text-stone-400'
-                      }`}
-                    >
-                      <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                        isDone ? 'bg-emerald-500 text-stone-950' : 'bg-stone-850 text-stone-500 border border-stone-700'
-                      }`}>
-                        {isDone ? '✓' : '○'}
-                      </span>
-                      <span className="truncate">{task.title}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {level.interactiveType === 'herbal_bar' ? (
-            /* BIG PROMINENT HERBS LIBRARY BUTTON FOR HERBAL LEVEL INSTEAD OF FACT */
-            <div className="md:col-span-4 rounded-2xl bg-gradient-to-br from-emerald-950/50 via-stone-950 to-amber-950/40 border-2 border-emerald-500/60 p-4 sm:p-5 flex flex-col justify-between shadow-xl ring-1 ring-emerald-500/30 space-y-3 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-              
-              <div className="space-y-1 relative z-10">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono uppercase font-bold tracking-wider">
-                    🌿 База Знаний Станции {level.id}
-                  </span>
-                  <span className="text-xs font-mono text-emerald-400 font-semibold">22 растения</span>
-                </div>
-                <h4 className="font-serif font-bold text-base text-stone-100">
-                  Энциклопедия & Атлас Банных Трав
-                </h4>
-                <p className="text-xs text-stone-300 leading-snug">
-                  Свойства, рецепты запарки, народные приметы и фото 22 растений.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsHerbsLibraryOpen(true)}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 active:scale-95 cursor-pointer flex items-center justify-center gap-2 relative z-10"
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>Открыть Библиотеку Трав (22) →</span>
-              </button>
-            </div>
-          ) : (
-            <div className="md:col-span-4 rounded-xl bg-stone-950/80 border border-amber-500/20 p-4 space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
-                <Lightbulb className="h-4 w-4" />
-                <span>Интересный факт:</span>
-              </div>
-              <p className="text-xs text-stone-400 leading-relaxed italic">
-                «{level.interestingFact}»
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Pro-Tip Bar */}
-        {level.proTip && !level.proTip.startsWith('Совет наставника:') && (
-          <div className="rounded-xl bg-amber-950/20 border border-amber-500/30 p-3.5 text-xs text-amber-200/90 flex items-start gap-2.5">
+        {/* Clean compact mentor bar across all Levels 1-7 */}
+        {level.proTip && (
+          <div className="rounded-xl bg-amber-950/20 border border-amber-500/30 p-3.5 text-xs sm:text-sm text-amber-200/90 flex items-start gap-2.5">
             <ShieldCheck className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <strong>Совет наставника:</strong> {level.proTip}
-            </div>
-          </div>
-        )}
-        {level.proTip && level.proTip.startsWith('Совет наставника:') && (
-          <div className="rounded-xl bg-amber-950/20 border border-amber-500/30 p-3.5 text-xs text-amber-200/90 flex items-start gap-2.5">
-            <ShieldCheck className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              {level.proTip}
+              {level.proTip.startsWith('Совет наставника:') ? (
+                level.proTip
+              ) : (
+                <>
+                  <strong>Совет наставника:</strong> {level.proTip}
+                </>
+              )}
             </div>
           </div>
         )}
@@ -340,208 +262,8 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
         )}
       </div>
 
-      {/* Core Learning Cards */}
-      {!['safety_triage', 'biomechanics_steam', 'physiology_thermal'].includes(level.interactiveType || '') && level.learningPoints && level.learningPoints.length > 0 && (
-      <div className="space-y-6">
-        <h3 className="font-serif text-xl font-bold text-stone-100 flex items-center gap-2">
-          <span>📖</span>
-          <span>Ключевые Знания Станции</span>
-        </h3>
-
-        {/* Regular cards (1-4) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {level.learningPoints
-            .filter((p) => !p.isSpecialSafetyBlock && !p.isBroomPrepBlock)
-            .map((point, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-stone-800 bg-stone-900/80 p-5 space-y-2.5 flex flex-col justify-between hover:border-stone-700 transition-colors"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-mono text-amber-400">
-                    <span>0{idx + 1}.</span>
-                    <span className="font-semibold text-stone-200">{point.title}</span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                    {point.description}
-                  </p>
-                </div>
-
-                {point.highlight && (
-                  <div className="pt-2 text-xs text-amber-300/90 font-mono bg-stone-950/60 p-2.5 rounded-lg border border-stone-800">
-                    💡 {point.highlight}
-                  </div>
-                )}
-              </div>
-            ))}
-        </div>
-
-        {/* SPECIAL BIG HERO SAFETY BLOCK: Блок 5 во 2-м уровне */}
-        {level.learningPoints.some((p) => p.isSpecialSafetyBlock) && (
-          <div className="rounded-3xl border-2 border-emerald-500/70 bg-gradient-to-br from-stone-950 via-emerald-950/25 to-stone-950 p-6 sm:p-8 shadow-[0_0_40px_rgba(16,185,129,0.18)] space-y-6 relative overflow-hidden ring-1 ring-emerald-500/30">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Header of Block 5 */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-500/30 pb-4 relative z-10">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono uppercase font-bold tracking-wider">
-                    🛡️ БЛОК 05 · КЛЮЧЕВОЙ РУБЕЖ
-                  </span>
-                  <span className="text-xs font-mono text-emerald-400 font-semibold">
-                    Обязательно к изучению
-                  </span>
-                </div>
-                <h4 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 flex items-center gap-2">
-                  <span>Минимальная Базовая Безопасность</span>
-                </h4>
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-3xl">
-                  Обязательный свод правил для парения близких людей, жены и друзей <strong>дома, на даче или в арендованной бане</strong>. Простые и емкие правила, чтобы не навредить ни гостю, ни себе.
-                </p>
-              </div>
-
-              <div className="shrink-0 bg-stone-900/90 px-4 py-2.5 rounded-2xl border border-emerald-500/40 text-left">
-                <span className="text-[10px] font-mono text-stone-400 block uppercase">Формат парения</span>
-                <span className="text-xs font-bold text-emerald-300">Дом / Дача / Аренда</span>
-              </div>
-            </div>
-
-            {/* 3 STRUCTURED COLUMNS */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
-              
-              {/* PART 1: БЕЗОПАСНОСТЬ ГОСТЯ */}
-              <div className="rounded-2xl bg-stone-900/90 border border-emerald-500/30 p-5 space-y-3.5 shadow-md flex flex-col justify-between">
-                <div className="space-y-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xl shrink-0">
-                    🧑‍🤝‍🧑
-                  </div>
-                  <h5 className="font-serif text-base font-bold text-emerald-200">
-                    1. Безопасность Гостя (Близкого)
-                  </h5>
-                  <p className="text-xs text-stone-300 leading-relaxed">
-                    Ваш близкий человек вам доверяет. Защитите его от скрытых рисков:
-                  </p>
-                  <ul className="text-xs text-stone-300 space-y-3 pt-1 list-none">
-                    <li className="flex items-start gap-2">
-                      <span className="text-rose-400 font-bold shrink-0 mt-0.5">✕</span>
-                      <span><strong>Вред алкоголя (Табу):</strong> Алкоголь + жар = смертельный удар по миокарду. Этанол расширяет сосуды, а пар сгущает кровь. Возникает скачок давления, аритмия и риск сосудистой катастрофы. При опьянении или t&gt;37°C парение строго запрещено!</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold shrink-0 mt-0.5">✓</span>
-                      <span><strong>Прохладная, но СУХАЯ шапка:</strong> На голове всегда прохладная, но <u>сухая</u> шапка (шерсть/войлок)! Сухая шапка держит воздушную подушку. Мокрая шапка моментально нагревается и превращается в кипящую кастрюлю, перегревая кору мозга.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
-                      <span><strong>Почему не стоит резко вставать:</strong> В парной кровь активно приливает к согретой коже. Если подняться слишком быстро — может легко закружиться голова. Правило комфорта: после парения дать человеку спокойно полежать 1-2 минуты, затем плавно сесть, сделать глоток воды, и только потом вставать.</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-300 font-mono">
-                  💡 1-2 минуты спокойного отдыха на полке после парения — залог ясной головы и мягкого самочувствия.
-                </div>
-              </div>
-
-              {/* PART 2: БЕЗОПАСНОСТЬ ПРОСТРАНСТВА */}
-              <div className="rounded-2xl bg-stone-900/90 border border-amber-500/30 p-5 space-y-3.5 shadow-md flex flex-col justify-between">
-                <div className="space-y-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl shrink-0">
-                    🧖‍♂️
-                  </div>
-                  <h5 className="font-serif text-base font-bold text-amber-200">
-                    2. Безопасность Пространства
-                  </h5>
-                  <p className="text-xs text-stone-300 leading-relaxed">
-                    В арендованной бане или на даче много скрытых физических угроз:
-                  </p>
-                  <ul className="text-xs text-stone-300 space-y-3 pt-1 list-none">
-                    <li className="flex items-start gap-2">
-                      <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
-                      <span><strong>Чистота пола:</strong> Опавший распаренный лист на мокрой плитке или дереве становится очень скользким. Между заходами рекомендуется смывать опавшие листья и убирать лишнюю воду во избежание травмоопасных ситуаций.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
-                      <span><strong>Траектория печи:</strong> Поддавая воду в каменку, стоять сбоку от пушки или открытой дверцы. Никогда не наклонять лицо над камнями — выброс пара происходит со скоростью пушечного выстрела.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold shrink-0 mt-0.5">✓</span>
-                      <span><strong>Залповое проветривание:</strong> Открыть окно и дверь между заходами на 1-2 минуты. В бане опасен не пар, а гипоксия — свежий кислород важнее жара.</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-300 font-mono">
-                  💡 Между заходами рекомендуется убирать опавшие листья и лишнюю воду во избежание травмоопасных ситуаций.
-                </div>
-              </div>
-
-              {/* PART 3: БЕЗОПАСНОСТЬ СЕБЯ (МАСТЕРА) */}
-              <div className="rounded-2xl bg-stone-900/90 border border-sky-500/30 p-5 space-y-3.5 shadow-md flex flex-col justify-between">
-                <div className="space-y-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-xl shrink-0">
-                    🥋
-                  </div>
-                  <h5 className="font-serif text-base font-bold text-sky-200">
-                    3. Безопасность Себя (Мастера)
-                  </h5>
-                  <p className="text-xs text-stone-300 leading-relaxed">
-                    Если мастер сорвет спину или обессилит — сеанс закончится травмой:
-                  </p>
-                  <ul className="text-xs text-stone-300 space-y-3 pt-1 list-none">
-                    <li className="flex items-start gap-2">
-                      <span className="text-sky-400 font-bold shrink-0 mt-0.5">✓</span>
-                      <span><strong>Подстройка под высоту полка:</strong>
-                        <br />• <u>Если полок слишком низкий</u>: положите гостя на дополнительный матрас (сенный, гречишный) либо расставьте ноги пошире в полуприседе (трапик под ноги ставить нельзя, иначе полок станет еще ниже!).
-                        <br />• <u>Если полок слишком высокий</u>: встаньте на деревянный трапик или наденьте обувь на высокой подошве. Спину колесом не гнуть!
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-sky-400 font-bold shrink-0 mt-0.5">✓</span>
-                      <span><strong>«Банное тайчи»:</strong> Движение зарождается в перекате стоп и пружине коленей, проходя через расслабленный таз. Веник лишь продолжает этот волновой танец.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-sky-400 font-bold shrink-0 mt-0.5">✓</span>
-                      <span><strong>Водно-солевой баланс:</strong> И мастер, и гость с потом теряют жизненно важные электролиты. Не забывайте регулярно восполнять водно-солевой баланс качественной минеральной водой (или водой с лимоном и щепоткой соли) каждые 15 минут.</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30 text-[11px] text-sky-300 font-mono">
-                  💡 На низком полке — шире ноги или доп. матрас. Трапик нужен только на высоком полке!
-                </div>
-              </div>
-
-            </div>
-
-            {/* Footer Highlight */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-stone-900 to-amber-950/50 border border-emerald-500/40 flex items-center gap-3.5 text-xs sm:text-sm text-emerald-200 relative z-10 shadow-lg">
-              <span className="text-2xl shrink-0">🌟</span>
-              <span className="leading-relaxed font-medium">
-                <strong className="text-amber-300 font-bold text-sm block sm:inline mr-1">Главное правило:</strong>
-                лучше чуть-чуть недогреть, чем перегреть!
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-      )}
-
-      {/* Embedded Level Simulator / Content */}
+      {/* Embedded Level Simulator / Sequential Content */}
       <div className="space-y-4">
-        <h3 className="font-serif text-xl font-bold text-stone-100 flex items-center gap-2">
-          <span>
-            {level.interactiveType === 'physiology_thermal'
-              ? '📖'
-              : level.interactiveType === 'biomechanics_steam'
-              ? '🎬'
-              : '🎮'}
-          </span>
-          <span>
-            {level.interactiveType === 'physiology_thermal'
-              ? 'Последовательный Разбор Физиологии Бани'
-              : level.interactiveType === 'biomechanics_steam'
-              ? 'Видеотека Мастерства (3 раздела)'
-              : 'Практический Интерактив'}
-          </span>
-        </h3>
-
         {level.interactiveType === 'first_steam' && (
           <MicroclimateSimulator
             soundEnabled={soundEnabled}
@@ -555,136 +277,6 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               }
             }}
           />
-        )}
-
-        {/* DEDICATED PRE-PRACTICUM BLOCK: Выбор и подготовка главного инструмента мастера */}
-        {level.interactiveType === 'broom_techniques' && (
-          <div className="rounded-3xl border-2 border-amber-500/70 bg-gradient-to-br from-stone-950 via-amber-950/25 to-stone-950 p-6 sm:p-8 shadow-[0_0_40px_rgba(245,158,11,0.15)] space-y-5 relative overflow-hidden ring-1 ring-amber-500/30">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/30 pb-4 relative z-10">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono uppercase font-bold tracking-wider">
-                    🌿 ПЕРЕД ПРАКТИКУМОМ С ВЕНИКАМИ
-                  </span>
-                  <span className="text-xs font-mono text-amber-400 font-semibold">
-                    Шаг подготовки инструмента
-                  </span>
-                </div>
-                <h4 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 flex items-center gap-2">
-                  <span>Выбор и Подготовка Главного Инструмента Мастера</span>
-                </h4>
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-3xl">
-                  Прежде чем переходить к отработке 8 приёмов по видео, важно правильно взять веник в руки и довести его лист до шелковистого состояния без осыпания.
-                </p>
-              </div>
-
-              <div className="shrink-0 bg-stone-900/90 px-4 py-2 rounded-2xl border border-amber-500/40 text-left">
-                <span className="text-[10px] font-mono text-stone-400 block uppercase">Инструмент</span>
-                <span className="text-xs font-bold text-amber-300">Дуб / Берёза</span>
-              </div>
-            </div>
-
-            {/* 2-Part Structured Layout: Хват & Алгоритм запарки */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
-              
-              {/* Part 1: Хват веника */}
-              <div className="rounded-2xl bg-stone-900/90 border border-amber-500/30 p-5 space-y-3 shadow-md flex flex-col justify-between">
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-lg shrink-0">
-                      🕊️
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-mono uppercase text-amber-400 font-bold tracking-wider block">
-                        Биомеханика руки
-                      </span>
-                      <h5 className="font-serif text-base font-bold text-amber-100">
-                        Правильный Хват Рукояти
-                      </h5>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-stone-300 leading-relaxed">
-                    Держите рукоять мягкой, расслабленной кистью — <strong className="text-amber-300">«как живую птицу: не задушить сильным сжатием, но и не дать выпорхнуть»</strong>.
-                  </p>
-
-                  <ul className="text-xs text-stone-300 space-y-2 pt-1 list-none">
-                    <li className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
-                      <span><strong>Свободное запястье:</strong> Рукоять лежит в пальцах, а не зажата намертво в кулаке. Запястье и локоть мягко пружинят.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold shrink-0">✓</span>
-                      <span><strong>Защита от усталости:</strong> При зажатом кулаке предплечье каменеет через 5 минут. Мягкий хват позволяет парить часами без боли.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-300 font-mono">
-                  💡 Движение венику задает импульс тела, а пальцы лишь мягко направляют крону.
-                </div>
-              </div>
-
-              {/* Part 2: Четкий алгоритм запарки */}
-              <div className="rounded-2xl bg-stone-900/90 border border-amber-500/30 p-5 space-y-3 shadow-md flex flex-col justify-between">
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-lg shrink-0">
-                      💧
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-mono uppercase text-emerald-400 font-bold tracking-wider block">
-                        Подготовка листа и веток
-                      </span>
-                      <h5 className="font-serif text-base font-bold text-emerald-100">
-                        Алгоритм Запарки Веника
-                      </h5>
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-stone-300 space-y-2 pt-1">
-                    <div className="p-2.5 rounded-xl bg-stone-950/60 border border-stone-800 space-y-1">
-                      <strong className="text-amber-300 block text-[11px]">1. Смываем пыль и оставляем влагу:</strong>
-                      <span className="text-[11px] text-stone-300 leading-snug block">
-                        Окунаем веник в воду — смываем пыль и оставляем на листьях капли влаги для дальнейшего перехода в пар в пакете/под полотенцем.
-                      </span>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-stone-950/60 border border-stone-800 space-y-1">
-                      <strong className="text-sky-300 block text-[11px]">2. Ручки в воде (капиллярное питание):</strong>
-                      <span className="text-[11px] text-stone-300 leading-snug block">
-                        Ставим веник ручками в воду и накрываем пакетом/полотенцем (чтобы не пересыхал): капилляры веток впитывают воду, делая веник упругим и эластичным.
-                      </span>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-stone-950/60 border border-stone-800 space-y-1">
-                      <strong className="text-emerald-300 block text-[11px]">3. Молодой vs Старый лист:</strong>
-                      <span className="text-[11px] text-stone-300 leading-snug block">
-                        • <u>Молодой веник</u>: дойдет до рабочей кондиции прямо в процессе парения.
-                        <br />• <u>Старый грубый лист</u>: требует больше времени и тепла. Перед парением подержите над паром каменки (аккуратно — пар обжигает руки!).
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-300 font-mono">
-                  💡 Чем старше лист — тем дольше и горячее запарка.
-                </div>
-              </div>
-
-            </div>
-
-            {/* Совет мастера по весу веников */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/60 via-stone-900 to-amber-950/50 border border-amber-500/40 flex items-center gap-3 text-xs sm:text-sm text-amber-200 relative z-10 shadow-lg">
-              <span className="text-xl shrink-0">💡</span>
-              <span className="leading-relaxed font-medium">
-                <strong className="text-amber-300 font-bold block sm:inline mr-1">Совет мастера:</strong>
-                для отработки первых приёмов рекомендую брать тяжёлые веники, а для непосредственного парения — брать удобные и лёгкие веники.
-              </span>
-            </div>
-          </div>
         )}
 
         {level.interactiveType === 'broom_techniques' && (
@@ -705,6 +297,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
           <HerbalBlenderSimulator
             soundEnabled={soundEnabled}
             onGrantXp={onGrantXp}
+            onOpenHerbsLibrary={() => setIsHerbsLibraryOpen(true)}
           />
         )}
 
@@ -737,6 +330,10 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
         {level.interactiveType === 'biomechanics_steam' && (
           <BiomechanicsSteamSimulator
             soundEnabled={soundEnabled}
+            unlockedBadges={progress.unlockedBadges}
+            onUnlockBadge={(badgeId, xp) => {
+              if (onUnlockBadge) onUnlockBadge(badgeId, xp);
+            }}
             onGrantXp={(xp) => {
               onGrantXp(xp);
               markTaskCompleted('interactive');
@@ -747,24 +344,27 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
         {level.interactiveType === 'physiology_thermal' && (
           <PhysiologyThermalSimulator
             soundEnabled={soundEnabled}
-            onGrantXp={(xp) => {
-              onGrantXp(xp);
-              markTaskCompleted('interactive');
+            onSubTaskComplete={(subTaskId) => {
+              markTaskCompleted(subTaskId);
+              onGrantXp(30);
             }}
-            onStage1Completed={() => markTaskCompleted('first_steam')}
-            onStage2Completed={() => markTaskCompleted('active_steaming')}
-            onStage3Completed={() => markTaskCompleted('contrast_mechanics')}
-            onSuccess={() => markTaskCompleted('interactive')}
+            onComplete={() => {
+              markTaskCompleted('interactive');
+              onGrantXp(60);
+            }}
           />
         )}
         {level.interactiveType === 'guest_service' && (
           <GuestServiceSimulator
             soundEnabled={soundEnabled}
-            onGrantXp={(xp) => {
-              onGrantXp(xp);
-              markTaskCompleted('interactive');
+            onSubTaskComplete={(subTaskId) => {
+              markTaskCompleted(subTaskId);
+              onGrantXp(30);
             }}
-            onSuccess={() => markTaskCompleted('interactive')}
+            onComplete={() => {
+              markTaskCompleted('interactive');
+              onGrantXp(60);
+            }}
           />
         )}
 
@@ -990,6 +590,30 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Final Exam Block on Level 7 (Crown of Course) */}
+      {level.id === 7 && (
+        <div className="rounded-2xl border-2 border-amber-500/50 bg-gradient-to-br from-amber-950/40 via-stone-900 to-stone-950 p-6 sm:p-8 text-center space-y-4 shadow-2xl">
+          <div className="text-4xl sm:text-5xl">👑</div>
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-400 font-bold">
+              Финальный рубеж курса · 7 уровней пройдено
+            </span>
+            <h4 className="font-serif text-xl sm:text-2xl font-bold text-stone-100">
+              Итоговый Экзамен на Именной Сертификат и Корону Пармастера
+            </h4>
+            <p className="text-xs sm:text-sm text-stone-300 max-w-lg mx-auto leading-relaxed">
+              Сдайте итоговый квалификационный тест из 10 вопросов по всем темам курса, чтобы получить официальный именной Сертификат и Корону Пармастера.
+            </p>
+          </div>
+          <button
+            onClick={onStartExam}
+            className="px-7 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer active:scale-95"
+          >
+            Начать Финальный Экзамен 👑
+          </button>
         </div>
       )}
 
@@ -1302,10 +926,13 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                 </button>
               ) : (
                 <button
-                  onClick={() => setShowSuccessModal(false)}
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    if (onStartExam) onStartExam();
+                  }}
                   className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/25 cursor-pointer text-center"
                 >
-                  Отлично, продолжить
+                  👑 Начать Финальный Экзамен на Сертификат →
                 </button>
               )}
             </div>
