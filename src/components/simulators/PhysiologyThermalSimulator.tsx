@@ -1,280 +1,234 @@
 import React, { useState } from 'react';
-import { playSuccessChime, playWoodTap, playSteamSound } from '../../utils/audio';
+import { playSuccessChime } from '../../utils/audio';
 import confetti from 'canvas-confetti';
-import {
-  Thermometer,
-  Heart,
-  Droplet,
-  Zap,
-  Activity,
-  CheckCircle2,
-  Sparkles,
-  ShieldAlert,
-  Wind,
-} from 'lucide-react';
+import { CheckCircle2, Check } from 'lucide-react';
 
 interface PhysiologyThermalSimulatorProps {
   soundEnabled: boolean;
   onGrantXp?: (amount: number) => void;
   onSuccess?: () => void;
+  onStage1Completed?: () => void;
+  onStage2Completed?: () => void;
+  onStage3Completed?: () => void;
 }
+
+type StageKey = 1 | 2 | 3;
+
+interface NarrativeSection {
+  id: StageKey;
+  stepLabel: string;
+  title: string;
+  subtitle: string;
+  paragraphs: {
+    heading: string;
+    text: string;
+  }[];
+  masterTakeaway: string;
+}
+
+const PHYSIOLOGY_STAGES: NarrativeSection[] = [
+  {
+    id: 1,
+    stepLabel: 'Этап 1 из 3',
+    title: '1. Что происходит с телом от первого пара',
+    subtitle: 'Мягкая адаптация (+45...+55°C), раскрытие сосудов и разгрузка внутренних органов',
+    paragraphs: [
+      {
+        heading: 'Сигнал от кожи в мозг и раскрытие капилляров',
+        text: 'Когда человек заходит в мягко прогретую парную и на него опускается первая теплая волна пара, терморецепторы кожи мгновенно передают сигнал в центр терморегуляции мозга (гипоталамус). Организм понимает, что опасности и обжигающего шока нет, и запускает выработку оксида азота (NO). Под его действием стенки мельчайших сосудов расслабляются, и капилляры кожи плавно расширяются в 2–3 раза (происходит вазодилатация). Кожа равномерно розовеет и согревается.',
+      },
+      {
+        heading: 'Разгрузка сердца, печени и почек',
+        text: 'За счет того, что капиллярная сеть кожи открылась, туда плавно перетекает до 15–20% всей циркулирующей крови. Это работает как естественный предохранительный клапан: внутренние органы (печень, почки, легкие) освобождаются от избыточного застойного давления. Общее сопротивление сосудов падает, артериальное давление мягко выравнивается, а сердцу становится значительно легче перекачивать кровь.',
+      },
+      {
+        heading: 'Глубокое дыхание и первый легкий пот',
+        text: 'Теплый влажный воздух с фитонцидами трав согревает слизистые оболочки и рефлекторно расширяет бронхи. Дыхание становится глубоким, редким и свободным, уходит спазм диафрагмы. Одновременно мягко открываются потовые железы: начинается первое потоотделение, которое увлажняет эпидермис и запускает механизм естественного охлаждения тела без потери важных солей.',
+      },
+    ],
+    masterTakeaway:
+      'Именно поэтому первый заход всегда проводят бесконтактно и при мягкой температуре: нужно дать сосудам кожи спокойно раскрыться, иначе резкий жар вызовет защитный спазм и перегрузит сердце.',
+  },
+  {
+    id: 2,
+    stepLabel: 'Этап 2 из 3',
+    title: '2. Что происходит с телом во время основного парения',
+    subtitle: 'Глубокий прогрев вениками (+60...+70°C), «таяние» фасций и клеточное обновление',
+    paragraphs: [
+      {
+        heading: 'Скрытая теплота пара и прогрев на глубину 3–5 см',
+        text: 'Во время работы вениками мастер опускает горячий пар из-под потолка прямо на тело гостя. Соприкасаясь с более прохладной кожей, пар конденсируется в микрокапли воды и отдает колоссальное количество скрытой теплоты (2260 кДж на килограмм пара). В отличие от сухого воздуха сауны, который греет только поверхность кожи, конденсирующийся пар мягко и глубоко прогревает мышцы, связки и суставы на глубину до 3–5 сантиметров.',
+      },
+      {
+        heading: 'Кардиотренировка лёжа и лимфодренаж',
+        text: 'Кровоток в коже возрастает в 4–5 раз по сравнению с покоем, а пульс гостя плавно поднимается до 110–130 ударов в минуту. Сердечно-сосудистая система получает полноценную аэробную кардиотренировку — как при легком беге, но в состоянии полной невесомости и без малейшей нагрузки на позвоночник и суставы. При этом ритмичные припарки и компрессии вениками работают как механический насос, выжимающий застойную межклеточную жидкость и молочную кислоту в лимфатическое русло.',
+      },
+      {
+        heading: 'Размягчение фасций и выработка защитных белков HSP70',
+        text: 'Когда температура глубоких мышц и соединительной ткани достигает +38.5...+39°C, плотный коллаген мышечных оболочек (фасций) меняет свою структуру: из жесткого зажатого «геля» он переходит в текучее и пластичное состояние «золя» — зажимы в шее и пояснице буквально тают, как теплый воск. Одновременно в клетках включается выработка белков теплового шока (HSP70): эти молекулы находят поврежденные внутриклеточные структуры, восстанавливают их и запускают процесс клеточного омоложения.',
+      },
+    ],
+    masterTakeaway:
+      'Во время парения мы греем человека не силой удара, а конденсатом пара через лиственную подушку веника, обязательно сохраняя голову гостя в прохладе под влажным веником.',
+  },
+  {
+    id: 3,
+    stepLabel: 'Этап 3 из 3',
+    title: '3. Что происходит с телом во время контраста и отдыха',
+    subtitle: 'Сосудистая помпа (+10...+16°C), эндорфиновый всплеск и глубокое восстановление',
+    paragraphs: [
+      {
+        heading: 'Механизм «сосудистой помпы»',
+        text: 'Когда глубоко прогретый человек погружается в прохладную купель или принимает холодный облив, холодовые рецепторы кожи вызывают мгновенное рефлекторное сужение капилляров (вазоконстрикцию). Около 1–1.5 литров горячей, обогащенной кислородом крови за считанные секунды выталкиваются от периферии обратно к внутренним органам, сердцу и головному мозгу. Такая гимнастика («расширение в паре — сжатие в холоде») мощно тренирует эластичность сосудистых стенок и промывает капиллярное русло.',
+      },
+      {
+        heading: 'Ясность ума и лавина эндорфинов («второе рождение»)',
+        text: 'Короткий контакт с холодом вызывает мгновенный адаптационный выброс норадреналина и дофамина: из головы исчезает малейшая тяжесть, мысли становятся кристально чистыми и ясными. Сразу вслед за этим гипофиз выбрасывает в кровь мощную порцию бета-эндорфинов и серотонина (природных гормонов счастья и обезболивания), а уровень гормона стресса кортизола падает на 40–45%. Именно этот биохимический каскад рождает знаменитое банное чувство невесомости, радости и ощущения «будто заново родился».',
+      },
+      {
+        heading: 'Вторая волна тепла и включение глубокого покоя',
+        text: 'Как только гость выходит из купели и его укутывают в сухой халат или простыню в теплой комнате отдыха, сосуды кожи снова мягко расширяются — по телу разливается приятное бархатное тепло. Включается блуждающий нерв и парасимпатическая нервная система (режим глубокого восстановления): пульс замедляется до спокойных 60 ударов в минуту, дыхание выравнивается, а нервная система переходит в состояние глубокого целительного отдыха.',
+      },
+    ],
+    masterTakeaway:
+      'Контраст полезен только тогда, когда тело прогрето до самого ядра (после основного парения). Погружение в холод должно быть коротким (5–15 секунд), после чего гостя сразу укутывают в тепло и ведут пить травяной чай.',
+  },
+];
 
 export const PhysiologyThermalSimulator: React.FC<PhysiologyThermalSimulatorProps> = ({
   soundEnabled,
   onGrantXp,
   onSuccess,
+  onStage1Completed,
+  onStage2Completed,
+  onStage3Completed,
 }) => {
-  const [activeStage, setActiveStage] = useState<'heat' | 'cold' | 'hormones'>('heat');
-  const [exploredStages, setExploredStages] = useState<{
-    heat: boolean;
-    cold: boolean;
-    hormones: boolean;
-  }>({
-    heat: false,
-    cold: false,
-    hormones: false,
+  const [completedSteps, setCompletedSteps] = useState<Record<StageKey, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('banya_level6_completed_steps');
+        if (saved) return JSON.parse(saved);
+      } catch {
+        // ignore
+      }
+    }
+    return { 1: false, 2: false, 3: false };
   });
 
-  const handleExplore = (stage: 'heat' | 'cold' | 'hormones') => {
-    playWoodTap(soundEnabled);
-    if (!exploredStages[stage]) {
-      const updated = { ...exploredStages, [stage]: true };
-      setExploredStages(updated);
-      if (onGrantXp) onGrantXp(25);
+  const completedCount = Object.values(completedSteps).filter(Boolean).length;
+  const isAllComplete = completedCount === 3;
 
-      if (Object.values(updated).filter(Boolean).length === 3) {
-        playSuccessChime(soundEnabled);
-        if (onSuccess) onSuccess();
-        try {
-          confetti({
-            particleCount: 50,
-            spread: 70,
-            origin: { y: 0.6 },
-          });
-        } catch {
-          // ignore
-        }
+  const handleMarkStepDone = (stepId: StageKey) => {
+    if (completedSteps[stepId]) return;
+
+    const updated = { ...completedSteps, [stepId]: true };
+    setCompletedSteps(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('banya_level6_completed_steps', JSON.stringify(updated));
+    }
+
+    playSuccessChime(soundEnabled);
+    if (onGrantXp) onGrantXp(30);
+
+    if (stepId === 1 && onStage1Completed) onStage1Completed();
+    if (stepId === 2 && onStage2Completed) onStage2Completed();
+    if (stepId === 3 && onStage3Completed) onStage3Completed();
+
+    const count = Object.values(updated).filter(Boolean).length;
+    if (count === 3) {
+      if (onSuccess) onSuccess();
+      try {
+        confetti({
+          particleCount: 70,
+          spread: 80,
+          origin: { y: 0.6 },
+        });
+      } catch {
+        // ignore
       }
     }
   };
 
   return (
-    <div className="rounded-2xl border border-stone-800 bg-stone-900/90 p-5 sm:p-7 space-y-6">
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
-            <span>🧬</span>
-            <span>Интерактивная Анатомия Банной Физиологии</span>
+    <div className="space-y-8">
+      {PHYSIOLOGY_STAGES.map((stage) => {
+        const isDone = completedSteps[stage.id];
+
+        return (
+          <article
+            key={stage.id}
+            className="rounded-2xl border border-stone-800 bg-stone-900/90 p-6 sm:p-8 space-y-6 shadow-lg"
+          >
+            {/* Section Header */}
+            <div className="border-b border-stone-800 pb-4 space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
+                  {stage.stepLabel}
+                </span>
+                {isDone && (
+                  <span className="inline-flex items-center gap-1 text-xs font-mono text-emerald-400 font-semibold">
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Изучено</span>
+                  </span>
+                )}
+              </div>
+              <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100">
+                {stage.title}
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-400">
+                {stage.subtitle}
+              </p>
+            </div>
+
+            {/* Sequential Narrative Paragraphs */}
+            <div className="space-y-5">
+              {stage.paragraphs.map((p, idx) => (
+                <div key={idx} className="space-y-1.5">
+                  <h4 className="font-serif text-base sm:text-lg font-semibold text-amber-200">
+                    {p.heading}
+                  </h4>
+                  <p className="text-sm sm:text-base text-stone-200 leading-relaxed font-sans">
+                    {p.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Practical Conclusion in Plain Text */}
+            <div className="pt-4 border-t border-stone-800/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <p className="text-xs sm:text-sm text-amber-200/90 leading-relaxed italic max-w-3xl">
+                <strong className="not-italic text-amber-400 font-semibold">Вывод для мастера: </strong>
+                {stage.masterTakeaway}
+              </p>
+
+              <button
+                type="button"
+                onClick={() => handleMarkStepDone(stage.id)}
+                disabled={isDone}
+                className={`shrink-0 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                  isDone
+                    ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/30 cursor-default'
+                    : 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md cursor-pointer active:scale-95'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{isDone ? 'Этап изучен ✓' : 'Понятно, изучено (+30 XP)'}</span>
+              </button>
+            </div>
+          </article>
+        );
+      })}
+
+      {isAllComplete && (
+        <div className="p-5 rounded-2xl bg-emerald-950/30 border border-emerald-500/40 text-center space-y-1">
+          <div className="text-sm sm:text-base font-serif font-bold text-emerald-200">
+            Все 3 этапа физиологии бани последовательно изучены!
           </div>
-          <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mt-1">
-            Физиология процессов: действие тепла, контраста и гормонов
-          </h3>
-          <p className="text-xs text-stone-400 mt-0.5">
-            Поймите клеточную биохимию: вазодилатацию, сосудистую помпу, шоковые белки HSP70 и баланс эндорфинов.
+          <p className="text-xs text-stone-300">
+            Теперь вы можете закрепить знания в коротком проверочном тесте ниже.
           </p>
         </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto bg-stone-950 px-3 py-1.5 rounded-xl border border-stone-800">
-          <span className="text-[11px] font-mono text-stone-400">Изучено фаз:</span>
-          <span className="text-xs font-mono font-bold text-emerald-400">
-            {Object.values(exploredStages).filter(Boolean).length} / 3
-          </span>
-        </div>
-      </div>
-
-      {/* 3 Interactive Tabs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <button
-          onClick={() => {
-            setActiveStage('heat');
-            playWoodTap(soundEnabled);
-          }}
-          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-            activeStage === 'heat'
-              ? 'bg-amber-500/15 border-amber-500/60 ring-1 ring-amber-500/40 text-amber-200'
-              : 'bg-stone-950/60 border-stone-800 text-stone-400 hover:text-stone-200 hover:border-stone-700'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold font-mono">1. Тепловая фаза (+60°C)</span>
-            {exploredStages.heat && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-          </div>
-          <span className="text-[11px] text-stone-400 block mt-1">Вазодилатация и разгрузка органов</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveStage('cold');
-            playWoodTap(soundEnabled);
-          }}
-          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-            activeStage === 'cold'
-              ? 'bg-amber-500/15 border-amber-500/60 ring-1 ring-amber-500/40 text-amber-200'
-              : 'bg-stone-950/60 border-stone-800 text-stone-400 hover:text-stone-200 hover:border-stone-700'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold font-mono">2. Фаза холода и контраста</span>
-            {exploredStages.cold && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-          </div>
-          <span className="text-[11px] text-stone-400 block mt-1">Сосудистая гимнастика без шока</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveStage('hormones');
-            playWoodTap(soundEnabled);
-          }}
-          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-            activeStage === 'hormones'
-              ? 'bg-amber-500/15 border-amber-500/60 ring-1 ring-amber-500/40 text-amber-200'
-              : 'bg-stone-950/60 border-stone-800 text-stone-400 hover:text-stone-200 hover:border-stone-700'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold font-mono">3. Гормональный коктейль</span>
-            {exploredStages.hormones && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-          </div>
-          <span className="text-[11px] text-stone-400 block mt-1">Эндорфины, окситоцин и фасции</span>
-        </button>
-      </div>
-
-      {/* Stage Detail Box */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-stone-950/90 border border-stone-800 space-y-4">
-        {activeStage === 'heat' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider font-mono">
-              <Thermometer className="w-4 h-4 text-amber-400" />
-              <span>Анатомический отклик на тепло:</span>
-            </div>
-            <h4 className="font-serif text-lg font-bold text-stone-100">
-              Вазодилатация: расширение капиллярного русла и разгрузка сердца
-            </h4>
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-              При мягком прогреве капилляры кожи расширяются в 3–5 раз. До 15–20% всей циркулирующей крови устремляется от внутренних органов к коже. Внутренние органы разгружаются, а кровяное давление мягко снижается.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1">
-                <strong className="text-amber-300 block">Белки теплового шока (HSP70)</strong>
-                <p className="text-[11px] text-stone-400 leading-snug">
-                  При нагреве клетки синтезируют белки HSP70, восстанавливающие поврежденные молекулы белков и обновляющие ткани.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1">
-                <strong className="text-rose-300 block">Разгрузка почек</strong>
-                <p className="text-[11px] text-stone-400 leading-snug">
-                  Потовые железы берут на себя до 30% выделительной функции, разгружая почечные клубочки от мочевины и солей.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1">
-                <strong className="text-emerald-300 block">Мышечный тонус</strong>
-                <p className="text-[11px] text-stone-400 leading-snug">
-                  Фасции становятся эластичными, как разогретый воск, снимая застарелые триггерные спазмы воротниковой зоны.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleExplore('heat')}
-              className="mt-3 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{exploredStages.heat ? 'Изучено (✓)' : 'Освоить фазу вазодилатации (+25 XP)'}</span>
-            </button>
-          </div>
-        )}
-
-        {activeStage === 'cold' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="flex items-center gap-2 text-xs font-bold text-sky-400 uppercase tracking-wider font-mono">
-              <Droplet className="w-4 h-4 text-sky-400" />
-              <span>Физиология охлаждения:</span>
-            </div>
-            <h4 className="font-serif text-lg font-bold text-stone-100">
-              «Сосудистая помпа»: почему контраст должен быть мягким
-            </h4>
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-              Контраст запускает резкое сжатие капилляров (вазоконстрикцию), выталкивая кровь обратно к магистральным сосудам. Однако если охладить гостя слишком резко или бросить в лед без подготовки, произойдет спазм и запирание жара внутри органов.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-sky-500/30 space-y-1">
-                <strong className="text-sky-300 block">Правильный контраст гостя</strong>
-                <p className="text-[11px] text-stone-400 leading-snug">
-                  Прохладный душ или обливание теплой водой (+28...+32°C), затем на воздух. Только после глубокого второго прогрева — купель на 5–15 секунд с головой!
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-rose-500/30 space-y-1">
-                <strong className="text-rose-300 block">Опасность гиперконтраста</strong>
-                <p className="text-[11px] text-stone-400 leading-snug">
-                  Лед при первом заходе вызывает спазм сонных артерий и резкий скачок давления. Контраст должен расти плавно от захода к заходу.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleExplore('cold')}
-              className="mt-3 px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{exploredStages.cold ? 'Изучено (✓)' : 'Освоить фазу контраста (+25 XP)'}</span>
-            </button>
-          </div>
-        )}
-
-        {activeStage === 'hormones' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono">
-              <Zap className="w-4 h-4 text-emerald-400" />
-              <span>Нейрохимия бани:</span>
-            </div>
-            <h4 className="font-serif text-lg font-bold text-stone-100">
-              Эндорфиновый каскад: как рождается «банное перерождение»
-            </h4>
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-              Ощущение легкости и эйфории после качественного парения («как заново родился») — это точный биохимический процесс выброса эндогенных опиоидов:
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1">
-                <strong className="text-emerald-300 block">Бета-эндорфины</strong>
-                <p className="text-[11px] text-stone-400 leading-snug">
-                  Природные анальгетики мозга: блокируют мышечные боли, снимают усталость и дарят состояние покоя.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1">
-                <strong className="text-amber-300 block">Окситоцин и забота</strong>
-                <p className="text-[11px] text-stone-400 leading-snug">
-                  Бережные прикосновения веников и теплое укутывание активируют окситоцин — гормон доверия и защищенности.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-stone-900 border border-stone-800 space-y-1">
-                <strong className="text-sky-300 block">Падение кортизола</strong>
-                <p className="text-[11px] text-stone-400 leading-snug">
-                  Уровень гормона хронического стресса падает на 40%, восстанавливая здоровый глубокий сон на несколько дней вперед.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleExplore('hormones')}
-              className="mt-3 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{exploredStages.hormones ? 'Изучено (✓)' : 'Освоить нейрохимию бани (+25 XP)'}</span>
-            </button>
-          </div>
-        )}
-      </div>
-
+      )}
     </div>
   );
 };

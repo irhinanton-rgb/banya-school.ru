@@ -45,19 +45,19 @@ export const SimulatorsHub: React.FC<SimulatorsHubProps> = ({
       icon: <span>🍃</span>,
       isUnlocked: isMasterPro || completed.includes(2),
     },
-    herbs: {
-      requiredLevel: 3 as LevelId,
-      title: 'Аромабар & Травы',
-      levelName: 'Уровень 3: Фитотерапия & Запарки',
-      icon: <Sparkles className="h-4 w-4" />,
-      isUnlocked: isMasterPro || completed.includes(3),
-    },
     triage: {
       requiredLevel: 4 as LevelId,
       title: 'Диагностика Гостя & Безопасность',
-      levelName: 'Уровень 4: Физиология & Безопасность Гостя',
+      levelName: 'Уровень 4: Безопасность Мастера и Гостя',
       icon: <ShieldCheck className="h-4 w-4" />,
       isUnlocked: isMasterPro || completed.includes(4),
+    },
+    herbs: {
+      requiredLevel: 6 as LevelId,
+      title: 'Аромабар & Травы',
+      levelName: 'Уровень 6: Фито- и Ароматерапия',
+      icon: <Sparkles className="h-4 w-4" />,
+      isUnlocked: isMasterPro || completed.includes(6),
     },
   };
 

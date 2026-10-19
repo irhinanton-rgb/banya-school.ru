@@ -3,6 +3,7 @@ export type BadgeId =
   | 'silver_gloves' 
   | 'golden_bowl' 
   | 'health_shield' 
+  | 'physio_hourglass'
   | 'master_title' 
   | 'golden_key' 
   | 'master_crown'

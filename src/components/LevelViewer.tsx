@@ -246,15 +246,15 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
             )}
           </div>
 
-          {level.id === 3 ? (
-            /* BIG PROMINENT HERBS LIBRARY BUTTON FOR LEVEL 3 INSTEAD OF FACT */
+          {level.interactiveType === 'herbal_bar' ? (
+            /* BIG PROMINENT HERBS LIBRARY BUTTON FOR HERBAL LEVEL INSTEAD OF FACT */
             <div className="md:col-span-4 rounded-2xl bg-gradient-to-br from-emerald-950/50 via-stone-950 to-amber-950/40 border-2 border-emerald-500/60 p-4 sm:p-5 flex flex-col justify-between shadow-xl ring-1 ring-emerald-500/30 space-y-3 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
               
               <div className="space-y-1 relative z-10">
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono uppercase font-bold tracking-wider">
-                    🌿 База Знаний Станции 3
+                    🌿 База Знаний Станции {level.id}
                   </span>
                   <span className="text-xs font-mono text-emerald-400 font-semibold">22 растения</span>
                 </div>
@@ -341,7 +341,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
       </div>
 
       {/* Core Learning Cards */}
-      {level.id !== 4 && level.learningPoints && level.learningPoints.length > 0 && (
+      {!['safety_triage', 'biomechanics_steam', 'physiology_thermal'].includes(level.interactiveType || '') && level.learningPoints && level.learningPoints.length > 0 && (
       <div className="space-y-6">
         <h3 className="font-serif text-xl font-bold text-stone-100 flex items-center gap-2">
           <span>📖</span>
@@ -523,11 +523,23 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
       </div>
       )}
 
-      {/* Embedded Level Simulator */}
+      {/* Embedded Level Simulator / Content */}
       <div className="space-y-4">
         <h3 className="font-serif text-xl font-bold text-stone-100 flex items-center gap-2">
-          <span>🎮</span>
-          <span>Практический Интерактив</span>
+          <span>
+            {level.interactiveType === 'physiology_thermal'
+              ? '📖'
+              : level.interactiveType === 'biomechanics_steam'
+              ? '🎬'
+              : '🎮'}
+          </span>
+          <span>
+            {level.interactiveType === 'physiology_thermal'
+              ? 'Последовательный Разбор Физиологии Бани'
+              : level.interactiveType === 'biomechanics_steam'
+              ? 'Видеотека Мастерства (3 раздела)'
+              : 'Практический Интерактив'}
+          </span>
         </h3>
 
         {level.interactiveType === 'first_steam' && (
@@ -739,6 +751,9 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               onGrantXp(xp);
               markTaskCompleted('interactive');
             }}
+            onStage1Completed={() => markTaskCompleted('first_steam')}
+            onStage2Completed={() => markTaskCompleted('active_steaming')}
+            onStage3Completed={() => markTaskCompleted('contrast_mechanics')}
             onSuccess={() => markTaskCompleted('interactive')}
           />
         )}
@@ -1076,17 +1091,17 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                 <span>Что ждёт вас на следующем 3-м уровне:</span>
               </div>
               <h4 className="font-serif text-base sm:text-lg font-bold text-stone-100">
-                «Уровень 3: Фито- и Ароматерапия в парной»
+                «Уровень 3: Биомеханика, Звук Веника и Управление Паром»
               </h4>
               <p className="text-xs text-stone-300 leading-relaxed font-sans">
-                На 3-м уровне мы переходим от механики движений к магии ароматов и целебных трав. Вы освоите:
+                Вы изучили 8 базовых приёмов, а на 3-м уровне переходите к профессиональной постановке тела и управления паром в 3 специальных видеотеках:
               </p>
               <ul className="text-xs text-stone-200 space-y-1.5 pl-4 list-disc font-sans leading-relaxed">
-                <li><strong>Интерактивный симулятор «Фито-Бар»:</strong> растирание целебных трав в каменной ступе пестиком без окисления и создание авторских банных купажей.</li>
-                <li><strong>Большую энциклопедию 22 банных растений:</strong> от таёжной хвои (пихта, кедр, можжевельник) до луговых дикоросов (донник, полынь, таволга, чабрец).</li>
-                <li><strong>Технику «Холодное дыхание»:</strong> как парить гостя в плотном жаре 65°C с морозным веником и свежей мятой на лице без гипоксии.</li>
-                <li><strong>Безопасность эфирных масел:</strong> правила защиты слизистых оболочек от микроожогов и запрет подачи масел прямо на раскаленные камни.</li>
-                <li><strong>Награда 3-го уровня:</strong> Кованый печной черпак с удлинённой рукоятью («печной жезл»).</li>
+                <li><strong>Видеотека 1 «Банное тай-чи»:</strong> стойка лучника, волновой импульс от стоп и защита поясницы мастера от перегрузок.</li>
+                <li><strong>Видеотека 2 «Звук веников и ритмичные удары»:</strong> как добиться мягкого бархатного звука лиственной подушки без ударов ветками.</li>
+                <li><strong>Видеотека 3 «Управление паром»:</strong> забор пара из-под потолка «лодочкой» и бережное опускание тепла на гостя.</li>
+                <li><strong>Кованый Сундук Тайных Знаний:</strong> именно на 3-м уровне вы сможете открыть сундук найденным Золотым Ключом!</li>
+                <li><strong>Награда 3-го уровня:</strong> Экипировка Мастера (колпак и рашгард) для перехода к Уровню 4 «Безопасность мастера и гостя».</li>
               </ul>
             </div>
 
@@ -1099,7 +1114,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-stone-200 font-sans">
                 <div className="p-2.5 rounded-xl bg-stone-900/90 border border-stone-800 flex items-start gap-2">
                   <Check className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                  <span><strong>Полный доступ ко всем уровням (3–7):</strong> Фитотерапия, Физиология пара, Тандем в 4 руки, Разбор ЧП и Аттестация.</span>
+                  <span><strong>Логическая цепочка PRO (Уровни 3–7):</strong> Биомеханика и пар → Безопасность и триаж → Физиология тела → Фитотерапия (22 травы) → Сервис и психология.</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-stone-900/90 border border-stone-800 flex items-start gap-2">
                   <Check className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
@@ -1259,7 +1274,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   
                   <div className="flex items-center gap-2 text-[11px] font-mono text-amber-300/90 pt-1 border-t border-stone-800">
                     <span>🗝️</span>
-                    <span>Сундук Тайных Знаний ждет вас на 3-м уровне в разделе фитотерапии!</span>
+                    <span>Сундук Тайных Знаний ждет вас на 3-м уровне (Биомеханика и управление паром)!</span>
                   </div>
                 </div>
               </div>
