@@ -100,6 +100,7 @@ export default function App() {
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState<boolean>(false);
   const [showPricingModal, setShowPricingModal] = useState<boolean>(false);
+  const [showPartnershipModal, setShowPartnershipModal] = useState<boolean>(false);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [showLegalModal, setShowLegalModal] = useState<boolean>(false);
   const [legalInitialTab, setLegalInitialTab] = useState<'offer' | 'privacy' | 'requisites'>('offer');
@@ -885,7 +886,11 @@ export default function App() {
       )}
 
       {/* Partnership & B2B Section */}
-      <PartnershipSection soundEnabled={progress.soundEnabled} />
+      <PartnershipSection
+        isOpen={showPartnershipModal}
+        onClose={() => setShowPartnershipModal(false)}
+        soundEnabled={progress.soundEnabled}
+      />
 
       {/* Footer */}
       <footer className="w-full border-t border-stone-800/80 bg-stone-950 py-6 pb-24 md:pb-6 print:hidden">
@@ -894,12 +899,14 @@ export default function App() {
             © {new Date().getFullYear()} Пармастер Квест: Путь к Мастерству · banya-school.ru
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-            <a
-              href="#partnerships-section"
-              className="text-amber-400 hover:text-amber-300 transition-colors"
+            <button
+              type="button"
+              onClick={() => setShowPartnershipModal(true)}
+              className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-amber-200 border border-amber-500/30 transition-all font-semibold cursor-pointer flex items-center gap-1.5"
             >
-              Сотрудничество и реклама
-            </a>
+              <span>🤝</span>
+              <span>Сотрудничество · Реклама · B2B</span>
+            </button>
             <span aria-hidden="true">·</span>
             <button
               onClick={() => handleOpenLegal('offer')}

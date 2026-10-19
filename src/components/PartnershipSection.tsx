@@ -19,6 +19,8 @@ import { playWoodTap, playSuccessChime } from '../utils/audio';
 
 interface PartnershipSectionProps {
   soundEnabled?: boolean;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const PARTNER_CATEGORIES = [
@@ -50,7 +52,10 @@ const PARTNER_CATEGORIES = [
 
 export const PartnershipSection: React.FC<PartnershipSectionProps> = ({
   soundEnabled = true,
+  isOpen,
+  onClose,
 }) => {
+  if (!isOpen) return null;
   const [companyName, setCompanyName] = useState('');
   const [contactInfo, setContactInfo] = useState('');
   const [direction, setDirection] = useState('Производители печей и оборудования');
@@ -91,10 +96,44 @@ export const PartnershipSection: React.FC<PartnershipSectionProps> = ({
   };
 
   return (
-    <section
-      id="partnerships-section"
-      className="space-y-8 pt-6 border-t border-stone-800/80"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md animate-fade-in overflow-y-auto"
+      onClick={onClose}
     >
+      <div
+        className="relative max-w-5xl w-full my-auto max-h-[92vh] flex flex-col rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border-2 border-amber-500/50 shadow-2xl overflow-hidden animate-scale-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Sticky Header with Close Button */}
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-800 bg-stone-950/90 shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              🤝
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                  Сотрудничество · Реклама · B2B
+                </span>
+              </div>
+              <h3 className="font-serif text-lg sm:text-xl font-bold text-stone-100 mt-0.5">
+                Партнёрство и Корпоративные программы
+              </h3>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-stone-100 transition-colors border border-stone-700 cursor-pointer"
+            title="Закрыть"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Scrollable Modal Content */}
+        <div className="p-4 sm:p-8 space-y-8 overflow-y-auto">
       {/* 1. B2B CORPORATE TRAINING BLOCK (INACTIVE / COMING SOON) */}
       <div className="relative rounded-3xl border border-stone-800/90 bg-stone-950/75 p-6 sm:p-8 overflow-hidden opacity-85 select-none">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -328,7 +367,9 @@ export const PartnershipSection: React.FC<PartnershipSectionProps> = ({
             )}
           </div>
         </div>
+        </div>
       </div>
-    </section>
+    </div>
+        </div>
   );
 };
