@@ -13,11 +13,16 @@ import {
   Zap,
 } from 'lucide-react';
 
+import { playWoodTap } from '../utils/audio';
+
 interface QuestMapProps {
   progress: UserProgress;
   onSelectLevel: (levelId: LevelId) => void;
   activeLevelId: LevelId;
   onOpenPricing?: () => void;
+  onStartExam?: () => void;
+  onOpenCertificate?: () => void;
+  soundEnabled?: boolean;
 }
 
 export const QuestMap: React.FC<QuestMapProps> = ({
@@ -25,6 +30,9 @@ export const QuestMap: React.FC<QuestMapProps> = ({
   onSelectLevel,
   activeLevelId,
   onOpenPricing,
+  onStartExam,
+  onOpenCertificate,
+  soundEnabled = true,
 }) => {
   const isMasterPro =
     Boolean(progress?.isAdmin) ||

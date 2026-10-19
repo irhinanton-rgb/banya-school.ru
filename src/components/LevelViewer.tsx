@@ -63,6 +63,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
   const [showFailModal, setShowFailModal] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [showLevel2PromoModal, setShowLevel2PromoModal] = useState<boolean>(false);
+  const [isHerbsLibraryOpen, setIsHerbsLibraryOpen] = useState<boolean>(false);
 
   const markTaskCompleted = (taskId: string) => {
     setLocalCompletedTasks((prev) => (prev.includes(taskId) ? prev : [...prev, taskId]));
