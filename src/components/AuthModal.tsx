@@ -92,6 +92,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   // Agreement checkbox
   const [agreedToTerms, setAgreedToTerms] = useState<boolean>(true);
+  const [localError, setLocalError] = useState<string | null>(null);
 
 
 
@@ -163,19 +164,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     e.preventDefault();
     clearAuthError();
     clearAuthSuccess();
+    setLocalError(null);
 
     if (!email.trim() || !password) return;
 
     if (emailMode === 'signup') {
       if (password.length < 6) {
+        setLocalError('Пароль должен содержать минимум 6 символов.');
         return;
       }
       if (password !== confirmPassword) {
-        alert('Пароли не совпадают');
+        setLocalError('Введённые пароли не совпадают. Проверьте правильность ввода.');
         return;
       }
       if (!agreedToTerms) {
-        alert('Для регистрации необходимо принять условия оферты и политики конфиденциальности');
+        setLocalError('Для регистрации необходимо принять условия оферты и политики конфиденциальности.');
         return;
       }
       setLoading(true);
@@ -249,13 +252,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="p-5 sm:p-6 space-y-5 overflow-y-auto">
           
           {/* Error Message */}
-          {authError && (
+          {(authError || localError) && (
             <div className="p-4 rounded-2xl bg-red-950/40 border border-red-500/50 space-y-2 text-xs text-red-200 animate-fade-in shadow-lg">
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <div className="font-semibold text-red-300">Ошибка авторизации:</div>
-                  <p className="mt-0.5 text-stone-300 leading-relaxed">{authError}</p>
+                  <p className="mt-0.5 text-stone-300 leading-relaxed">{localError || authError}</p>
                 </div>
               </div>
             </div>

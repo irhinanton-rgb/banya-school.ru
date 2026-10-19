@@ -42,11 +42,8 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
   progress,
   onUpdateProgress,
 }) => {
-  const { user, loginAsAdminDirectly } = useAuth();
-  const [activeTab, setActiveTab] = useState<AdminMessageType | 'admin_login'>('question');
-  const [adminLoginInput, setAdminLoginInput] = useState('');
-  const [adminPassInput, setAdminPassInput] = useState('');
-  const [adminLoginSuccess, setAdminLoginSuccess] = useState(false);
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<AdminMessageType>('question');
   
   // Interactive Chat history
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -89,40 +86,6 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
     setIsSubmitting(true);
     setSuccessStatus(null);
     setErrorStatus(null);
-
-    // Direct Admin Login in the chat window!
-    const cleanLower = question.toLowerCase().trim();
-    if (
-      cleanLower === 'admin admin25655' ||
-      cleanLower === 'login admin admin25655' ||
-      cleanLower === 'admin25655' ||
-      (cleanLower.includes('admin') && cleanLower.includes('admin25655'))
-    ) {
-      try {
-        await loginAsAdminDirectly();
-        if (onUpdateProgress) {
-          onUpdateProgress({
-            isAdmin: true,
-            isPaid: true,
-            tariff: 'master_pro',
-            name: progress.name || 'Антон Ирхин (Администратор)',
-          });
-        }
-        const adminReply: ChatMessage = {
-          id: 'owl-' + Date.now(),
-          sender: 'owl',
-          text: '👑 Авторизация подтверждена! Вы успешно вошли как Администратор (логин: admin). Вам предоставлены полные права: открыты все станции с 1 по 7, активирован тариф «Мастер PRO», доступ к Форуму, Банному Клубу и всем симуляторам без каких-либо препятствий! Ух! 🦉🔥',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-        setChatHistory(prev => [...prev, adminReply]);
-        setSuccessStatus('Права администратора успешно активированы!');
-      } catch (e) {
-        console.error('Direct admin login error:', e);
-      } finally {
-        setIsSubmitting(false);
-      }
-      return;
-    }
 
     try {
       const resolvedStudentName = userName || progress.name || 'Александр';
@@ -186,43 +149,6 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
       setErrorStatus('Произошла ошибка при отправке. Пожалуйста, попробуйте еще раз.');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleDirectAdminAuth = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const l = adminLoginInput.trim().toLowerCase();
-    const p = adminPassInput.trim();
-
-    if ((l === 'admin' || l === 'admin@banya-school.ru' || l === 'irhinanton@gmail.com') && p === 'admin25655') {
-      setIsSubmitting(true);
-      setErrorStatus(null);
-      try {
-        await loginAsAdminDirectly();
-        if (onUpdateProgress) {
-          onUpdateProgress({
-            isAdmin: true,
-            isPaid: true,
-            tariff: 'master_pro',
-            name: progress.name || 'Антон Ирхин (Администратор)',
-          });
-        }
-        setAdminLoginSuccess(true);
-        setSuccessStatus('👑 Доступ Администратора активирован! Все уровни и разделы разблокированы.');
-        const notifyMsg: ChatMessage = {
-          id: 'owl-' + Date.now(),
-          sender: 'owl',
-          text: '👑 Доступ Администратора подтверждён! Все станции и функции проекта теперь полностью открыты.',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-        setChatHistory(prev => [...prev, notifyMsg]);
-      } catch (err: any) {
-        setErrorStatus('Ошибка активации прав: ' + (err.message || 'попробуйте снова'));
-      } finally {
-        setIsSubmitting(false);
-      }
-    } else {
-      setErrorStatus('Неверный логин или пароль администратора. Требуется логин: admin, пароль: admin25655');
     }
   };
 

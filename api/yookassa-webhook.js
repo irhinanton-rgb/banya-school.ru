@@ -1,4 +1,48 @@
+import https from 'https';
 import { broadcastToAdmins, escapeHtml } from './telegram-notifier.js';
+
+const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID || '1485718';
+const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY || 'live_pko1h4rfqyVG9Un0_S8qJAHmitTEhR6u2od3psGUd5s';
+
+/**
+ * Verify payment status directly from YooKassa API so spoofed webhook POST requests are rejected.
+ */
+function fetchVerifiedPayment(paymentId) {
+  return new Promise((resolve) => {
+    if (!paymentId || typeof paymentId !== 'string' || !/^[a-zA-Z0-9_-]{10,64}$/.test(paymentId)) {
+      return resolve(null);
+    }
+    const authHeader = 'Basic ' + Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64');
+    const request = https.request(
+      {
+        hostname: 'api.yookassa.ru',
+        path: `/v3/payments/${encodeURIComponent(paymentId)}`,
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+      },
+      (resp) => {
+        let data = '';
+        resp.on('data', (c) => { data += c; });
+        resp.on('end', () => {
+          try {
+            if (resp.statusCode >= 200 && resp.statusCode < 300) {
+              resolve(JSON.parse(data));
+            } else {
+              resolve(null);
+            }
+          } catch {
+            resolve(null);
+          }
+        });
+      }
+    );
+    request.on('error', () => resolve(null));
+    request.end();
+  });
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -7,27 +51,30 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    console.log('[YooKassa Webhook Event]:', body?.event, body?.object?.id);
+    const incomingPayment = body?.object;
 
-    if (body?.event === 'payment.succeeded') {
-      const payment = body.object;
-      const amountVal = payment?.amount?.value || '3390.00';
-      const currency = payment?.amount?.currency || 'RUB';
-      const metadata = payment?.metadata || {};
+    if (body?.event === 'payment.succeeded' && incomingPayment?.id) {
+      // Cryptographically/authoritatively verify the payment status with YooKassa API
+      const verifiedPayment = await fetchVerifiedPayment(incomingPayment.id);
+      if (!verifiedPayment || verifiedPayment.status !== 'succeeded') {
+        console.warn('[YooKassa Webhook]: Unverified or non-succeeded payment rejected:', incomingPayment.id);
+        return res.status(403).json({ error: 'Payment verification failed' });
+      }
 
-      console.log(`[Payment Succeeded]: id=${payment?.id}, amount=${amountVal}, userId=${metadata?.userId}, email=${metadata?.userEmail}`);
+      const amountVal = verifiedPayment?.amount?.value || '3390.00';
+      const currency = verifiedPayment?.amount?.currency || 'RUB';
+      const metadata = verifiedPayment?.metadata || {};
 
-      // Send Instant Telegram Notification to Anton
       broadcastToAdmins(
         [
           `🎉 <b>[ЮKassa] ОПЛАТА КУРСА ПОДТВЕРЖДЕНА!</b>`,
           ``,
-          `💰 <b>Сумма:</b> ${amountVal} ${currency}`,
+          `💰 <b>Сумма:</b> ${escapeHtml(amountVal)} ${escapeHtml(currency)}`,
           `🎓 <b>Тариф:</b> «Мастер Пара PRO»`,
           metadata?.userName ? `👤 <b>Ученик:</b> ${escapeHtml(metadata.userName)}` : null,
           metadata?.userEmail ? `📧 <b>Email:</b> ${escapeHtml(metadata.userEmail)}` : null,
-          `🧾 <b>ID платежа ЮKassa:</b> <code>${payment?.id}</code>`,
-          payment?.description ? `📝 <b>Назначение:</b> ${escapeHtml(payment.description)}` : null,
+          `🧾 <b>ID платежа ЮKassa:</b> <code>${escapeHtml(verifiedPayment.id)}</code>`,
+          verifiedPayment?.description ? `📝 <b>Назначение:</b> ${escapeHtml(verifiedPayment.description)}` : null,
           `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
           ``,
           `👑 <i>Оплата успешно зачислена, доступ к курсу открыт на сайте!</i>`,
@@ -38,7 +85,6 @@ export default async function handler(req, res) {
     }
 
     if (body?.event === 'payment.canceled') {
-      console.log('[Payment Canceled]: id=', body?.object?.id);
       return res.status(200).json({ status: 'ok' });
     }
 

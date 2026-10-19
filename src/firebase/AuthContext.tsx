@@ -30,7 +30,6 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<User | null>;
   signUpWithEmail: (email: string, password: string, displayName?: string) => Promise<User | null>;
   signInWithEmail: (email: string, password: string) => Promise<User | null>;
-  loginAsAdminDirectly: () => Promise<User>;
   resetPassword: (email: string) => Promise<boolean>;
   initPhoneRecaptcha: (containerId: string) => RecaptchaVerifier;
   sendPhoneCode: (phoneNumber: string, recaptchaVerifier: RecaptchaVerifier) => Promise<ConfirmationResult | null>;
@@ -100,19 +99,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     try {
-      if (localStorage.getItem('pq_admin_session') === 'true') {
-        const adminUser = createAdminUserObject();
-        setUser(adminUser);
-        setAuthMethod('password');
-        setLoading(false);
-      }
+      localStorage.removeItem('pq_admin_session');
     } catch {}
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (localStorage.getItem('pq_admin_session') === 'true') {
-        setLoading(false);
-        return;
-      }
       setUser(currentUser);
       if (currentUser?.providerData && currentUser.providerData.length > 0) {
         const pId = currentUser.providerData[0].providerId;
@@ -208,77 +198,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Admin master user object
-  const createAdminUserObject = (): User => {
-    return {
-      uid: 'admin_master_irhin',
-      email: 'irhinanton@gmail.com',
-      displayName: 'Антон Ирхин (Администратор)',
-      photoURL: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=240&q=80',
-      emailVerified: true,
-      isAnonymous: false,
-      metadata: {} as any,
-      providerData: [
-        {
-          providerId: 'password',
-          uid: 'admin_master_irhin',
-          displayName: 'Антон Ирхин (Администратор)',
-          email: 'irhinanton@gmail.com',
-          phoneNumber: null,
-          photoURL: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=240&q=80',
-        },
-      ],
-      refreshToken: '',
-      tenantId: null,
-      delete: async () => {},
-      getIdToken: async () => 'mock_admin_token',
-      getIdTokenResult: async () => ({} as any),
-      reload: async () => {},
-      toJSON: () => ({}),
-      phoneNumber: null,
-      providerId: 'firebase',
-    } as unknown as User;
-  };
-
-  const loginAsAdminDirectly = async (): Promise<User> => {
-    setAuthError(null);
-    setAuthSuccessMsg('Вы успешно вошли как Администратор! Все права и станции разблокированы.');
-    const adminUser = createAdminUserObject();
-    setUser(adminUser);
-    setAuthMethod('password');
-    try {
-      localStorage.setItem('pq_admin_session', 'true');
-    } catch {}
-    return adminUser;
-  };
-
   // 3. Email + Password Sign In
   const signInWithEmail = async (email: string, password: string): Promise<User | null> => {
     setAuthError(null);
     setAuthSuccessMsg(null);
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPass = password.trim();
-
-    // Direct check for admin credentials (admin / admin25655 or email / admin25655)
-    if (
-      (cleanEmail === 'admin' || cleanEmail === 'admin@banya-school.ru' || cleanEmail === 'irhinanton@gmail.com') &&
-      cleanPass === 'admin25655'
-    ) {
-      return await loginAsAdminDirectly();
-    }
 
     try {
       const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
       setAuthMethod('password');
       return cred.user;
     } catch (err: unknown) {
-      // If Firebase email sign in failed but credentials match admin password
-      if (
-        (cleanEmail === 'admin' || cleanEmail.includes('admin') || cleanEmail === 'irhinanton@gmail.com') &&
-        cleanPass === 'admin25655'
-      ) {
-        return await loginAsAdminDirectly();
-      }
       const msg = mapAuthErrorMessage(err);
       console.error('Email Sign-in failed:', err);
       setAuthError(msg);
@@ -446,7 +375,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithGoogle,
         signUpWithEmail,
         signInWithEmail,
-        loginAsAdminDirectly,
         resetPassword,
         initPhoneRecaptcha,
         sendPhoneCode,

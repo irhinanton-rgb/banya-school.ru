@@ -27,9 +27,6 @@ export interface AdminMessageRecord extends AdminMessagePayload {
   status: 'new' | 'reviewed' | 'resolved';
 }
 
-export const PARMASTER_BOT_TOKEN = '8683515876:AAHzMeka0nuQG0Hc1lTJCNuPZRogpg-Lw_0';
-export const ADMIN_CHAT_ID = '471147423';
-
 // In-memory deduplication cache to prevent duplicate broadcasts within 15 seconds
 const recentDispatches = new Map<string, number>();
 
@@ -48,140 +45,38 @@ function isDuplicate(key: string): boolean {
   return false;
 }
 
-function escapeTgHtml(str: string): string {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
 /**
- * Directly dispatch notification to Anton Irkhin's Telegram via Telegram Bot API.
- * Telegram Bot API officially supports CORS (Access-Control-Allow-Origin: *),
- * which guarantees instant delivery from any client browser without relying on backend servers!
+ * Dispatch notification to the server-side /api/admin-notification proxy
+ * so Telegram Bot tokens remain strictly server-side and are never exposed in client bundles.
  */
-export async function sendDirectTelegram(payload: AdminMessagePayload): Promise<boolean> {
-  const time = new Date().toLocaleString('ru-RU');
-  const userName = escapeTgHtml(payload.userName || 'Гость курса');
-  const userEmail = payload.userEmail ? escapeTgHtml(payload.userEmail) : '';
-  const phone = payload.phoneNumber ? escapeTgHtml(payload.phoneNumber) : '';
-  const message = escapeTgHtml(payload.message || '');
-  const amount = payload.amount ? (typeof payload.amount === 'number' ? `${payload.amount} ₽` : `${payload.amount}`) : '3 390 ₽';
-
-  let lines: string[] = [];
-
-  if (payload.type === 'registration') {
-    const method = payload.authMethod === 'google' 
-      ? 'Google 🌐' 
-      : payload.authMethod === 'phone' 
-        ? 'Телефон 📱' 
-        : 'Email / Пароль ✉️';
-    lines = [
-      `🌱 <b>[РЕГИСТРАЦИЯ] Новый банный ученик на PQ!</b>`,
-      ``,
-      `👤 <b>Имя:</b> ${userName}`,
-      userEmail ? `📧 <b>Email:</b> <code>${userEmail}</code>` : '',
-      phone ? `📱 <b>Телефон:</b> <code>${phone}</code>` : '',
-      `🔑 <b>Способ:</b> ${method}`,
-      payload.referralSource ? `🔍 <b>Источник:</b> ${escapeTgHtml(payload.referralSource)}` : '',
-      `🕒 <b>Время:</b> ${time}`,
-      ``,
-      `🌿 <i>Ученик начал путь в онлайн-школе «Пармастер Квест».</i>`,
-    ];
-  } else if (payload.type === 'payment') {
-    lines = [
-      `🎉 <b>[ОПЛАТА КУРСА] Новый студент «Мастер Пара PRO»!</b>`,
-      ``,
-      `🎓 <b>Тариф:</b> «Мастер Пара PRO» (Полный курс)`,
-      `💰 <b>Сумма оплаты:</b> ${amount}`,
-      `👤 <b>Ученик:</b> ${userName}`,
-      userEmail ? `📧 <b>Email:</b> <code>${userEmail}</code>` : '',
-      payload.orderId ? `🧾 <b>Заказ:</b> <code>${escapeTgHtml(payload.orderId)}</code>` : '',
-      `🕒 <b>Время:</b> ${time}`,
-      ``,
-      `👑 <i>Доступ ко всем станциям и симуляторам активирован на banya-school.ru!</i>`,
-    ];
-  } else if (payload.type === 'payment_intent') {
-    lines = [
-      `🛒 <b>[ЗАЯВКА НА ОПЛАТУ КУРСА] Ученик открыл окно оплаты</b>`,
-      ``,
-      `🎓 <b>Тариф:</b> «Мастер Пара PRO» (${amount})`,
-      `👤 <b>Ученик:</b> ${userName}`,
-      userEmail ? `📧 <b>Контакт:</b> <code>${userEmail}</code>` : '',
-      phone ? `📱 <b>Телефон:</b> <code>${phone}</code>` : '',
-      `🕒 <b>Время:</b> ${time}`,
-      ``,
-      `💬 <b>Детали:</b> ${message}`,
-    ];
-  } else if (payload.type === 'bug') {
-    lines = [
-      `🐞 <b>[Баг-репорт] Сообщение об ошибке</b>`,
-      ``,
-      `👤 <b>От:</b> ${userName}`,
-      userEmail ? `📧 <b>Контакт:</b> <code>${userEmail}</code>` : '',
-      `🕒 <b>Время:</b> ${time}`,
-      ``,
-      `💬 <b>Описание неполадки:</b>`,
-      message,
-    ];
-  } else if (payload.type === 'feedback') {
-    lines = [
-      `💬 <b>[Отзыв] Впечатления ученика о курсе</b>`,
-      ``,
-      `👤 <b>Ученик:</b> ${userName}`,
-      userEmail ? `📧 <b>Контакт:</b> <code>${userEmail}</code>` : '',
-      payload.referralSource ? `🔍 <b>Откуда узнал:</b> ${escapeTgHtml(payload.referralSource)}` : '',
-      `🕒 <b>Время:</b> ${time}`,
-      ``,
-      `⭐ <b>Отзыв:</b>`,
-      message,
-    ];
-  } else {
-    // Default: question to Owl PQ
-    lines = [
-      `🦉 <b>[Сова PQ] Вопрос ученика по квесту</b>`,
-      ``,
-      `👤 <b>Ученик:</b> ${userName}${payload.currentLevel ? ` (Станция ${payload.currentLevel})` : ''}`,
-      userEmail ? `📧 <b>Контакт:</b> <code>${userEmail}</code>` : '',
-      payload.referralSource ? `🔍 <b>Источник:</b> ${escapeTgHtml(payload.referralSource)}` : '',
-      `🕒 <b>Время:</b> ${time}`,
-      ``,
-      `❓ <b>Вопрос ученика:</b>`,
-      message,
-    ];
-    if (payload.answer) {
-      lines.push(``, `💡 <b>Ответ Совы PQ:</b>`, escapeTgHtml(payload.answer));
-    }
-  }
-
-  const text = lines.filter(Boolean).join('\n');
-
+export async function sendServerTelegramNotification(payload: AdminMessagePayload): Promise<boolean> {
   try {
-    const res = await fetch(`https://api.telegram.org/bot${PARMASTER_BOT_TOKEN}/sendMessage`, {
+    const res = await fetch('/api/admin-notification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: ADMIN_CHAT_ID,
-        text,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
+        ...payload,
+        createdAt: new Date().toLocaleString('ru-RU'),
       }),
     });
+    if (!res.ok) return false;
     const data = await res.json();
-    return !!data?.ok;
+    return Boolean(data?.success);
   } catch (err) {
-    console.warn('Direct Telegram Bot API broadcast error:', err);
+    console.warn('Server Telegram notification error:', err);
     return false;
   }
 }
 
 /**
- * Send inquiry, bug report, feedback, registration, or payment notification directly to Telegram bot & Firestore
+ * Send inquiry, bug report, feedback, registration, or payment notification to Firestore & Server Telegram Proxy
  */
 export async function sendAdminMessage(payload: AdminMessagePayload): Promise<boolean> {
+  const cleanMessage = String(payload.message || '').trim().slice(0, 2000);
+  if (!cleanMessage) return false;
+
   // Deduplicate identical triggers (e.g. from React strict-mode re-renders or rapid clicks)
-  const dedupeKey = `${payload.type}_${payload.orderId || ''}_${(payload.message || '').trim()}`;
+  const dedupeKey = `${payload.type}_${payload.orderId || ''}_${cleanMessage}`;
   if (isDuplicate(dedupeKey)) {
     return true;
   }
@@ -189,21 +84,17 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
   const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
   const nowIso = new Date().toISOString();
 
-  // 1. Save to Firestore admin_messages collection
+  // 1. Save to Firestore admin_messages collection (conforming strictly to security rules)
   try {
     const docRef = doc(db, 'admin_messages', messageId);
     await setDoc(docRef, {
       id: messageId,
       type: payload.type,
-      message: (payload.message || '').trim(),
-      userId: payload.userId || 'guest',
-      userName: payload.userName || 'Гость курса',
-      userEmail: payload.userEmail || '',
-      referralSource: payload.referralSource || '',
-      orderId: payload.orderId || null,
-      amount: payload.amount || null,
-      answer: payload.answer || null,
-      currentLevel: payload.currentLevel || null,
+      message: cleanMessage,
+      userId: String(payload.userId || 'guest').slice(0, 128),
+      userName: String(payload.userName || 'Гость курса').slice(0, 100),
+      userEmail: String(payload.userEmail || '').slice(0, 150),
+      referralSource: String(payload.referralSource || '').slice(0, 100),
       status: 'new',
       createdAt: nowIso,
     });
@@ -211,8 +102,11 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
     console.warn('Could not save message to firestore (will still deliver Telegram notification):', err);
   }
 
-  // 2. Send Telegram notification directly to @ParmasterQuest_bot (via direct Telegram Bot API)
-  await sendDirectTelegram(payload);
+  // 2. Send Telegram notification via secure backend route
+  await sendServerTelegramNotification({
+    ...payload,
+    message: cleanMessage,
+  });
 
   return true;
 }

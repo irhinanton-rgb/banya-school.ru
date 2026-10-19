@@ -89,6 +89,19 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       }
 
       if (data?.confirmationUrl) {
+        try {
+          localStorage.setItem(
+            'pq_pending_payment',
+            JSON.stringify({
+              orderId: data.orderId,
+              paymentId: data.paymentId,
+              amount: data.amount,
+              createdAt: Date.now(),
+            })
+          );
+        } catch {
+          // ignore storage quota errors
+        }
         // Redirect directly to YooKassa checkout
         window.location.href = data.confirmationUrl;
         return;

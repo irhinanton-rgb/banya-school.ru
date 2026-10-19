@@ -32,7 +32,9 @@ function apiDevPlugin(): Plugin {
         const handleApi = async (relativePath: string) => {
           let body = "";
           req.on("data", (chunk) => {
-            body += chunk;
+            if (body.length < 100_000) {
+              body += chunk;
+            }
           });
           req.on("end", async () => {
             try {
@@ -44,13 +46,13 @@ function apiDevPlugin(): Plugin {
             } catch (err: any) {
               expressRes.statusCode = 500;
               expressRes.setHeader("Content-Type", "application/json");
-              expressRes.end(JSON.stringify({ error: err.message }));
+              expressRes.end(JSON.stringify({ error: "Internal Server Error" }));
             }
           });
         };
 
         const urlPath = (req.url || "").split("?")[0].replace(/^\/api\//, "");
-        if (urlPath) {
+        if (urlPath && /^[a-zA-Z0-9_-]+$/.test(urlPath)) {
           return handleApi(`api/${urlPath}.js`);
         }
 

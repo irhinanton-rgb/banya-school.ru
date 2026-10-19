@@ -12,8 +12,15 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'irhinanton@gmail.com' ||
+        request.auth.token.email == 'aniwalker1998@gmail.com'
+      );
+    }
+
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
     function incoming() {
@@ -29,7 +36,8 @@ service cloud.firestore {
         && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100
         && (!('email' in data) || (data.email is string && data.email.size() <= 150))
         && (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() <= 32))
-        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500));
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64));
     }
 
     function isValidUserProgress(data) {
@@ -39,12 +47,18 @@ service cloud.firestore {
         && data.completedLevels is list && data.completedLevels.size() <= 50
         && data.unlockedBadges is list && data.unlockedBadges.size() <= 50
         && (!('activeLevelId' in data) || (data.activeLevelId is number) || (data.activeLevelId is string && data.activeLevelId.size() <= 64))
-        && (!('examScore' in data) || (data.examScore is number))
+        && (!('examScore' in data) || (data.examScore is number && data.examScore >= 0 && data.examScore <= 100))
         && (!('certifiedDate' in data) || (data.certifiedDate is string && data.certifiedDate.size() <= 64))
         && (!('tariff' in data) || (data.tariff is string && data.tariff.size() <= 32))
         && (!('isPaid' in data) || (data.isPaid is bool))
         && (!('paidAt' in data) || (data.paidAt is string && data.paidAt.size() <= 64))
-        && (!('orderId' in data) || (data.orderId is string && data.orderId.size() <= 64));
+        && (!('orderId' in data) || (data.orderId is string && data.orderId.size() <= 64))
+        && (!('bio' in data) || (data.bio is string && data.bio.size() <= 500))
+        && (!('banyaStatus' in data) || (data.banyaStatus is string && data.banyaStatus.size() <= 100))
+        && (!('city' in data) || (data.city is string && data.city.size() <= 100))
+        && (!('favoriteBrooms' in data) || (data.favoriteBrooms is list && data.favoriteBrooms.size() <= 20))
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64))
+        && !('isAdmin' in data);
     }
 
     function isValidCommunityMessage(data) {
@@ -59,7 +73,14 @@ service cloud.firestore {
 
     function isValidAdminMessage(data) {
       return data.id is string && data.id.size() <= 128
-        && data.type is string && (data.type == 'question' || data.type == 'bug' || data.type == 'feedback')
+        && data.type is string && (
+          data.type == 'question' ||
+          data.type == 'bug' ||
+          data.type == 'feedback' ||
+          data.type == 'payment' ||
+          data.type == 'registration' ||
+          data.type == 'payment_intent'
+        )
         && data.message is string && data.message.size() >= 1 && data.message.size() <= 2000
         && data.createdAt is string && data.createdAt.size() <= 64
         && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128))
@@ -68,9 +89,28 @@ service cloud.firestore {
         && (!('referralSource' in data) || (data.referralSource is string && data.referralSource.size() <= 100))
         && (!('status' in data) || (data.status is string && data.status.size() <= 32));
     }
+
+    function isValidForumPost(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 250
+        && data.content is string && data.content.size() >= 1 && data.content.size() <= 10000
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100
+        && data.likesCount is number && data.likesCount >= 0
+        && data.commentsCount is number && data.commentsCount >= 0;
+    }
+
+    function isValidForumComment(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.postId is string && data.postId.size() <= 128
+        && data.authorId is string && data.authorId.size() <= 128
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 2000;
+    }
+
     // User profile document
     match /users/{userId} {
-      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
       allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProfile(incoming());
       allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProfile(incoming())
                     && incoming().uid == existing().uid;
@@ -78,7 +118,7 @@ service cloud.firestore {
 
       // User progress subcollection
       match /progress/{progressId} {
-        allow get, list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+        allow get, list: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
         allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProgress(incoming());
         allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidUserProgress(incoming())
                       && incoming().userId == existing().userId;
@@ -90,14 +130,32 @@ service cloud.firestore {
     match /community_messages/{messageId} {
       allow get, list: if true;
       allow create: if isSignedIn() && isValidId(messageId) && incoming().authorId == request.auth.uid && isValidCommunityMessage(incoming());
-      allow update, delete: if isSignedIn() && isValidId(messageId) && existing().authorId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(messageId) && existing().authorId == request.auth.uid
+                    && incoming().authorId == existing().authorId && isValidCommunityMessage(incoming());
+      allow delete: if isSignedIn() && isValidId(messageId) && (existing().authorId == request.auth.uid || isAdmin());
     }
 
-    // User questions, bug reports, and feedback directed to admin
+    // Forum posts and comments
+    match /forum_posts/{postId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isValidId(postId) && isValidForumPost(incoming());
+      allow update: if isSignedIn() && isValidId(postId) && isValidForumPost(incoming())
+                    && incoming().authorId == existing().authorId;
+      allow delete: if isAdmin();
+
+      match /comments/{commentId} {
+        allow get, list: if true;
+        allow create: if isSignedIn() && isValidId(commentId) && isValidForumComment(incoming());
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+    }
+
+    // User questions, bug reports, and feedback directed to admin (ONLY readable/modifiable by Admin)
     match /admin_messages/{messageId} {
-      allow get, list: if isSignedIn();
+      allow get, list: if isAdmin();
       allow create: if isValidId(messageId) && isValidAdminMessage(incoming());
-      allow update, delete: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
   }
 }

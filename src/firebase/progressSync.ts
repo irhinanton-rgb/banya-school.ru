@@ -28,7 +28,7 @@ const MIN_SYNC_INTERVAL_MS = 800; // Rate-limiting guard against request floodin
 
 // Save user profile and current progress to Firestore
 export async function syncProgressToCloud(user: User, progress: UserProgress): Promise<void> {
-  if (!user) return;
+  if (!user || !user.uid) return;
 
   const now = Date.now();
   if (now - lastSyncTimestamp < MIN_SYNC_INTERVAL_MS) {
@@ -47,6 +47,9 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
     : [];
   const sanitizedBadges = Array.isArray(progress.unlockedBadges)
     ? progress.unlockedBadges.filter((b) => typeof b === 'string').slice(0, 50)
+    : [];
+  const sanitizedBrooms = Array.isArray(progress.favoriteBrooms)
+    ? progress.favoriteBrooms.filter((b) => typeof b === 'string').map((b) => b.slice(0, 64)).slice(0, 20)
     : [];
 
   try {
@@ -79,6 +82,10 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
       isPaid: Boolean(progress.isPaid),
       paidAt: String(progress.paidAt || '').slice(0, 64),
       orderId: String(progress.orderId || '').slice(0, 64),
+      bio: String(progress.bio || '').slice(0, 500),
+      banyaStatus: String(progress.banyaStatus || '').slice(0, 100),
+      city: String(progress.city || '').slice(0, 100),
+      favoriteBrooms: sanitizedBrooms,
       updatedAt: new Date().toISOString(),
     };
 
@@ -90,7 +97,7 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
 
 // Load progress from Firestore
 export async function fetchProgressFromCloud(user: User): Promise<Partial<UserProgress> | null> {
-  if (!user) return null;
+  if (!user || !user.uid) return null;
 
   const progressPath = `users/${user.uid}/progress/current`;
 
@@ -113,6 +120,10 @@ export async function fetchProgressFromCloud(user: User): Promise<Partial<UserPr
       isPaid: Boolean(data.isPaid),
       paidAt: typeof data.paidAt === 'string' ? data.paidAt : undefined,
       orderId: typeof data.orderId === 'string' ? data.orderId : undefined,
+      bio: typeof data.bio === 'string' && data.bio ? data.bio : undefined,
+      banyaStatus: typeof data.banyaStatus === 'string' && data.banyaStatus ? data.banyaStatus : undefined,
+      city: typeof data.city === 'string' && data.city ? data.city : undefined,
+      favoriteBrooms: Array.isArray(data.favoriteBrooms) ? data.favoriteBrooms : undefined,
     };
   } catch (error) {
     handleFirestoreError(error, OperationType.GET, progressPath);
@@ -148,5 +159,9 @@ export function mergeUserProgress(local: UserProgress, remote: Partial<UserProgr
     isPaid,
     paidAt: remote.paidAt || local.paidAt,
     orderId: remote.orderId || local.orderId,
+    bio: remote.bio || local.bio,
+    banyaStatus: remote.banyaStatus || local.banyaStatus,
+    city: remote.city || local.city,
+    favoriteBrooms: remote.favoriteBrooms?.length ? remote.favoriteBrooms : local.favoriteBrooms,
   };
 }

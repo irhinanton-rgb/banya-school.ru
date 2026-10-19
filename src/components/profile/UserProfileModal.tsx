@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   X,
   User,
@@ -108,10 +108,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const { user, signOutUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Check if current user is admin
+  // Check if current user is admin strictly via authenticated email
   const isAdmin =
     user?.email?.toLowerCase() === 'irhinanton@gmail.com' ||
-    Boolean(progress.isAdmin);
+    user?.email?.toLowerCase() === 'aniwalker1998@gmail.com';
 
   const [activeTab, setActiveTab] = useState<'profile' | 'stats' | 'admin'>('profile');
 
@@ -138,6 +138,29 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
   const [customAvatarUrlInput, setCustomAvatarUrlInput] = useState<string>('');
   const [showUrlInput, setShowUrlInput] = useState<boolean>(false);
+  const [confirmReset, setConfirmReset] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(user?.displayName || progress.name || 'Пармастер');
+      setBio(
+        progress.bio ||
+          (isAdmin
+            ? '15 лет банной практики. Основатель школы правильного пара. Автор методики бережного бесконтактного и контактного парения.'
+            : 'Увлекаюсь банным искусством, изучаю технику двух веников и фитотерапию для семейной бани.')
+      );
+      setAvatarUrl(progress.avatarUrl || user?.photoURL || (isAdmin ? PRESET_AVATARS[0].url : ''));
+      setBanyaStatus(progress.banyaStatus || (isAdmin ? '👑 Основатель & Главный Наставник' : '🌿 Начинающий банщик'));
+      setCity(progress.city || (isAdmin ? 'Москва / Санкт-Петербург' : ''));
+      setFavoriteBrooms(
+        progress.favoriteBrooms ||
+          (isAdmin
+            ? ['Дуб кавказский', 'Пихта сибирская', 'Эвкалипт узколистный']
+            : ['Дуб кавказский', 'Берёза кудрявая'])
+      );
+      setConfirmReset(false);
+    }
+  }, [isOpen, user?.displayName, user?.photoURL, progress.name, progress.bio, progress.avatarUrl, progress.banyaStatus, progress.city, progress.favoriteBrooms, isAdmin]);
 
   if (!isOpen) return null;
 
@@ -151,15 +174,46 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !file.type.startsWith('image/')) return;
 
-    // Convert file to base64 data url
+    // Resize & compress image on an offscreen canvas so base64 never exceeds localStorage/Firestore limits
     const reader = new FileReader();
     reader.onload = (event) => {
-      if (event.target?.result) {
-        setAvatarUrl(event.target.result as string);
-        playWoodTap(progress.soundEnabled);
-      }
+      const resultStr = event.target?.result as string;
+      if (!resultStr) return;
+
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const maxDim = 160;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.78);
+            setAvatarUrl(compressedDataUrl);
+            playWoodTap(progress.soundEnabled);
+          }
+        } catch {
+          setAvatarUrl(resultStr.slice(0, 50000));
+        }
+      };
+      img.src = resultStr;
     };
     reader.readAsDataURL(file);
   };
@@ -211,15 +265,18 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   };
 
   const handleAdminResetProgress = () => {
-    if (confirm('Сбросить весь прогресс до начального состояния для тестирования?')) {
-      onUpdateProgress({
-        completedLevels: [],
-        unlockedBadges: [],
-        activeLevelId: 1,
-        xp: 100,
-      });
-      playWoodTap(progress.soundEnabled);
+    if (!confirmReset) {
+      setConfirmReset(true);
+      return;
     }
+    onUpdateProgress({
+      completedLevels: [],
+      unlockedBadges: [],
+      activeLevelId: 1,
+      xp: 100,
+    });
+    setConfirmReset(false);
+    playWoodTap(progress.soundEnabled);
   };
 
   return (
@@ -779,10 +836,18 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   <button
                     type="button"
                     onClick={handleAdminResetProgress}
-                    className="w-full py-2.5 rounded-xl bg-stone-900 hover:bg-red-950/40 text-stone-400 hover:text-red-300 border border-stone-800 hover:border-red-500/30 text-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+                    className={`w-full py-2.5 rounded-xl border text-xs transition-colors cursor-pointer flex items-center justify-center gap-2 ${
+                      confirmReset
+                        ? 'bg-red-950/70 text-red-200 border-red-500 font-bold'
+                        : 'bg-stone-900 hover:bg-red-950/40 text-stone-400 hover:text-red-300 border-stone-800 hover:border-red-500/30'
+                    }`}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>Сбросить прогресс до начального (для проверки квеста с нуля)</span>
+                    <span>
+                      {confirmReset
+                        ? 'Нажмите ещё раз для подтверждения сброса прогресса'
+                        : 'Сбросить прогресс до начального (для проверки квеста с нуля)'}
+                    </span>
                   </button>
                 </div>
               </div>

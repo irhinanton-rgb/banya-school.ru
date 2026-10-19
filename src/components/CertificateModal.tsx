@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Printer, X, Lock, ArrowRight, Award, CheckCircle2 } from 'lucide-react';
 
 interface CertificateModalProps {
@@ -24,6 +24,12 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 }) => {
   const [nameInput, setNameInput] = useState<string>(userName || 'Александр Мастеров');
   const [isEditing, setIsEditing] = useState<boolean>(!userName);
+
+  useEffect(() => {
+    if (isOpen && userName) {
+      setNameInput(userName);
+    }
+  }, [isOpen, userName]);
 
   if (!isOpen) return null;
 

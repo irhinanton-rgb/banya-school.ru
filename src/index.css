@@ -1,105 +1,46 @@
-@import "tailwindcss" source("../src");
+@import "tailwindcss";
 
-@theme {
-  --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
-body {
-  font-family: var(--font-sans);
-  background-color: #0c0a09;
-  color: #f5f5f4;
-}
-
-/* Atmospheric Steam animations */
-@keyframes float-steam {
-  0% {
-    transform: translateY(0px) scale(0.98);
-    opacity: 0.15;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: clip;
   }
-  50% {
-    transform: translateY(-8px) scale(1.02);
-    opacity: 0.28;
-  }
-  100% {
-    transform: translateY(0px) scale(0.98);
-    opacity: 0.15;
+
+  body {
+    overflow-x: clip;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-.animate-steam {
-  animation: float-steam 7s ease-in-out infinite;
+/* Hide scrollbars on horizontal touch navigation strips while preserving scroll */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
-/* Stove physics animations */
-@keyframes flame-flutter {
-  0% { transform: scaleY(0.96) scaleX(1) skewX(-1deg); filter: brightness(0.95); }
-  25% { transform: scaleY(1.04) scaleX(0.98) skewX(2deg); filter: brightness(1.1); }
-  50% { transform: scaleY(0.98) scaleX(1.02) skewX(-2deg); filter: brightness(1.02); }
-  75% { transform: scaleY(1.06) scaleX(0.97) skewX(1deg); filter: brightness(1.15); }
-  100% { transform: scaleY(0.96) scaleX(1) skewX(-1deg); filter: brightness(0.95); }
-}
-
-@keyframes smoke-draft {
-  0% { stroke-dashoffset: 40; opacity: 0.3; }
-  50% { opacity: 0.85; }
-  100% { stroke-dashoffset: 0; opacity: 0.3; }
-}
-
-@keyframes air-cycle {
-  0% { stroke-dashoffset: 60; opacity: 0.4; }
-  50% { opacity: 0.95; }
-  100% { stroke-dashoffset: 0; opacity: 0.4; }
-}
-
-@keyframes ir-shortwave-pulse {
-  0% { transform: scale(0.98); opacity: 0.6; stroke-width: 1.5; }
-  50% { transform: scale(1.06); opacity: 0.95; stroke-width: 2.5; }
-  100% { transform: scale(0.98); opacity: 0.6; stroke-width: 1.5; }
-}
-
-@keyframes ir-longwave-pulse {
-  0% { transform: scale(0.95); opacity: 0.3; stroke-width: 1; }
-  50% { transform: scale(1.04); opacity: 0.7; stroke-width: 2; }
-  100% { transform: scale(0.95); opacity: 0.3; stroke-width: 1; }
-}
-
-.animate-flame {
-  transform-origin: bottom center;
-  animation: flame-flutter 1.4s ease-in-out infinite;
-}
-
-.animate-smoke-flow {
-  animation: smoke-draft 2.2s linear infinite;
-}
-
-.animate-air-flow {
-  animation: air-cycle 2.4s linear infinite;
-}
-
-.animate-ir-short {
-  transform-origin: center;
-  animation: ir-shortwave-pulse 1.8s ease-in-out infinite;
-}
-
-.animate-ir-long {
-  transform-origin: center;
-  animation: ir-longwave-pulse 3.2s ease-in-out infinite;
-}
-
-/* Subtle scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #1c1917;
-}
-::-webkit-scrollbar-thumb {
-  background: #44403c;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #78716c;
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #certificate-print-area,
+  #certificate-print-area * {
+    visibility: visible;
+  }
+  #certificate-print-area {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 32px !important;
+    background: #1c1917 !important;
+    color: #f5f5f4 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

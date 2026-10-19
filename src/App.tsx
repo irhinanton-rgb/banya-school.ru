@@ -69,6 +69,7 @@ export default function App() {
           return {
             ...INITIAL_PROGRESS,
             ...parsed,
+            isAdmin: false, // Never trust isAdmin from client localStorage
             completedLevels: Array.isArray(parsed.completedLevels) ? parsed.completedLevels : [],
             unlockedBadges: Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : [],
             quizScores: parsed.quizScores && typeof parsed.quizScores === 'object' ? parsed.quizScores : INITIAL_PROGRESS.quizScores,
@@ -134,28 +135,47 @@ export default function App() {
     try {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.get('payment') === 'success') {
-        const orderId = searchParams.get('orderId') || `YOOKASSA-${Date.now()}`;
+        const orderId = searchParams.get('orderId') || '';
         const amount = searchParams.get('amount') || '3390.00';
-        setSuccessfulOrderId(orderId);
-        setShowPaymentSuccessModal(true);
-        handleActivatePaidTier(orderId);
 
-        // Send instant notification to Telegram bot
-        sendCoursePurchaseNotification({
-          orderId,
-          amount: Number(amount) === 10 ? '10 ₽ (тестовая)' : '3 390 ₽',
-          userName: progress.name || user?.displayName || 'Ученик',
-          userEmail: user?.email || '',
-        }).catch((err) => console.warn('Payment telegram notification warning:', err));
+        // Verify that this browser session actually initiated a matching payment order
+        const rawPending = localStorage.getItem('pq_pending_payment');
+        let isVerifiedSessionOrder = false;
+        if (rawPending && orderId) {
+          try {
+            const pending = JSON.parse(rawPending);
+            const ageMs = Date.now() - Number(pending?.createdAt || 0);
+            if (pending?.orderId === orderId && ageMs >= 0 && ageMs < 24 * 60 * 60 * 1000) {
+              isVerifiedSessionOrder = true;
+            }
+          } catch {
+            // ignore parse error
+          }
+        }
 
-        try {
-          confetti({
-            particleCount: 90,
-            spread: 60,
-            origin: { y: 0.6 }
-          });
-        } catch {
-          // ignore
+        if (isVerifiedSessionOrder) {
+          localStorage.removeItem('pq_pending_payment');
+          setSuccessfulOrderId(orderId);
+          setShowPaymentSuccessModal(true);
+          handleActivatePaidTier(orderId);
+
+          // Send instant notification to Telegram bot
+          sendCoursePurchaseNotification({
+            orderId,
+            amount: Number(amount) === 10 ? '10 ₽ (тестовая)' : '3 390 ₽',
+            userName: progress.name || user?.displayName || 'Ученик',
+            userEmail: user?.email || '',
+          }).catch((err) => console.warn('Payment telegram notification warning:', err));
+
+          try {
+            confetti({
+              particleCount: 90,
+              spread: 60,
+              origin: { y: 0.6 }
+            });
+          } catch {
+            // ignore
+          }
         }
 
         // Clean query params from URL without refreshing
@@ -167,9 +187,13 @@ export default function App() {
     }
   }, []);
 
-  // Automatic admin promotion for irhinanton@gmail.com
+  // Automatic admin promotion strictly for verified Firebase Auth admin emails
+  const isVerifiedAdminEmail =
+    user?.email?.toLowerCase() === 'irhinanton@gmail.com' ||
+    user?.email?.toLowerCase() === 'aniwalker1998@gmail.com';
+
   useEffect(() => {
-    if (user?.email?.toLowerCase() === 'irhinanton@gmail.com') {
+    if (isVerifiedAdminEmail) {
       setProgress((prev) => ({
         ...prev,
         isAdmin: true,
@@ -179,10 +203,12 @@ export default function App() {
         avatarUrl: prev.avatarUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=240&q=80',
         banyaStatus: prev.banyaStatus || '👑 Основатель & Главный Наставник',
       }));
+    } else if (progress.isAdmin) {
+      setProgress((prev) => ({ ...prev, isAdmin: false }));
     }
-  }, [user]);
+  }, [isVerifiedAdminEmail]);
 
-  const isAdmin = user?.email?.toLowerCase() === 'irhinanton@gmail.com' || Boolean(progress.isAdmin);
+  const isAdmin = isVerifiedAdminEmail;
   const isLevel3Unlocked = Boolean(
     isAdmin ||
     progress.activeLevelId >= 3 ||
@@ -266,12 +292,7 @@ export default function App() {
         if (isCancelled) return;
 
         if (remote) {
-          setProgress((prev) => {
-            const merged = mergeUserProgress(prev, remote);
-            // Push merged back to cloud
-            syncProgressToCloud(currentUser, merged);
-            return merged;
-          });
+          setProgress((prev) => mergeUserProgress(prev, remote));
         } else {
           // Push local progress to cloud
           await syncProgressToCloud(currentUser, progress);
@@ -363,7 +384,8 @@ export default function App() {
     const newBadge = currentLevel?.rewardBadge;
 
     setProgress((prev) => {
-      const nextCompleted = prev.completedLevels.includes(levelId)
+      const alreadyCompleted = prev.completedLevels.includes(levelId);
+      const nextCompleted = alreadyCompleted
         ? prev.completedLevels
         : [...prev.completedLevels, levelId];
 
@@ -373,7 +395,7 @@ export default function App() {
 
       return {
         ...prev,
-        xp: prev.xp + xpReward,
+        xp: alreadyCompleted ? prev.xp : prev.xp + xpReward,
         completedLevels: nextCompleted,
         unlockedBadges: nextBadges,
       };
@@ -382,13 +404,14 @@ export default function App() {
 
   const handleGrantBadge = (badgeId: BadgeId, xpReward: number) => {
     setProgress((prev) => {
-      const nextBadges = prev.unlockedBadges.includes(badgeId)
+      const alreadyUnlocked = prev.unlockedBadges.includes(badgeId);
+      const nextBadges = alreadyUnlocked
         ? prev.unlockedBadges
         : [...prev.unlockedBadges, badgeId];
 
       return {
         ...prev,
-        xp: prev.xp + xpReward,
+        xp: alreadyUnlocked ? prev.xp : prev.xp + xpReward,
         unlockedBadges: nextBadges,
       };
     });
@@ -402,6 +425,7 @@ export default function App() {
     });
 
     setProgress((prev) => {
+      const alreadyCertified = Boolean(prev.certifiedDate);
       const nextCompleted = prev.completedLevels.includes(7)
         ? prev.completedLevels
         : [...prev.completedLevels, 7 as LevelId];
@@ -412,11 +436,11 @@ export default function App() {
 
       return {
         ...prev,
-        xp: prev.xp + 500,
-        examScore: score,
+        xp: alreadyCertified ? prev.xp : prev.xp + 500,
+        examScore: Math.max(prev.examScore || 0, score),
         completedLevels: nextCompleted,
         unlockedBadges: nextBadges,
-        certifiedDate: today,
+        certifiedDate: prev.certifiedDate || today,
       };
     });
 
@@ -567,23 +591,30 @@ export default function App() {
               /* Learning Workspace: station viewer, navigation, club and trophies */
               <div className="space-y-8 sm:space-y-10 animate-fadeIn">
                 {/* Back to welcome screen and direct Map link bar */}
-                <div className="flex items-center justify-between pb-2 border-b border-stone-800/80">
-                  <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-stone-800/80">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => {
                         setShowHero(true);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="inline-flex items-center gap-2 text-xs font-mono text-stone-400 hover:text-amber-300 transition-colors py-1.5 px-3 rounded-xl bg-stone-900/70 hover:bg-stone-900 border border-stone-800 hover:border-amber-500/40 cursor-pointer shadow-sm"
+                      className="inline-flex items-center gap-1.5 text-xs font-mono text-stone-400 hover:text-amber-300 transition-colors py-1.5 px-3 rounded-xl bg-stone-900/70 hover:bg-stone-900 border border-stone-800 hover:border-amber-500/40 cursor-pointer shadow-sm"
                     >
                       <span>← Главная</span>
                     </button>
-
+                    <button
+                      onClick={handleOpenQuestMap}
+                      className="inline-flex items-center gap-1.5 text-xs font-mono text-stone-300 hover:text-amber-300 transition-colors py-1.5 px-3 rounded-xl bg-stone-900/70 hover:bg-stone-900 border border-stone-800 hover:border-amber-500/40 cursor-pointer shadow-sm"
+                    >
+                      <span>🗺️ Карта квеста</span>
+                    </button>
                   </div>
-                  <div className="flex items-center gap-2 text-xs font-mono text-stone-400">
-                    <span>Станция {progress.activeLevelId} из 7</span>
-                    <span className="text-amber-500/60">•</span>
-                    <span className="text-amber-300 font-semibold">{currentLevelData.title}</span>
+                  <div className="flex items-center gap-2 text-xs font-mono text-stone-400 min-w-0">
+                    <span className="shrink-0">Станция {progress.activeLevelId} из 7</span>
+                    <span className="text-amber-500/60 hidden sm:inline">•</span>
+                    <span className="text-amber-300 font-semibold truncate hidden sm:inline max-w-[280px] lg:max-w-md">
+                      {currentLevelData.title}
+                    </span>
                   </div>
                 </div>
 
@@ -853,7 +884,7 @@ export default function App() {
       )}
 
       {/* Footer */}
-      <footer className="w-full border-t border-stone-800/80 bg-stone-950 py-6 print:hidden">
+      <footer className="w-full border-t border-stone-800/80 bg-stone-950 py-6 pb-24 md:pb-6 print:hidden">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div>
             © {new Date().getFullYear()} Пармастер Квест: Путь к Мастерству · banya-school.ru

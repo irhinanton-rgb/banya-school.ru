@@ -4,6 +4,30 @@ import crypto from 'crypto';
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID || '1485718';
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY || 'live_pko1h4rfqyVG9Un0_S8qJAHmitTEhR6u2od3psGUd5s';
 
+function getSafeReturnOrigin(rawOrigin) {
+  if (!rawOrigin || typeof rawOrigin !== 'string') {
+    return 'https://banya-school.ru';
+  }
+  try {
+    const parsed = new URL(rawOrigin);
+    const host = parsed.hostname.toLowerCase();
+    const isAllowedHost =
+      host === 'banya-school.ru' ||
+      host === 'www.banya-school.ru' ||
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host.endsWith('.vercel.app') ||
+      host.endsWith('.run.app');
+
+    if (isAllowedHost && (parsed.protocol === 'https:' || parsed.protocol === 'http:')) {
+      return `${parsed.protocol}//${parsed.host}`;
+    }
+  } catch {
+    // fallback to default
+  }
+  return 'https://banya-school.ru';
+}
+
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -24,18 +48,19 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const { amount, description, userId, userEmail } = body;
 
-    // Price can be 10 (test payment requested by Anton) or 3390 (official course price)
+    // Price can be 10 (test payment) or 3390 (official course price)
     const validAmount = Number(amount) === 10 ? '10.00' : '3390.00';
-    const paymentDesc = description || (Number(amount) === 10
-      ? 'Тестовый платёж 10 ₽ (Курс Пармастера banya-school.ru)'
-      : 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)');
+    const paymentDesc = String(
+      description || (Number(amount) === 10
+        ? 'Тестовый платёж 10 ₽ (Курс Пармастера banya-school.ru)'
+        : 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)')
+    ).slice(0, 128);
 
     const idempotenceKey = crypto.randomUUID();
     const authHeader = 'Basic ' + Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64');
 
-    const origin = req.headers.origin || req.headers.referer || 'https://banya-school.ru';
-    const cleanOrigin = origin.split('?')[0].replace(/\/+$/, '');
-    const returnUrl = `${cleanOrigin}/?payment=success&orderId=${idempotenceKey}&amount=${validAmount}`;
+    const safeOrigin = getSafeReturnOrigin(req.headers.origin || req.headers.referer);
+    const returnUrl = `${safeOrigin}/?payment=success&orderId=${encodeURIComponent(idempotenceKey)}&amount=${encodeURIComponent(validAmount)}`;
 
     const payload = JSON.stringify({
       amount: {
@@ -49,8 +74,9 @@ export default async function handler(req, res) {
       },
       description: paymentDesc,
       metadata: {
-        userId: userId || 'guest',
-        userEmail: userEmail || 'guest@banya-school.ru',
+        userId: String(userId || 'guest').slice(0, 128),
+        userEmail: String(userEmail || 'guest@banya-school.ru').slice(0, 150),
+        orderId: idempotenceKey,
         isTest: Number(amount) === 10
       }
     });
@@ -74,7 +100,7 @@ export default async function handler(req, res) {
             const parsed = JSON.parse(data);
             resolve({ statusCode: response.statusCode, data: parsed });
           } catch (err) {
-            reject(new Error(`Failed to parse YooKassa response: ${data}`));
+            reject(new Error(`Failed to parse YooKassa response`));
           }
         });
       });
@@ -97,12 +123,11 @@ export default async function handler(req, res) {
     } else {
       console.error('YooKassa API Error:', yooResponse.data);
       return res.status(yooResponse.statusCode || 500).json({
-        error: yooResponse.data?.description || 'Failed to create payment in YooKassa',
-        details: yooResponse.data
+        error: yooResponse.data?.description || 'Failed to create payment in YooKassa'
       });
     }
   } catch (error) {
     console.error('Create payment handler error:', error);
-    return res.status(500).json({ error: error.message || 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }

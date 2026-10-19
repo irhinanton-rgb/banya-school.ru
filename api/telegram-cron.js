@@ -120,6 +120,20 @@ function postToVk(post) {
 
 export default async function handler(req, res) {
   try {
+    // Allow execution only from Vercel Cron, authorized CRON_SECRET bearer token, or local dev
+    const cronSecret = process.env.CRON_SECRET;
+    const authHeader = req.headers?.authorization || '';
+    const isVercelCron = Boolean(req.headers?.['x-vercel-cron']);
+    const host = String(req.headers?.host || '').toLowerCase();
+    const isLocalhost = host.startsWith('localhost') || host.startsWith('127.0.0.1');
+
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}` && !isVercelCron && !isLocalhost) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    if (!cronSecret && !isVercelCron && !isLocalhost) {
+      return res.status(401).json({ success: false, error: 'Cron trigger only' });
+    }
+
     const postsPath = path.join(process.cwd(), 'src/data/telegramPosts.json');
     const posts = JSON.parse(fs.readFileSync(postsPath, 'utf8'));
 
@@ -130,8 +144,8 @@ export default async function handler(req, res) {
     const oneDay = 1000 * 60 * 60 * 24;
     const dayOfYear = Math.floor(diff / oneDay);
 
-    const queryDay = req.query && req.query.day ? parseInt(req.query.day) : null;
-    const targetDay = queryDay || ((dayOfYear % posts.length) + 1);
+    const queryDay = req.query && req.query.day ? parseInt(req.query.day, 10) : null;
+    const targetDay = (queryDay && queryDay >= 1 && queryDay <= posts.length) ? queryDay : ((dayOfYear % posts.length) + 1);
 
     const post = posts.find(p => p.day === targetDay) || posts[0];
 
