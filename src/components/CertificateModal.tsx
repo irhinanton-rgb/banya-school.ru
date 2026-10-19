@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Printer, X, Lock, ArrowRight, Award, CheckCircle2 } from 'lucide-react';
+import { Printer, X, Lock, ArrowRight, Award, CheckCircle2, Share2, Send, Copy, Check } from 'lucide-react';
 
 interface CertificateModalProps {
   isOpen: boolean;
@@ -24,6 +24,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 }) => {
   const [nameInput, setNameInput] = useState<string>(userName || 'Александр Мастеров');
   const [isEditing, setIsEditing] = useState<boolean>(!userName);
+  const [copiedShareLink, setCopiedShareLink] = useState<boolean>(false);
 
   useEffect(() => {
     if (isOpen && userName) {
@@ -41,6 +42,27 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       onUpdateName(clean);
       setIsEditing(false);
     }
+  };
+
+  const shareUrl = 'https://banya-school.ru';
+  const shareText = isCompleted
+    ? `👑 Я успешно прошёл аттестацию и получил именной Сертификат Пармастера в школе банного мастерства «Пармастер Квест»! Присоединяйтесь:`
+    : `🌿 Прохожу интерактивный курс и тренажеры русской бани «Пармастер Квест: Путь к Мастерству» (${completedLevelsCount}/7 станций). Попробуйте бесплатно:`;
+
+  const handleShareTelegram = () => {
+    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+    window.open(tgUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareVk = () => {
+    const vkUrl = `https://vk.com/share.php?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareText)}`;
+    window.open(vkUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleCopyShare = () => {
+    navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+    setCopiedShareLink(true);
+    setTimeout(() => setCopiedShareLink(false), 2500);
   };
 
   const handlePrint = () => {
@@ -72,14 +94,50 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleShareTelegram}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 font-semibold text-xs transition-all cursor-pointer"
+              title="Поделиться в Telegram"
+            >
+              <Send className="h-3.5 w-3.5" />
+              <span>В Telegram</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleShareVk}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-semibold text-xs transition-all cursor-pointer"
+              title="Поделиться ВКонтакте"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              <span>ВКонтакте</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyShare}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 font-semibold text-xs transition-all cursor-pointer"
+              title="Скопировать ссылку"
+            >
+              {copiedShareLink ? (
+                <>
+                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="text-emerald-300">Скопировано</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Ссылка</span>
+                </>
+              )}
+            </button>
             {isCompleted && (
               <button
                 onClick={handlePrint}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md"
               >
                 <Printer className="h-4 w-4" />
-                <span>Распечатать / Сохранить в PDF</span>
+                <span>PDF / Печать</span>
               </button>
             )}
             <button

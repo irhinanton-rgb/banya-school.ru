@@ -19,6 +19,10 @@ import {
   Tag,
   Phone,
   Briefcase,
+  Gift,
+  Printer,
+  Send,
+  Share2,
 } from 'lucide-react';
 import { UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
@@ -56,6 +60,14 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [promoMessage, setPromoMessage] = useState<string | null>(null);
 
+  // Gift Course Mode ("Подарить курс")
+  const [purchaseMode, setPurchaseMode] = useState<'self' | 'gift'>('self');
+  const [giftRecipientName, setGiftRecipientName] = useState<string>('');
+  const [giftWishText, setGiftWishText] = useState<string>(
+    'Пусть каждый пар будет лёгким, веник — послушным, а баня дарит богатырское здоровье!'
+  );
+  const [showGiftCardPreview, setShowGiftCardPreview] = useState<boolean>(false);
+
   useEffect(() => {
     if (isOpen) {
       if (!buyerContact && (user?.email || user?.phoneNumber)) {
@@ -79,7 +91,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const handleApplyPromo = () => {
     playWoodTap(progress.soundEnabled);
     const code = promoCodeInput.trim().toUpperCase();
-    if (code === 'BATYA10' || code === 'PAR10' || code === 'BANYA10') {
+    if (code === 'BATYA10' || code === 'PAR10' || code === 'BANYA10' || code === 'GIFT10') {
       setAppliedPromo(code);
       setPromoMessage('Скидка 10% активирована: стоимость курса 3 050 ₽');
     } else {
@@ -128,9 +140,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         phoneNumber: trimmedContact,
         orderId,
         amount: amountToPay,
-        message: `Ученик нажал кнопку оплаты (${amountToPay} ₽, метод: ${selectedMethod.toUpperCase()}${
+        message: `${purchaseMode === 'gift' ? `🎁 ПОДАРОЧНЫЙ СЕРТИФИКАТ для «${giftRecipientName.trim() || 'Не указано'}»! ` : ''}Ученик нажал кнопку оплаты (${amountToPay} ₽, метод: ${selectedMethod.toUpperCase()}${
           appliedPromo ? `, промокод: ${appliedPromo}` : ''
-        }). Заказ: ${orderId}. Контакт: ${trimmedContact || 'не указан'}`,
+        }). Заказ: ${orderId}. Контакт: ${trimmedContact || 'не указан'}${
+          purchaseMode === 'gift' && giftWishText ? `. Пожелание: "${giftWishText.trim()}"` : ''
+        }`,
       });
 
       const endpoints = [
@@ -396,6 +410,105 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               <div className="pt-5 space-y-3.5">
                 {!isAlreadyPaid ? (
                   <>
+                    {/* Purchase Mode Switcher: For Self vs Gift Course */}
+                    <div className="p-1.5 rounded-xl bg-stone-950 border border-stone-800 grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playWoodTap(progress.soundEnabled);
+                          setPurchaseMode('self');
+                        }}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                          purchaseMode === 'self'
+                            ? 'bg-amber-500 text-stone-950 shadow-md'
+                            : 'text-stone-400 hover:text-stone-200'
+                        }`}
+                      >
+                        <Crown className="w-3.5 h-3.5" />
+                        <span>Для себя</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playWoodTap(progress.soundEnabled);
+                          setPurchaseMode('gift');
+                        }}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                          purchaseMode === 'gift'
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-stone-950 shadow-md'
+                            : 'text-amber-300/90 hover:text-amber-200 bg-amber-500/10'
+                        }`}
+                      >
+                        <Gift className="w-3.5 h-3.5" />
+                        <span>🎁 Подарить курс</span>
+                      </button>
+                    </div>
+
+                    {/* Gift Recipient Details when purchaseMode === 'gift' */}
+                    {purchaseMode === 'gift' && (
+                      <div className="p-3.5 rounded-xl bg-gradient-to-br from-amber-950/60 via-stone-950 to-amber-950/30 border border-amber-500/50 space-y-2.5 animate-fade-in">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-mono uppercase font-bold text-amber-300 flex items-center gap-1.5">
+                            <Gift className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Оформление Подарочного Сертификата</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowGiftCardPreview(!showGiftCardPreview)}
+                            className="text-[10px] font-mono text-amber-400 underline hover:text-amber-300 cursor-pointer"
+                          >
+                            {showGiftCardPreview ? 'Скрыть макет' : 'Посмотреть открытку →'}
+                          </button>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-stone-300 block">
+                            Кому дарим (Имя и Фамилия получателя):
+                          </label>
+                          <input
+                            type="text"
+                            value={giftRecipientName}
+                            onChange={(e) => setGiftRecipientName(e.target.value)}
+                            placeholder="Например: Сергею Ивановичу / Любимому мужу"
+                            className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-500/40 text-xs text-stone-100 placeholder:text-stone-500 focus:outline-none focus:border-amber-400"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-stone-300 block">
+                            Тёплое пожелание на сертификате:
+                          </label>
+                          <input
+                            type="text"
+                            value={giftWishText}
+                            onChange={(e) => setGiftWishText(e.target.value)}
+                            placeholder="Ваше поздравление..."
+                            className="w-full px-3 py-1.5 rounded-lg bg-stone-900 border border-stone-700 text-xs text-stone-200 focus:outline-none focus:border-amber-400"
+                          />
+                        </div>
+
+                        {showGiftCardPreview && (
+                          <div className="p-4 rounded-xl border-2 border-amber-400/80 bg-gradient-to-br from-stone-950 via-amber-950/40 to-stone-950 text-center space-y-2 shadow-xl mt-2">
+                            <div className="text-[9px] font-mono uppercase tracking-widest text-amber-400">
+                              ✦ ПОДАРОЧНЫЙ СЕРТИФИКАТ · BANYA-SCHOOL.RU ✦
+                            </div>
+                            <div className="font-serif text-sm font-bold text-amber-100">
+                              Полный доступ к курсу «Мастер Пара PRO»
+                            </div>
+                            <div className="text-xs font-serif font-bold text-amber-300 border-b border-amber-500/30 pb-1">
+                              Для: {giftRecipientName || 'Дорогого Близкого Человека'}
+                            </div>
+                            <p className="text-[10px] text-stone-300 italic leading-relaxed">
+                              «{giftWishText}»
+                            </p>
+                            <div className="pt-1 text-[9px] font-mono text-emerald-400">
+                              Код активации VIP-доступа придёт сразу после оплаты
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Buyer Contact Capture so lead is never anonymous */}
                     <div className="p-3 rounded-xl bg-stone-950/90 border border-stone-800 space-y-2">
                       <label className="text-[11px] font-mono text-amber-300/90 flex items-center gap-1.5">
@@ -507,7 +620,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                       ) : (
                         <>
                           <span>
-                            Оплатить {finalPrice.toLocaleString('ru-RU')} ₽ через ЮKassa
+                            {purchaseMode === 'gift'
+                              ? `🎁 Оплатить подарок (${finalPrice.toLocaleString('ru-RU')} ₽)`
+                              : `Оплатить ${finalPrice.toLocaleString('ru-RU')} ₽ через ЮKassa`}
                           </span>
                           <ArrowRight className="w-4 h-4" />
                         </>

@@ -898,7 +898,47 @@ export default function App() {
           <div>
             © {new Date().getFullYear()} Пармастер Квест: Путь к Мастерству · banya-school.ru
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+            <button
+              type="button"
+              onClick={() => setShowPricingModal(true)}
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-200 border border-amber-500/40 transition-all font-semibold cursor-pointer flex items-center gap-1.5"
+            >
+              <span>🎁</span>
+              <span>Подарить курс</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const shareText = '🌿 Интерактивная школа банного мастерства «Пармастер Квест»: симулятор печи, веники и 22 целебные травы! Первые 2 уровня бесплатно:';
+                window.open(
+                  `https://t.me/share/url?url=${encodeURIComponent('https://banya-school.ru')}&text=${encodeURIComponent(shareText)}`,
+                  '_blank',
+                  'noopener,noreferrer'
+                );
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition-all font-semibold cursor-pointer flex items-center gap-1"
+              title="Поделиться проектом в Telegram"
+            >
+              <span>✈️</span>
+              <span>Поделиться в TG</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const shareText = '🌿 Интерактивная школа банного мастерства «Пармастер Квест»: симулятор печи, веники и травы!';
+                window.open(
+                  `https://vk.com/share.php?url=${encodeURIComponent('https://banya-school.ru')}&title=${encodeURIComponent(shareText)}`,
+                  '_blank',
+                  'noopener,noreferrer'
+                );
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 text-blue-300 border border-blue-500/30 transition-all font-semibold cursor-pointer flex items-center gap-1"
+              title="Поделиться проектом ВКонтакте"
+            >
+              <span>📘</span>
+              <span>ВКонтакте</span>
+            </button>
             <button
               type="button"
               onClick={() => setShowPartnershipModal(true)}

@@ -46,6 +46,23 @@ function formatToVkText(rawText, postMeta = {}) {
   return `${header}${text}${takeaway}`;
 }
 
+
+function formatToDzenArticle(rawText, postMeta = {}) {
+  let text = rawText
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*\n]+)\*/g, '$1')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '$1 ($2)');
+
+  const title = postMeta.title || `День ${postMeta.day}: Секреты Русской Бани`;
+  const rubric = postMeta.rubric ? `Рубрика: ${postMeta.rubric}\n\n` : '';
+  const takeaway = postMeta.keyTakeaway
+    ? `\n\n📌 Главный вывод Бати:\n«${postMeta.keyTakeaway}»`
+    : '';
+  const footerCta = `\n\n---\n🔥 Попробуйте бесплатный интерактивный симулятор русской печи и тренажер пармастера на официальном сайте школы: https://banya-school.ru`;
+
+  return `${title}\n\n${rubric}${text}${takeaway}${footerCta}`;
+}
+
 function sendTelegram(htmlText) {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
@@ -158,6 +175,16 @@ async function publishNextDay() {
     } catch (e) {
       console.error(`⚠️ Ошибка ВК:`, e.message);
     }
+  }
+
+  // Sync article for Yandex Dzen (RSS + ready-to-publish Dzen text)
+  try {
+    const dzenArticle = formatToDzenArticle(post.text, post);
+    const dzenOutPath = path.join(__dirname, '.latest-dzen-article.txt');
+    fs.writeFileSync(dzenOutPath, dzenArticle, 'utf-8');
+    console.log(`✅ Яндекс Дзен: статья Дня ${post.day} синхронизирована (RSS-фид /dzen-rss.xml обновлен)`);
+  } catch (e) {
+    console.error(`⚠️ Ошибка синхронизации Дзен:`, e.message);
   }
 
   const nowMsk = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10);

@@ -15,6 +15,8 @@ import confetti from '../utils/confetti';
 import {
   Sparkles,
   Award,
+  Share2,
+  Send,
   Lightbulb,
   CheckCircle2,
   XCircle,
@@ -903,6 +905,46 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Viral Share Result Block (Telegram & VK) */}
+            <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+              <div className="text-xs text-stone-300">
+                <strong className="text-amber-300 block">Поделиться успехом с друзьями:</strong>
+                <span className="text-[11px] text-stone-400">Пригласите близких пройти банный квест</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const shareText = `🏆 Я прошёл ${level.id}-й уровень «${level.title}» в интерактивной школе банного мастерства и заработал +${level.rewardXp} XP! Попробуй свои силы в парной:`;
+                    window.open(
+                      `https://t.me/share/url?url=${encodeURIComponent('https://banya-school.ru')}&text=${encodeURIComponent(shareText)}`,
+                      '_blank',
+                      'noopener,noreferrer'
+                    );
+                  }}
+                  className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>В Telegram</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const shareText = `🏆 Я прошёл ${level.id}-й уровень «${level.title}» в интерактивной школе банного мастерства! Попробуй бесплатно:`;
+                    window.open(
+                      `https://vk.com/share.php?url=${encodeURIComponent('https://banya-school.ru')}&title=${encodeURIComponent(shareText)}`,
+                      '_blank',
+                      'noopener,noreferrer'
+                    );
+                  }}
+                  className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>ВКонтакте</span>
+                </button>
+              </div>
+            </div>
 
             </div>
 

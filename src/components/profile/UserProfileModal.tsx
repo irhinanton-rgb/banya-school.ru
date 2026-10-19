@@ -427,7 +427,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   }`}
                 >
                   <Send className="w-3.5 h-3.5 text-amber-400" />
-                  <span>📱 Посты TG & VK ({SOCIAL_POSTS.length})</span>
+                  <span>📱 Посты TG, ВК & Дзен ({SOCIAL_POSTS.length})</span>
                 </button>
               </>
             )}
@@ -923,10 +923,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   <div>
                     <div className="font-bold text-xs text-amber-300 flex items-center gap-1.5">
                       <Send className="w-3.5 h-3.5 text-amber-400" />
-                      <span>📱 Контент-план: Посты для Telegram & ВКонтакте (30 дней)</span>
+                      <span>📱 Контент-план: Посты для Telegram, ВК и Яндекс Дзен (30 дней)</span>
                     </div>
                     <div className="text-[11px] text-stone-400 mt-0.5">
-                      Доступно только администратору: готовые тексты постов для @BatyaVBane и ВК
+                      Доступно только администратору: синхронизация постов для @BatyaVBane, ВК и Яндекс Дзен
                     </div>
                   </div>
                   <button
@@ -972,7 +972,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       <span>Закрытый раздел администратора</span>
                     </div>
                     <h3 className="font-serif text-base sm:text-lg font-bold text-stone-100 mt-0.5">
-                      30 авторских постов для Telegram (@BatyaVBane) и ВК
+                      30 авторских постов для Telegram (@BatyaVBane), ВК и Яндекс Дзен
                     </h3>
                   </div>
                   <button
@@ -982,6 +982,46 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   >
                     ← Назад в админ-панель
                   </button>
+                </div>
+
+                {/* Yandex Dzen RSS Feed Auto-Sync Banner */}
+                <div className="p-3 rounded-xl bg-gradient-to-r from-orange-950/40 via-stone-950 to-amber-950/30 border border-orange-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-orange-300 flex items-center gap-1.5">
+                      <span>📰</span>
+                      <span>Авто-синхронизация с Яндекс Дзен (RSS-лента)</span>
+                    </div>
+                    <p className="text-[11px] text-stone-400">
+                      Все 30 статей автоматически доступны в RSS-формате Дзена: <code className="text-amber-300 font-mono">https://banya-school.ru/dzen-rss.xml</code>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleCopyPost('dzen-rss-url', 'https://banya-school.ru/dzen-rss.xml')}
+                      className="px-3 py-1.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-200 font-mono text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      {copiedPostKey === 'dzen-rss-url' ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>RSS скопирован!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Копировать RSS</span>
+                        </>
+                      )}
+                    </button>
+                    <a
+                      href="https://dzen.ru/profile/editor/create"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-200 text-[11px] font-semibold transition-colors"
+                    >
+                      Дзен Студия ↗
+                    </a>
+                  </div>
                 </div>
 
                 {/* Search Input */}
@@ -1104,6 +1144,42 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                               <>
                                 <Share2 className="w-3.5 h-3.5" />
                                 <span>Для ВК</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleCopyPost(
+                                `dzen-${post.day}`,
+                                `${post.title}
+
+${post.rubric ? `Рубрика: ${post.rubric}
+
+` : ''}${cleanVkText}${
+                                  post.keyTakeaway ? `
+
+📌 Главный вывод Бати:
+«${post.keyTakeaway}»` : ''
+                                }
+
+---
+🔥 Пройти интерактивный симулятор русской печи и тренажер пармастера бесплатно (Уровни 1 и 2): https://banya-school.ru`
+                              )
+                            }
+                            className="px-2.5 py-1.5 rounded-xl bg-stone-950 hover:bg-stone-800 border border-orange-500/40 text-[11px] text-orange-300 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                            title="Скопировать готовую статью для Яндекс Дзен с заголовком и ссылкой на сайт"
+                          >
+                            {copiedPostKey === `dzen-${post.day}` ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Дзен скопирован</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>📰</span>
+                                <span>Для Дзен</span>
                               </>
                             )}
                           </button>
