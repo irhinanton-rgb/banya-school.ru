@@ -992,13 +992,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       <span>Авто-синхронизация с Яндекс Дзен (RSS-лента)</span>
                     </div>
                     <p className="text-[11px] text-stone-400">
-                      Все 30 статей автоматически доступны в RSS-формате Дзена: <code className="text-amber-300 font-mono">https://banya-school.ru/dzen-rss.xml</code>
+                      Ежедневная автовыкладка по дням (без ручных действий): <code className="text-amber-300 font-mono">https://banya-school.ru/api/dzen-rss.php</code>
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      onClick={() => handleCopyPost('dzen-rss-url', 'https://banya-school.ru/dzen-rss.xml')}
+                      onClick={() => handleCopyPost('dzen-rss-url', 'https://banya-school.ru/api/dzen-rss.php')}
                       className="px-3 py-1.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-200 font-mono text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1"
                     >
                       {copiedPostKey === 'dzen-rss-url' ? (

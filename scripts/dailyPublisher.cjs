@@ -47,6 +47,75 @@ function formatToVkText(rawText, postMeta = {}) {
 }
 
 
+
+function generateDynamicDzenRss(allPosts, maxDayToPublish) {
+  const escapeXml = (s = '') =>
+    String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+  const items = [];
+  for (let i = maxDayToPublish - 1; i >= 0; i--) {
+    const p = allPosts[i];
+    if (!p) continue;
+    const title = escapeXml(p.title || `День ${p.day}`);
+    const rubric = escapeXml(p.rubric || 'Школа банного мастерства');
+    let htmlBody = escapeXml(p.text || '');
+    htmlBody = htmlBody.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+    htmlBody = htmlBody.replace(/\*([^*\n]+)\*/g, '<i>$1</i>');
+    htmlBody = htmlBody.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2">$1</a>');
+    const paragraphs = htmlBody
+      .split('\n\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => `<p>${line}</p>`);
+
+    if (p.keyTakeaway) {
+      paragraphs.push(`<blockquote><b>📌 Главный вывод Бати:</b> ${escapeXml(p.keyTakeaway)}</blockquote>`);
+    }
+    paragraphs.push(
+      '<figure><img src="https://banya-school.ru/images/levels/level-1-hero.jpg" /><figcaption>Интерактивная школа банного мастерства «Пармастер Квест» — banya-school.ru</figcaption></figure>'
+    );
+    paragraphs.push(
+      `<p><a href="https://banya-school.ru/?utm_source=dzen&amp;utm_campaign=day_${p.day}">🔥 Пройти интерактивный курс и тренажеры пармастера на banya-school.ru</a></p>`
+    );
+
+    const pubDate = new Date(Date.now() - (maxDayToPublish - p.day) * 86400 * 1000).toUTCString();
+    items.push(`    <item>
+      <title>${title}</title>
+      <link>https://banya-school.ru/?day=${p.day}</link>
+      <pdalink>https://banya-school.ru/?day=${p.day}</pdalink>
+      <guid isPermaLink="false">banya-school-day-${p.day}</guid>
+      <pubDate>${pubDate}</pubDate>
+      <media:rating scheme="urn:simple">nonadult</media:rating>
+      <category>${rubric}</category>
+      <enclosure url="https://banya-school.ru/images/levels/level-1-hero.jpg" type="image/jpeg" />
+      <description><![CDATA[${escapeXml(p.keyTakeaway || p.title)}]]></description>
+      <content:encoded><![CDATA[
+        ${paragraphs.join('\n        ')}
+      ]]></content:encoded>
+    </item>`);
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:media="http://search.yahoo.com/mrss/"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:georss="http://www.georss.org/georss">
+  <channel>
+    <title>Батя в Бане — Школа Банного Мастерства</title>
+    <link>https://banya-school.ru</link>
+    <description>Официальный канал интерактивной школы пармастеров Антона Ирхина: анатомия пара, веники, фитотерапия и безопасность в русской бане.</description>
+    <language>ru</language>
+${items.join('\n')}
+  </channel>
+</rss>`;
+}
+
 function formatToDzenArticle(rawText, postMeta = {}) {
   let text = rawText
     .replace(/\*\*([^*]+)\*\*/g, '$1')
@@ -177,12 +246,16 @@ async function publishNextDay() {
     }
   }
 
-  // Sync article for Yandex Dzen (RSS + ready-to-publish Dzen text)
+  // Sync article for Yandex Dzen (Auto-update public/dzen-rss.xml + ready-to-publish Dzen text)
   try {
     const dzenArticle = formatToDzenArticle(post.text, post);
     const dzenOutPath = path.join(__dirname, '.latest-dzen-article.txt');
     fs.writeFileSync(dzenOutPath, dzenArticle, 'utf-8');
-    console.log(`✅ Яндекс Дзен: статья Дня ${post.day} синхронизирована (RSS-фид /dzen-rss.xml обновлен)`);
+
+    const rssContent = generateDynamicDzenRss(posts, post.day);
+    const publicRssPath = path.join(__dirname, '..', 'public', 'dzen-rss.xml');
+    fs.writeFileSync(publicRssPath, rssContent, 'utf-8');
+    console.log(`✅ Яндекс Дзен: статья Дня ${post.day} автоматически добавлена в RSS-ленту (/dzen-rss.xml и /api/dzen-rss.php)`);
   } catch (e) {
     console.error(`⚠️ Ошибка синхронизации Дзен:`, e.message);
   }
