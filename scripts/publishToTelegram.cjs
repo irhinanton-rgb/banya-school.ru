@@ -7,8 +7,8 @@ const BOT_TOKEN = process.env.BATYA_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN 
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID || process.argv[3] || '@BatyaVBane';
 const DAY_ARG = process.argv[4]; // Optional: specific day number (1..30) or "all"
 
-const VK_ACCESS_TOKEN = process.env.VK_ACCESS_TOKEN || '';
-const VK_GROUP_ID = process.env.VK_GROUP_ID || '';
+const VK_ACCESS_TOKEN = process.env.VK_ACCESS_TOKEN || 'vk1.a.1y5Haqf_ujhVhQCDET6yww5f4IbAQ1s2e5MyCo9dSLkuuCxZ8sduqFEtbWwRXduGSH_1Psl06QqmGPjZAW49Z7haUlbYoFQ41phVaxI8WywulnukFznXP_iUwE_-8s_0HfXEP-fcg_PSefXzWbEtW-VnbB1cX_lrjEOxd58dC_ULXRrKfX7obVphtUCTEbY7HHJyf_ygQlHKoaWLIsLasg';
+const VK_GROUP_ID = process.env.VK_GROUP_ID || '242053676';
 
 const postsPath = path.join(__dirname, '..', 'src', 'data', 'telegramPosts.json');
 const posts = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
@@ -104,7 +104,6 @@ function sendVkWallPost(accessToken, groupId, messageText) {
       owner_id: `-${cleanGroupId}`,
       from_group: '1',
       message: messageText,
-      attachments: 'https://banya-school.ru',
       access_token: accessToken,
       v: '5.199',
     });

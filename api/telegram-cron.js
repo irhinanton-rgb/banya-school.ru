@@ -7,8 +7,8 @@ const TELEGRAM_BOT_TOKEN = process.env.BATYA_BOT_TOKEN || process.env.TELEGRAM_P
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHANNEL_ID || process.env.TELEGRAM_CHAT_ID || '@BatyaVBane';
 
 // VKontakte auto-publishing configuration
-const VK_ACCESS_TOKEN = process.env.VK_ACCESS_TOKEN || '';
-const VK_GROUP_ID = process.env.VK_GROUP_ID || ''; // ID группы без минуса (например: 215489301)
+const VK_ACCESS_TOKEN = process.env.VK_ACCESS_TOKEN || 'vk1.a.1y5Haqf_ujhVhQCDET6yww5f4IbAQ1s2e5MyCo9dSLkuuCxZ8sduqFEtbWwRXduGSH_1Psl06QqmGPjZAW49Z7haUlbYoFQ41phVaxI8WywulnukFznXP_iUwE_-8s_0HfXEP-fcg_PSefXzWbEtW-VnbB1cX_lrjEOxd58dC_ULXRrKfX7obVphtUCTEbY7HHJyf_ygQlHKoaWLIsLasg';
+const VK_GROUP_ID = process.env.VK_GROUP_ID || '242053676'; // ID группы без минуса (например: 215489301)
 
 // Anchor date to automatically cycle through the 30 days (Day 1 = 2026-10-15)
 const START_DATE = process.env.TELEGRAM_CRON_START_DATE || '2026-10-15';
@@ -157,7 +157,6 @@ function sendVkWallPost(accessToken, groupId, messageText) {
       owner_id: ownerId,
       from_group: '1',
       message: messageText,
-      attachments: 'https://banya-school.ru',
       access_token: accessToken,
       v: '5.199',
     });

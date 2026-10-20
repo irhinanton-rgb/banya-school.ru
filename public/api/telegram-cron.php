@@ -14,7 +14,7 @@ if ($providedKey !== $secret && $authHeader !== "Bearer {$secret}") {
 
 $botToken = '7992502826:AAFaVxzLifwnqRGnV1q3OhUmx4Ykz2C5OBU';
 $chatId = '@BatyaVBane';
-$vkToken = getenv('VK_ACCESS_TOKEN') ?: '';
+$vkToken = getenv('VK_ACCESS_TOKEN') ?: 'vk1.a.1y5Haqf_ujhVhQCDET6yww5f4IbAQ1s2e5MyCo9dSLkuuCxZ8sduqFEtbWwRXduGSH_1Psl06QqmGPjZAW49Z7haUlbYoFQ41phVaxI8WywulnukFznXP_iUwE_-8s_0HfXEP-fcg_PSefXzWbEtW-VnbB1cX_lrjEOxd58dC_ULXRrKfX7obVphtUCTEbY7HHJyf_ygQlHKoaWLIsLasg';
 $vkGroupId = getenv('VK_GROUP_ID') ?: '242053676';
 
 // Read posts
@@ -88,10 +88,39 @@ $tgResRaw = curl_exec($ch);
 curl_close($ch);
 $tgResult = json_decode($tgResRaw, true);
 
+// Also publish to VKontakte Wall
+$vkResult = null;
+if (!empty($vkToken) && !empty($vkGroupId)) {
+    $cleanVk = preg_replace('/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/u', '$1 ($2)', $post['text']);
+    $cleanVk = preg_replace('/\*\*([^*]+)\*\*/u', '$1', $cleanVk);
+    $cleanVk = preg_replace('/\*([^*\n]+)\*/u', '$1', $cleanVk);
+    $vkHeader = !empty($post['rubric']) ? "{$post['rubric']} | День {$post['day']}/30\n\n" : "";
+    $vkTakeaway = !empty($post['keyTakeaway']) ? "\n\n📌 Главный вывод Бати:\n{$post['keyTakeaway']}" : "";
+    $vkMessage = $vkHeader . $cleanVk . $vkTakeaway;
+
+    $vkParams = http_build_query([
+        'owner_id' => '-' . ltrim($vkGroupId, '-'),
+        'from_group' => '1',
+        'message' => $vkMessage,
+        'access_token' => $vkToken,
+        'v' => '5.199',
+    ]);
+    $chVk = curl_init('https://api.vk.com/method/wall.post');
+    curl_setopt($chVk, CURLOPT_POST, true);
+    curl_setopt($chVk, CURLOPT_POSTFIELDS, $vkParams);
+    curl_setopt($chVk, CURLOPT_RETURNTRANSFER, true);
+    $vkRaw = curl_exec($chVk);
+    curl_close($chVk);
+    $vkResult = json_decode($vkRaw, true);
+}
+
+
 echo json_encode([
     'success' => true,
     'day' => $post['day'],
     'title' => $post['title'],
     'telegram_message_id' => $tgResult['result']['message_id'] ?? null,
     'imageUrl' => $imageUrl,
+    'vk_post_id' => $vkResult['response']['post_id'] ?? null,
+    'vk_error' => $vkResult['error']['error_msg'] ?? null,
 ]);

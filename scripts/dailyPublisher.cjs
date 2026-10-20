@@ -5,8 +5,8 @@ const https = require('https');
 const TELEGRAM_BOT_TOKEN = process.env.BATYA_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '7992502826:AAFaVxzLifwnqRGnV1q3OhUmx4Ykz2C5OBU';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '@BatyaVBane';
 
-const VK_ACCESS_TOKEN = process.env.VK_ACCESS_TOKEN || '';
-const VK_GROUP_ID = process.env.VK_GROUP_ID || '';
+const VK_ACCESS_TOKEN = process.env.VK_ACCESS_TOKEN || 'vk1.a.1y5Haqf_ujhVhQCDET6yww5f4IbAQ1s2e5MyCo9dSLkuuCxZ8sduqFEtbWwRXduGSH_1Psl06QqmGPjZAW49Z7haUlbYoFQ41phVaxI8WywulnukFznXP_iUwE_-8s_0HfXEP-fcg_PSefXzWbEtW-VnbB1cX_lrjEOxd58dC_ULXRrKfX7obVphtUCTEbY7HHJyf_ygQlHKoaWLIsLasg';
+const VK_GROUP_ID = process.env.VK_GROUP_ID || '242053676';
 
 // Daily publication time in Moscow Time (UTC+3), default 10:00
 const PUBLISH_HOUR_MSK = parseInt(process.env.PUBLISH_HOUR_MSK || '10', 10);
@@ -217,7 +217,6 @@ function sendVk(messageText) {
       owner_id: `-${cleanGroupId}`,
       from_group: '1',
       message: messageText,
-      attachments: 'https://banya-school.ru',
       access_token: VK_ACCESS_TOKEN,
       v: '5.199',
     });
