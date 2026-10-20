@@ -132,6 +132,45 @@ function formatToDzenArticle(rawText, postMeta = {}) {
   return `${title}\n\n${rubric}${text}${takeaway}${footerCta}`;
 }
 
+function sendTelegramPhoto(photoUrl, captionHtml) {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      photo: photoUrl,
+      caption: captionHtml,
+      parse_mode: 'HTML',
+    });
+    const req = https.request(
+      {
+        hostname: 'api.telegram.org',
+        port: 443,
+        path: `/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload),
+        },
+      },
+      (res) => {
+        let body = '';
+        res.on('data', (c) => (body += c));
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(body);
+            if (parsed.ok) resolve(parsed);
+            else reject(new Error(parsed.description || 'Telegram Photo API error'));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
 function sendTelegram(htmlText) {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
@@ -234,8 +273,20 @@ async function publishNextDay() {
   const post = posts.find((p) => p.day === dayToPublish) || posts[0];
 
   console.log(`📤 Публикация Дня ${post.day}: "${post.title}"...`);
-  const tgRes = await sendTelegram(formatToTelegramHtml(post.text, post));
-  console.log(`✅ Telegram (@BatyaVBane): опубликовано (ID: ${tgRes.result.message_id})`);
+  const htmlMsg = formatToTelegramHtml(post.text, post);
+  let tgRes;
+  const photoUrl = post.imageUrl ? `https://banya-school.ru${post.imageUrl}` : null;
+  if (photoUrl && htmlMsg.length <= 1020) {
+    try {
+      tgRes = await sendTelegramPhoto(photoUrl, htmlMsg);
+    } catch (photoErr) {
+      console.warn('⚠️ sendPhoto error, fallback to text:', photoErr.message);
+      tgRes = await sendTelegram(htmlMsg);
+    }
+  } else {
+    tgRes = await sendTelegram(htmlMsg);
+  }
+  console.log(`✅ Telegram (@BatyaVBane): опубликовано (ID: ${tgRes.result?.message_id})`);
 
   if (VK_ACCESS_TOKEN && VK_GROUP_ID) {
     try {
