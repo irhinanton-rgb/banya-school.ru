@@ -299,7 +299,7 @@ export const XpRewardsModal: React.FC<XpRewardsModalProps> = ({
   const noviceProgressPercent = Math.min(100, Math.round((totalXp / 600) * 100));
   const isLevel1Done = (progress.completedLevels || []).includes(1);
   const isLevel2Done = (progress.completedLevels || []).includes(2);
-  const hasJadeBadge = (progress.unlockedBadges || []).includes('stove_jade');
+  const hasJadeBadge = (progress.unlockedBadges || []).includes('stove_master_artifact');
   const hasGoldenKey = (progress.unlockedBadges || []).includes('golden_key');
 
   return (

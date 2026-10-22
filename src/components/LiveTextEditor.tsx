@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Edit3, Check, Copy, Trash2, RotateCcw, List, Eye, Sparkles, X, MousePointer } from 'lucide-react';
+import bundledOverrides from '../data/liveTextOverrides.json';
 
 const OVERRIDES_STORAGE_KEY = 'banya_live_text_overrides_v1';
 
@@ -19,16 +20,21 @@ export const LiveTextEditor: React.FC = () => {
   );
 
   const [overrides, setOverrides] = useState<Record<string, string>>(() => {
+    const base = (bundledOverrides && typeof bundledOverrides === 'object')
+      ? (bundledOverrides as Record<string, string>)
+      : {};
     try {
       const raw = localStorage.getItem(OVERRIDES_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object') return parsed;
+        if (parsed && typeof parsed === 'object') {
+          return { ...base, ...parsed };
+        }
       }
     } catch {
       // ignore
     }
-    return {};
+    return base;
   });
 
   const overridesRef = useRef<Record<string, string>>(overrides);
@@ -39,7 +45,14 @@ export const LiveTextEditor: React.FC = () => {
     } catch {
       // ignore
     }
-  }, [overrides]);
+    if (isAiStudioPreview) {
+      fetch('/api/sync-overrides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ overrides, replaceAll: true }),
+      }).catch(() => {});
+    }
+  }, [overrides, isAiStudioPreview]);
 
   // Apply saved overrides to DOM text nodes & leaf elements
   const applyOverridesToDOM = useCallback(() => {
