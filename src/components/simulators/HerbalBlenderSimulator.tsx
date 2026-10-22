@@ -10,6 +10,7 @@ import {
   AlertCircle,
   BookOpen,
 } from 'lucide-react';
+import { TermTooltip } from '../TermTooltip';
 
 interface HerbalBlenderSimulatorProps {
   soundEnabled: boolean;
@@ -279,7 +280,21 @@ export const HerbalBlenderSimulator: React.FC<HerbalBlenderSimulatorProps> = ({
                 Прямой путь в лимбическую систему
               </h4>
               <p className="text-xs text-stone-300 leading-relaxed">
-                Природные фитонциды уничтожают до 90% бактерий в воздухе. Через обонятельные рецепторы молекулы эфирных масел попадают в лимбический центр мозга всего за <strong>0.2 секунды — быстрее болевого импульса</strong>, сразу регулируя пульс и настроение.
+                Природные{' '}
+                <TermTooltip
+                  title="Фитонциды растений"
+                  text="Летучие биологически активные вещества, выделяемые хвоей и травами. В тёплом влажном пару они работают как природный ингалятор: уничтожают бактерии в воздухе и мягко расширяют бронхи."
+                >
+                  фитонциды
+                </TermTooltip>{' '}
+                уничтожают до 90% бактерий в воздухе. Через обонятельные рецепторы молекулы эфирных масел попадают в{' '}
+                <TermTooltip
+                  title="Лимбическая система мозга"
+                  text="Древний центр мозга, управляющий эмоциями, пульсом, дыханием и сном. Обоняние — единственное чувство, сигналы которого попадают сюда напрямую без задержки за 0.2 секунды."
+                >
+                  лимбический центр мозга
+                </TermTooltip>{' '}
+                всего за <strong>0.2 секунды — быстрее болевого импульса</strong>, сразу регулируя пульс и настроение.
               </p>
             </div>
             <div className="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-[11px] text-emerald-200 leading-snug">
@@ -325,7 +340,14 @@ export const HerbalBlenderSimulator: React.FC<HerbalBlenderSimulatorProps> = ({
               </p>
             </div>
             <div className="p-2.5 rounded-lg bg-rose-950/30 border border-rose-500/30 text-[11px] text-rose-200 leading-snug">
-              🛑 <strong>Важно:</strong> между заходами обязательно залповое проветривание. Беременным строго противопоказаны <strong>душица (орегано) и пижма</strong>!
+              🛑 <strong>Важно:</strong> между заходами обязательно{' '}
+              <TermTooltip
+                title="Залповое проветривание"
+                text="Открытие окна и двери парной на 1–2 минуты между заходами: поток свежего воздуха полностью вытесняет углекислый газ (CO₂) и старый запах, при этом массивные стены печи и полка не успевают остыть."
+              >
+                залповое проветривание
+              </TermTooltip>
+              . Беременным строго противопоказаны <strong>душица (орегано) и пижма</strong>!
             </div>
           </div>
         </div>

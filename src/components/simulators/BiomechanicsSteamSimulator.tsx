@@ -24,6 +24,7 @@ import {
   Key,
   Lock,
 } from 'lucide-react';
+import { TermTooltip } from '../TermTooltip';
 
 interface BiomechanicsSteamSimulatorProps {
   soundEnabled: boolean;
@@ -183,47 +184,24 @@ const SectionVideotheque: React.FC<SectionVideothequeProps> = ({
 
       {/* Two-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Left: Video Player Frame */}
+          {/* Left: Video Player Frame */}
         <div className="lg:col-span-7 rounded-2xl border border-stone-800 bg-stone-950 p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden shadow-inner">
           <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-900 border border-stone-800/80 shadow-2xl flex flex-col items-center justify-center">
-            {parsedVideo ? (
+            {parsedVideo && (parsedVideo.type !== 'html5' || !videoError) ? (
               parsedVideo.type === 'html5' ? (
-                videoError ? (
-                  <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center bg-stone-950/90 text-stone-300 space-y-3">
-                    <div className="h-12 w-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl border border-amber-500/30">
-                      📹
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-amber-200 text-sm">
-                        Видеоурок: «{selectedLesson.name}»
-                      </h4>
-                      <p className="text-xs text-stone-400 mt-1 max-w-sm leading-relaxed">
-                        Путь: <code className="text-amber-300 font-mono text-[11px] bg-stone-900 px-1.5 py-0.5 rounded border border-stone-800">{parsedVideo.directUrl}</code>
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsAddingVideo(true)}
-                      className="px-3.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-medium border border-stone-700 transition-colors cursor-pointer"
-                    >
-                      Вставить ссылку на VK / Rutube / Диск
-                    </button>
-                  </div>
-                ) : (
-                  <video
-                    ref={videoRef}
-                    key={parsedVideo.directUrl}
-                    src={parsedVideo.directUrl}
-                    controls
-                    playsInline
-                    preload="metadata"
-                    onError={() => setVideoError(true)}
-                    onEnded={() => onMarkAsStudied(selectedLesson.id)}
-                    className="w-full h-full object-contain bg-black"
-                  >
-                    Ваш браузер не поддерживает встроенное воспроизведение видео.
-                  </video>
-                )
+                <video
+                  ref={videoRef}
+                  key={parsedVideo.directUrl}
+                  src={parsedVideo.directUrl}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  onError={() => setVideoError(true)}
+                  onEnded={() => onMarkAsStudied(selectedLesson.id)}
+                  className="w-full h-full object-contain bg-black"
+                >
+                  Ваш браузер не поддерживает встроенное воспроизведение видео.
+                </video>
               ) : (
                 <iframe
                   src={parsedVideo.embedUrl}
@@ -235,22 +213,28 @@ const SectionVideotheque: React.FC<SectionVideothequeProps> = ({
               )
             ) : (
               <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center relative bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900">
-                <div className="relative z-10 flex flex-col items-center space-y-3 max-w-sm">
-                  <div className="h-14 w-14 rounded-2xl bg-stone-800/90 border border-stone-700/80 flex items-center justify-center shadow-lg">
-                    <Play className="w-6 h-6 text-amber-400 fill-current ml-0.5" />
+                <div className="relative z-10 flex flex-col items-center space-y-3 max-w-md">
+                  <div className="h-14 w-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shadow-lg text-2xl">
+                    {selectedLesson.sectionIcon}
                   </div>
                   <div>
-                    <h4 className="font-serif text-base sm:text-lg font-bold text-stone-200">
-                      Видеодемонстрация: «{selectedLesson.name}»
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold">
+                      Урок {selectedLesson.lessonNumber} из 2 · Зона: {selectedLesson.zone}
+                    </span>
+                    <h4 className="font-serif text-base sm:text-xl font-bold text-stone-100 mt-1">
+                      {selectedLesson.name}
                     </h4>
+                    <p className="text-xs text-stone-300 mt-1.5 leading-relaxed">
+                      {selectedLesson.execution}
+                    </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsAddingVideo(!isAddingVideo)}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all border border-amber-500/30 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-800/90 hover:bg-stone-800 text-amber-300 text-xs font-medium transition-all border border-stone-700 cursor-pointer"
                   >
                     <PlusCircle className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{isAddingVideo ? 'Скрыть форму' : 'Добавить ссылку на видео'}</span>
+                    <span>{isAddingVideo ? 'Скрыть поле ссылки' : 'Подключить видео (VK / Rutube / MP4)'}</span>
                   </button>
                 </div>
               </div>
@@ -576,7 +560,6 @@ export const BiomechanicsSteamSimulator: React.FC<BiomechanicsSteamSimulatorProp
   };
 
   const totalStudied = studiedLessons.length;
-  const isAllCompleted = totalStudied >= 6;
 
   const section1 = LEVEL5_VIDEO_SECTIONS[0];
   const section2 = LEVEL5_VIDEO_SECTIONS[1];
@@ -587,28 +570,57 @@ export const BiomechanicsSteamSimulator: React.FC<BiomechanicsSteamSimulatorProp
       {/* ========================================================= */}
       {/* КРАТКАЯ СУТЬ УРОВНЯ 3 (ПОСЛЕДОВАТЕЛЬНО ПЕРЕД ВИДЕОТЕКОЙ) */}
       {/* ========================================================= */}
-      <div className="rounded-3xl border border-stone-800 bg-stone-900/95 p-6 sm:p-8 space-y-5 shadow-xl">
+      <div className="rounded-3xl border border-stone-800 bg-stone-900/95 p-6 sm:p-8 space-y-4 shadow-xl">
         <div className="border-b border-stone-800 pb-4">
           <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
-            📖 Суть 3-го уровня · Продвинутая техника работы с веником и паром
+            📖 Суть 3-го уровня · Продвинутая работа с веником и паром
           </span>
           <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mt-1">
-            Три группы профессиональных приёмов: Ритмика, Захват и Удержание пара
+            Как соединить отдельные движения в непрерывный поток тепла
           </h3>
           <p className="text-xs sm:text-sm text-stone-400 mt-0.5">
-            Освоив 8 базовых движений на 2-м уровне, переходим к специальным связкам, которые превращают отдельные взмахи в непрерывный поток тепла.
+            На 2-м уровне вы изучили 8 базовых движений. Теперь разберём 3 главные задачи, которые превращают обычное махание веником в профессиональное парение:
           </p>
         </div>
 
-        <div className="space-y-4 text-sm sm:text-base text-stone-200 leading-relaxed">
-          <div>
-            <strong className="text-amber-300">1. Приёмы для отработки ритмики и звука («Маятник», «Дробь», «Тройка»):</strong> Веники работают непрерывно в ритме спокойного сердца (60–75 ударов в минуту). Вы освоите двухдольный шаг и вальсовую «тройку» с акцентом-припаркой на третий счёт, укладывая веник всей плоскостью листа для мягкого бархатного звука без звонких шлепков.
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs sm:text-sm text-stone-200 leading-relaxed">
+          <div className="p-4 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
+            <strong className="text-amber-300 block font-serif text-base">
+              1. Ритмика и бархатный звук
+            </strong>
+            <p className="text-stone-300">
+              Веники работают без пауз в ритме спокойного сердца (60–75 уд/мин) и ложатся всей плоскостью кроны — без хлестких ударов прутьями.
+            </p>
           </div>
-          <div className="pt-3 border-t border-stone-800/80">
-            <strong className="text-emerald-300">2. Приёмы для захвата и опускания пара («Лодочка», «Парус», «Каскад»):</strong> Как забирать горячий пар из подпотолочного пирога (+75...+85°C) сложенными чашей кронами («лодочкой»), не размывая его по парной, и каскадом опускать тепло строго снизу вверх — от стоп к икрам, крестцу и спине.
+          <div className="p-4 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
+            <strong className="text-emerald-300 block font-serif text-base">
+              2. Точечный захват пара
+            </strong>
+            <p className="text-stone-300">
+              Пар забирают из{' '}
+              <TermTooltip
+                title="Паровой пирог (+75...+85 °C)"
+                text="Запас горячего, плотного пара, который скапливается под потолком парной после поддачи в каменку. Мастер черпает его вениками дозированно, не размывая по всей комнате."
+              >
+                подпотолочного пирога
+              </TermTooltip>{' '}
+              сложенными «лодочкой» вениками и опускают строго от стоп вверх.
+            </p>
           </div>
-          <div className="pt-3 border-t border-stone-800/80">
-            <strong className="text-sky-300">3. Приёмы для удержания и запечатывания пара («Двойной замок», «Компрессия», «Утюжка»):</strong> Как удерживать горячий пар на теле без секундного остывания: смена веников внахлёст («двойной замок»), прокачка тепла вторым веником сверху и плотная паровая протяжка вдоль мышц.
+          <div className="p-4 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
+            <strong className="text-sky-300 block font-serif text-base">
+              3. Удержание тепла на теле
+            </strong>
+            <p className="text-stone-300">
+              Смена веников внахлёст (
+              <TermTooltip
+                title="«Двойной замок» (перехлёст веников)"
+                text="Техника безотрывного парения: пока один веник уходит вверх за новой порцией пара, второй уже накрывает прогретый участок кожи, не давая телу остыть ни на секунду."
+              >
+                «двойной замок»
+              </TermTooltip>
+              ) и паровая утюжка направляют тепло на глубину 3–4 см.
+            </p>
           </div>
         </div>
       </div>

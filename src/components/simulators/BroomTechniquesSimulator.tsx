@@ -130,6 +130,67 @@ function parseVideoSource(urlOrId?: string): VideoSource | null {
   return null;
 }
 
+const LEVEL2_GLOSSARY: Record<string, { title: string; text: string }> = {
+  periphery: {
+    title: 'Периферические сосуды',
+    text: 'Разветвлённая сеть мелких сосудов и капилляров в стопах, голенях и кистях рук. Когда мы согреваем стопы первыми, эти сосуды мягко расширяются и забирают на себя часть объёма крови, разгружая сердце и сосуды головы.',
+  },
+  lymph: {
+    title: 'Лимфоток (Дренаж)',
+    text: 'Движение лимфы по сосудам снизу вверх — от стоп и икр к крупным лимфоузлам. Мягкий прогрев вениками от пяток к коленям и бёдрам работает как естественный насос, убирающий отёки и тяжесть в ногах.',
+  },
+  taichi: {
+    title: 'Принцип «Банного тай-чи»',
+    text: 'Биомеханика пармастера: спина остаётся прямой, колени мягко пружинят, а импульс для взмаха вениками рождается от переката веса тела с ноги на ногу. Это снимает ударную нагрузку с поясницы и плеч.',
+  },
+  tannins: {
+    title: 'Дубильные вещества и эфиры листа',
+    text: 'Природные соединения в листе дуба и берёзы, которые делают лист плотным, упругим и ароматным. В крутом кипятке (100 °C) они мгновенно разрушаются («варятся»), и веник превращается в тяжёлую скользкую тряпку.',
+  },
+  orthostatic: {
+    title: 'Ортостатический спазм (перепад давления)',
+    text: 'В парной сосуды тела максимально расширены. Если резко вскочить с полка на ноги, кровь под действием гравитации отливает от головы вниз — темнеет в глазах и кружится голова. Спокойный подъём через паузу сидя полностью исключает этот риск.',
+  },
+};
+
+const TermTooltip: React.FC<{ termKey: keyof typeof LEVEL2_GLOSSARY; children: React.ReactNode }> = ({
+  termKey,
+  children,
+}) => {
+  const [open, setOpen] = useState(false);
+  const info = LEVEL2_GLOSSARY[termKey];
+  if (!info) return <>{children}</>;
+
+  return (
+    <span
+      className="relative inline-block"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
+        className="inline items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 font-semibold border-b-2 border-dashed border-amber-400 hover:bg-amber-500/25 transition-colors cursor-help"
+      >
+        {children}
+      </button>
+      {open && (
+        <span className="fixed sm:absolute z-50 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 bottom-6 sm:bottom-full sm:mb-2.5 w-auto sm:w-80 p-3.5 rounded-2xl bg-stone-950/98 border-2 border-amber-400/80 shadow-[0_10px_40px_rgba(0,0,0,0.85)] text-left pointer-events-auto animate-fadeIn">
+          <span className="block text-xs font-mono uppercase tracking-wider text-amber-400 font-bold mb-1">
+            🔬 {info.title}
+          </span>
+          <span className="block text-xs text-stone-200 leading-relaxed font-normal">
+            {info.text}
+          </span>
+        </span>
+      )}
+    </span>
+  );
+};
+
 export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> = ({
   soundEnabled,
   onGrantXp,
@@ -236,7 +297,7 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
             Как правильно взять веник, запарить лист и с чего начать парение
           </h3>
           <p className="text-xs sm:text-sm text-stone-400 mt-0.5">
-            Прежде чем включить видео 8 приёмов, усвойте три базовых правила работы с веником.
+            Наведите курсор или нажмите на <span className="text-amber-300 font-semibold border-b border-dashed border-amber-400">выделенные термины</span>, чтобы узнать, как работает физиология парения.
           </p>
         </div>
 
@@ -246,7 +307,9 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
               1. Точка старта — всегда со стоп (снизу вверх)
             </h4>
             <p className="text-stone-300">
-              Контактное парение всегда начинается <strong>со стоп гостя</strong>, а не со спины или шеи. Стопы — нижняя поворотная точка большого круга кровообращения. Прогревая стопы и икры первыми, вы раскрываете периферические сосуды, запускаете лимфоток и исключаете опасный прилив крови к голове.
+              Контактное парение всегда начинается <strong>со стоп гостя</strong>, а не со спины или шеи. Стопы — нижняя поворотная точка большого круга кровообращения. Прогревая стопы и икры первыми, вы мягко раскрываете{' '}
+              <TermTooltip termKey="periphery">периферические сосуды</TermTooltip>, запускаете{' '}
+              <TermTooltip termKey="lymph">лимфоток</TermTooltip> и защищаете голову гостя от резкого прилива крови и пульсации в висках.
             </p>
           </div>
 
@@ -255,7 +318,8 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
               2. Хват веника: «Как живую птицу — не задушить и не выпустить»
             </h4>
             <p className="text-stone-300">
-              Если вцепиться в ручку веника «мёртвой хваткой», предплечья забьются и одеревенеют уже через 5 минут. Держите рукоять мягкой, расслабленной кистью: пальцы и запястье свободно пружинят, а само движение рождается от переката стоп и мягких коленей (принцип «Банного тай-чи»). <em>Совет: для тренировки первых движений берите веники потяжелее, а для реального парения гостя — лёгкие и сбалансированные.</em>
+              Если вцепиться в ручку веника «мёртвой хваткой», мышцы предплечий пережмут сосуды и устанут уже через 5 минут. Держите рукоять расслабленной кистью: пальцы и запястье свободно пружинят, а само движение рождается от переката стоп и мягких коленей — это и есть{' '}
+              <TermTooltip termKey="taichi">принцип «Банного тай-чи»</TermTooltip>.
             </p>
           </div>
 
@@ -264,12 +328,13 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
               3. Алгоритм запарки веника (никакого крутого кипятка!)
             </h4>
             <p className="text-stone-300">
-              Крутой кипяток (100°C) «варит» лист дуба или берёзы, превращая веник в тяжёлую скользкую тряпку, которая осыпается за 5 минут. Правильная подготовка состоит из трёх простых действий:
+              Крутой кипяток (100 °C) разрушает{' '}
+              <TermTooltip termKey="tannins">дубильные вещества</TermTooltip> и буквально «варит» лист, превращая веник в тяжёлую скользкую тряпку. Правильная подготовка состоит из 3 шагов:
             </p>
             <p className="text-stone-300 pl-3 border-l-2 border-emerald-500/40">
-              <strong>Шаг А:</strong> Ополосните веник в прохладной или тёплой воде — смойте пыль и оставьте капли влаги на листве.<br />
-              <strong>Шаг Б:</strong> Поставьте веник <u>ручками в воду</u>, а крону накройте пакетом или влажным полотенцем — капилляры древесины напитают ветки изнутри, сделав их гибкими и упругими.<br />
-              <strong>Шаг В:</strong> Молодой свежий веник дойдёт до шелковистой кондиции сам в тепле парной, а сухой прошлогодний веник перед парением прогрейте 1–2 минуты в паре над каменкой (берегите руки от ожога!).
+              <strong>Шаг А:</strong> Ополосните веник в тёплой или прохладной воде — смойте пыль и оставьте капли влаги на листве.<br />
+              <strong>Шаг Б:</strong> Поставьте веник <u>ручками в воду</u>, а крону укройте пакетом или влажным полотенцем — капилляры веток напитают древесину изнутри, сделав прутья гибкими.<br />
+              <strong>Шаг В:</strong> Молодой свежий веник дойдёт до кондиции сам в тепле парной, а сухой прошлогодний веник перед работой прогрейте 1–2 минуты в паре над каменкой (берегите руки от ожога!).
             </p>
           </div>
         </div>
@@ -284,7 +349,7 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
           <div>
             <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
               <span>🎬</span>
-              <span>Шаг 2 из 3 · Видео-Практикум</span>
+              <span>Шаг 2 из 3 · Практикум движений</span>
             </div>
             <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mt-1">
               8 базовых приёмов, собранных в единую технику парения
@@ -356,43 +421,20 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
           {/* Left: Video Player Box */}
           <div className="lg:col-span-7 rounded-2xl border border-stone-800 bg-stone-950 p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden shadow-inner">
             <div className="w-full relative aspect-video rounded-xl overflow-hidden bg-stone-900 border border-stone-800/80 shadow-2xl flex flex-col items-center justify-center">
-              {parsedVideo ? (
+              {parsedVideo && (parsedVideo.type !== 'html5' || !videoError) ? (
                 parsedVideo.type === 'html5' ? (
-                  videoError ? (
-                    <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center bg-stone-950/90 text-stone-300 space-y-3">
-                      <div className="h-12 w-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl border border-amber-500/30">
-                        📹
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-amber-200 text-sm">
-                          Видеофайл приёма «{selectedTech.name}»
-                        </h4>
-                        <p className="text-xs text-stone-400 mt-1 max-w-sm leading-relaxed">
-                          Путь: <code className="text-amber-300 font-mono text-[11px] bg-stone-900 px-1.5 py-0.5 rounded border border-stone-800">{parsedVideo.directUrl}</code>
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsAddingVideo(true)}
-                        className="px-3.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-medium border border-stone-700 transition-colors cursor-pointer"
-                      >
-                        Вставить ссылку на VK / Rutube / Диск
-                      </button>
-                    </div>
-                  ) : (
-                    <video
-                      key={parsedVideo.directUrl}
-                      src={parsedVideo.directUrl}
-                      controls
-                      playsInline
-                      preload="metadata"
-                      onError={() => setVideoError(true)}
-                      onEnded={() => handleMarkAsStudied(selectedTech.id)}
-                      className="w-full h-full object-contain bg-black"
-                    >
-                      Ваш браузер не поддерживает встроенное воспроизведение видео.
-                    </video>
-                  )
+                  <video
+                    key={parsedVideo.directUrl}
+                    src={parsedVideo.directUrl}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    onError={() => setVideoError(true)}
+                    onEnded={() => handleMarkAsStudied(selectedTech.id)}
+                    className="w-full h-full object-contain bg-black"
+                  >
+                    Ваш браузер не поддерживает встроенное воспроизведение видео.
+                  </video>
                 ) : (
                   <iframe
                     src={parsedVideo.embedUrl}
@@ -404,25 +446,28 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
                 )
               ) : (
                 <div className="w-full h-full p-6 flex flex-col items-center justify-center text-center relative bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900">
-                  <div className="relative z-10 flex flex-col items-center space-y-3 max-w-sm">
-                    <div className="h-14 w-14 rounded-2xl bg-stone-800/90 border border-stone-700/80 flex items-center justify-center shadow-lg">
-                      <Play className="w-6 h-6 text-amber-400 fill-current ml-0.5" />
+                  <div className="relative z-10 flex flex-col items-center space-y-3 max-w-md">
+                    <div className="h-14 w-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shadow-lg text-2xl">
+                      🌿
                     </div>
                     <div>
-                      <h4 className="font-serif text-base sm:text-lg font-bold text-stone-200">
-                        Видеодемонстрация: «{selectedTech.name}»
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold">
+                        Приём {currentIdx + 1} из 8 · Темп: {selectedTech.tempo} ({selectedTech.frequency} движ/мин)
+                      </span>
+                      <h4 className="font-serif text-base sm:text-xl font-bold text-stone-100 mt-1">
+                        «{selectedTech.name}»
                       </h4>
-                      <p className="text-xs text-stone-400 mt-1">
-                        Добавьте ссылку на видео (VK Видео, Rutube, Kinescope или MP4).
+                      <p className="text-xs text-stone-300 mt-1.5 leading-relaxed">
+                        {selectedTech.execution}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsAddingVideo(!isAddingVideo)}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all border border-amber-500/30 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-800/90 hover:bg-stone-800 text-amber-300 text-xs font-medium transition-all border border-stone-700 cursor-pointer"
                     >
                       <PlusCircle className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{isAddingVideo ? 'Скрыть форму' : 'Добавить ссылку на видео'}</span>
+                      <span>{isAddingVideo ? 'Скрыть поле ссылки' : 'Подключить видео (VK / Rutube / MP4)'}</span>
                     </button>
                   </div>
                 </div>
@@ -646,9 +691,9 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
               1. Защита Гостя (Близкого человека)
             </h4>
             <p className="text-stone-300">
-              • <strong>Полное табу на алкоголь и температуру &gt;37°C:</strong> алкоголь расширяет сосуды, а жар сгущает кровь — это прямой риск скачка давления и аритмии.<br />
-              • <strong>На голове — прохладная, но СУХАЯ шапка:</strong> сухая шерсть или войлок держат воздушный термос. Мокрая шапка в парной быстро нагревается и превращается в кипящий компресс.<br />
-              • <strong>Не вставать резко после парения:</strong> дайте человеку спокойно полежать 1–2 минуты на полке, затем плавно сесть, сделать глоток воды и только потом вставать.
+              • <strong>Никакого алкоголя и температуры тела &gt;37 °C:</strong> алкоголь расширяет сосуды, а жар сгущает кровь — это прямой риск скачка давления и аритмии.<br />
+              • <strong>На голове — СУХАЯ шапка:</strong> сухая шерсть или войлок работают как термос. Мокрая шапка в парной быстро нагревается и превращается в горячий компресс.<br />
+              • <strong>Подъём через паузу (защита от <TermTooltip termKey="orthostatic">ортостатического спазма</TermTooltip>):</strong> после парения дайте человеку спокойно полежать 1–2 минуты, затем плавно сесть и только потом вставать.
             </p>
           </div>
 
@@ -657,9 +702,9 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
               2. Защита Пространства
             </h4>
             <p className="text-stone-300">
-              • <strong>Чистый пол без скользких листьев:</strong> между заходами обязательно смывайте с пола опавшие распаренные листья и лишнюю воду.<br />
-              • <strong>Подача воды только сбоку от печи:</strong> никогда не наклоняйте лицо над открытой дверцей каменки — выброс пара вылетает со скоростью пушечного выстрела.<br />
-              • <strong>Свежий воздух:</strong> проветривайте парную залпом на 1–2 минуты между заходами.
+              • <strong>Чистый пол без скользких листьев:</strong> между заходами обязательно смывайте с пола опавшие листья и лишнюю воду.<br />
+              • <strong>Подача воды только сбоку от печи:</strong> никогда не наклоняйте лицо над открытой дверцей каменки — струя пара вылетает мгновенно.<br />
+              • <strong>Свежий кислород:</strong> проветривайте парную залпом на 1–2 минуты между заходами.
             </p>
           </div>
 
@@ -668,8 +713,8 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
               3. Защита Себя (Спины и сил мастера)
             </h4>
             <p className="text-stone-300">
-              • <strong>Прямая спина и подстройка под полок:</strong> если полок <u>слишком низкий</u> — расставьте ноги шире в полуприседе или положите гостя на дополнительный матрас (трапик под ноги ставить нельзя — полок станет ещё ниже!). Трапик под ноги нужен только тогда, когда полок <u>слишком высокий</u>.<br />
-              • <strong>Водно-солевой баланс:</strong> каждые 15 минут пейте тёплую минеральную воду или воду с лимоном и щепоткой соли.
+              • <strong>Прямая спина и подстройка под полок:</strong> если полок <u>слишком низкий</u> — расставьте ноги шире в полуприседе или уложите гостя на матрас (трапик под ноги ставить нельзя — полок станет ещё ниже!). Трапик нужен только тогда, когда полок <u>слишком высокий</u>.<br />
+              • <strong>Водно-солевой баланс:</strong> каждые 15 минут пейте тёплую воду с долькой лимона и щепоткой соли.
             </p>
           </div>
         </div>
