@@ -9,7 +9,6 @@ export function parseVideoSource(urlOrId?: string): VideoSource | null {
   if (!urlOrId || !urlOrId.trim()) return null;
   const raw = urlOrId.trim();
 
-  // 1. Direct HTML5 video file (.mp4, .webm, .ogg, or local /videos/ path)
   if (
     raw.match(/\.(mp4|webm|ogg|m4v)(\?.*)?$/i) ||
     raw.startsWith('/videos/') ||
@@ -23,7 +22,6 @@ export function parseVideoSource(urlOrId?: string): VideoSource | null {
     };
   }
 
-  // 2. VK Video (ВКонтакте)
   if (raw.includes('vk.com/video_ext.php') || raw.includes('vkvideo.ru/video_ext.php')) {
     return {
       type: 'vk',
@@ -40,7 +38,6 @@ export function parseVideoSource(urlOrId?: string): VideoSource | null {
     };
   }
 
-  // 3. Rutube (Рутуб)
   const rutubeEmbedMatch = raw.match(/rutube\.ru\/play\/embed\/([a-zA-Z0-9]+)/i);
   if (rutubeEmbedMatch) {
     return {
@@ -58,7 +55,6 @@ export function parseVideoSource(urlOrId?: string): VideoSource | null {
     };
   }
 
-  // 4. Kinescope (Кинескоп)
   const kinescopeMatch = raw.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9_-]+)/i);
   if (kinescopeMatch) {
     return {
@@ -68,7 +64,6 @@ export function parseVideoSource(urlOrId?: string): VideoSource | null {
     };
   }
 
-  // 5. YouTube
   const ytEmbed = raw.match(/^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com)\/embed\/([a-zA-Z0-9_-]{11})/);
   if (ytEmbed) {
     return {
@@ -91,16 +86,6 @@ export function parseVideoSource(urlOrId?: string): VideoSource | null {
       type: 'youtube',
       embedUrl: `https://www.youtube-nocookie.com/embed/${ytShort[1]}`,
       serviceLabel: 'YouTube',
-    };
-  }
-
-  // Fallback: if it's any http link, treat as direct or iframe
-  if (raw.startsWith('http://') || raw.startsWith('https://')) {
-    return {
-      type: 'html5',
-      embedUrl: raw,
-      directUrl: raw,
-      serviceLabel: 'Внешний видеоисточник',
     };
   }
 

@@ -41,6 +41,7 @@ export interface HeaderProps {
   onOpenLegal?: (tab: 'offer' | 'privacy' | 'requisites') => void;
   onShowInDevelopment?: (featureName: string) => void;
   onRequireLevel3?: (featureName: string) => void;
+  onOpenXpRewards?: () => void;
   activeTab: 'quest' | 'simulators' | 'handbook' | 'forum';
   setActiveTab: (tab: 'quest' | 'simulators' | 'handbook' | 'forum') => void;
   onGoToHome?: () => void;
@@ -64,6 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenLegal,
   onShowInDevelopment,
   onRequireLevel3,
+  onOpenXpRewards,
   activeTab,
   setActiveTab,
   onGoToHome,
@@ -87,11 +89,12 @@ export const Header: React.FC<HeaderProps> = ({
   const displayAvatar = progress.avatarUrl || user?.photoURL;
   const displayName = progress.name || user?.displayName || (isAdmin ? 'Антон Ирхин' : 'Пармастер');
 
-  // Level 3 requirement for Simulators and Handbook
+  // Level 3 PRO requirement for Simulators
   const isLevel3Unlocked = Boolean(
     isAdmin ||
+    isMasterPro ||
     progress.activeLevelId >= 3 ||
-    (progress.completedLevels && progress.completedLevels.some((l) => l >= 2))
+    (progress.completedLevels && progress.completedLevels.some((l) => l >= 3))
   );
 
   const handleSimulatorsClick = () => {
@@ -106,13 +109,8 @@ export const Header: React.FC<HeaderProps> = ({
     setMobileDrawerOpen(false);
   };
 
+  // Handbook is publicly accessible for SEO & organic search funnel
   const handleHandbookClick = () => {
-    if (!isLevel3Unlocked) {
-      if (onRequireLevel3) {
-        onRequireLevel3('Банный Справочник');
-      }
-      return;
-    }
     setActiveTab('handbook');
     setDropdownOpen(false);
     setMobileDrawerOpen(false);
@@ -410,15 +408,23 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Top Right Action Cluster: XP Badge, Sound, Personal Cabinet, & Mobile Menu Trigger */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
             
-            {/* XP Balance Badge (Clickable: Opens Leaderboard on mobile & desktop) */}
+            {/* XP Balance Badge (Clickable: Opens XP Bank & Discounts Modal) */}
             <button
-              onClick={onOpenLeaderboard}
-              title={`Ваш опыт: ${progress.xp} XP. Нажмите, чтобы открыть таблицу рекордов`}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 rounded-xl bg-stone-900/95 border border-amber-500/30 text-xs font-mono text-amber-300 shadow-inner hover:border-amber-400/70 hover:bg-stone-850 active:scale-95 transition-all cursor-pointer"
+              onClick={() => {
+                if (onOpenXpRewards) {
+                  onOpenXpRewards();
+                } else {
+                  onOpenLeaderboard();
+                }
+              }}
+              title={`Ваш банк опыта: ${Math.max(0, (progress.xp || 0) - (progress.spentXp || 0))} XP. Нажмите, чтобы обменять XP на скидки и бонусы`}
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 rounded-xl bg-stone-900/95 border border-amber-500/40 text-xs font-mono text-amber-300 shadow-inner hover:border-amber-400 hover:bg-stone-850 active:scale-95 transition-all cursor-pointer"
             >
               <Sparkles className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-              <span className="font-bold tabular-nums text-xs">{progress.xp}</span>
-              <span className="text-stone-500 text-[10px] font-semibold hidden xxs:inline">XP</span>
+              <span className="font-bold tabular-nums text-xs">
+                {Math.max(0, (progress.xp || 0) - (progress.spentXp || 0))}
+              </span>
+              <span className="text-amber-400/90 text-[10px] font-semibold">XP · Бонусы</span>
             </button>
 
             {/* Sound toggle button */}

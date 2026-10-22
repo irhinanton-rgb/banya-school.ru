@@ -23,6 +23,7 @@ import { CertificateModal } from './components/CertificateModal';
 import { LeaderboardModal } from './components/LeaderboardModal';
 import { AuthModal } from './components/AuthModal';
 import { PricingModal } from './components/PricingModal';
+import { XpRewardsModal } from './components/XpRewardsModal';
 import { LegalModal } from './components/LegalModal';
 import { RequisitesPage } from './components/legal/RequisitesPage';
 import { PartnershipSection } from './components/PartnershipSection';
@@ -31,6 +32,7 @@ import { UserProfileModal } from './components/profile/UserProfileModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { MobileLevelQuickNav } from './components/MobileLevelQuickNav';
 import { InDevelopmentModal, LevelLockModal } from './components/NoticeModal';
+import { LiveTextEditor } from './components/LiveTextEditor';
 import { COURSE_LEVELS, BADGES } from './data/courseData';
 import { UserProgress, LevelId, BadgeId } from './types/banya';
 import { useAuth } from './firebase/AuthContext';
@@ -85,6 +87,8 @@ export default function App() {
   });
 
   const [activeTab, setActiveTab] = useState<'quest' | 'simulators' | 'handbook' | 'forum'>('quest');
+  const [handbookInitialTab, setHandbookInitialTab] = useState<'glossary' | 'brooms' | 'herbs' | 'climate' | 'safety' | 'protocols'>('glossary');
+  const [handbookInitialQuery, setHandbookInitialQuery] = useState<string>('');
   const [questViewMode, setQuestViewMode] = useState<'map' | 'lesson'>('map');
   const [showHero, setShowHero] = useState<boolean>(true);
   const [hasStartedLearning, setHasStartedLearning] = useState<boolean>(() => {
@@ -100,6 +104,7 @@ export default function App() {
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState<boolean>(false);
   const [showPricingModal, setShowPricingModal] = useState<boolean>(false);
+  const [showXpRewardsModal, setShowXpRewardsModal] = useState<boolean>(false);
   const [showPartnershipModal, setShowPartnershipModal] = useState<boolean>(false);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [showLegalModal, setShowLegalModal] = useState<boolean>(false);
@@ -117,6 +122,59 @@ export default function App() {
     }
     return false;
   });
+
+  // SEO Deep-Link & Referral URL Listener (?herb=..., ?brooms=..., ?topic=..., ?ref=...)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const herbParam = params.get('herb');
+    const broomParam = params.get('broom') || params.get('brooms');
+    const topicParam = params.get('topic') || params.get('term');
+    const protocolParam = params.get('protocol');
+    const refParam = params.get('ref');
+
+    if (herbParam) {
+      setShowHero(false);
+      setActiveTab('handbook');
+      setHandbookInitialTab('herbs');
+      setHandbookInitialQuery(herbParam);
+      document.title = `${herbParam} в русской бане: как запаривать и полезные свойства — Справочник Пармастера`;
+    } else if (broomParam) {
+      setShowHero(false);
+      setActiveTab('handbook');
+      setHandbookInitialTab('brooms');
+      setHandbookInitialQuery(broomParam === 'all' ? '' : broomParam);
+      document.title = `Как правильно запаривать банный веник (${broomParam}) — Школа Банного Мастерства`;
+    } else if (protocolParam) {
+      setShowHero(false);
+      setActiveTab('handbook');
+      setHandbookInitialTab('protocols');
+      setHandbookInitialQuery(protocolParam === 'all' ? '' : protocolParam);
+      document.title = `Техкарты и приёмы парения в русской бане — Пармастер Квест`;
+    } else if (topicParam) {
+      setShowHero(false);
+      setActiveTab('handbook');
+      setHandbookInitialTab('glossary');
+      setHandbookInitialQuery(topicParam);
+      document.title = `${topicParam} — Энциклопедия Русской Бани | banya-school.ru`;
+    }
+
+    // Grant +50 welcome referral XP if visitor arrived via friend's ?ref= link
+    if (refParam) {
+      try {
+        const claimed = localStorage.getItem('pq_claimed_ref_bonus');
+        if (!claimed) {
+          localStorage.setItem('pq_claimed_ref_bonus', refParam);
+          setProgress((prev) => ({
+            ...prev,
+            xp: (prev.xp || 100) + 50,
+          }));
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -213,8 +271,9 @@ export default function App() {
   const isAdmin = isVerifiedAdminEmail;
   const isLevel3Unlocked = Boolean(
     isAdmin ||
-    progress.activeLevelId >= 3 ||
-    (progress.completedLevels && progress.completedLevels.some((l) => l >= 2))
+    progress.isPaid ||
+    progress.tariff === 'master_pro' ||
+    progress.activeLevelId >= 3
   );
 
   useEffect(() => {
@@ -222,11 +281,9 @@ export default function App() {
       setActiveTab('quest');
       setInDevelopmentFeature('Форум Мастеров');
     }
-    if (!isLevel3Unlocked && (activeTab === 'simulators' || activeTab === 'handbook')) {
+    if (!isLevel3Unlocked && activeTab === 'simulators') {
       setActiveTab('quest');
-      setLockedFeatureModal(
-        activeTab === 'simulators' ? 'Тренажеры и Симуляторы' : 'Банный Справочник'
-      );
+      setLockedFeatureModal('Тренажеры и Симуляторы');
     }
   }, [activeTab, isAdmin, isLevel3Unlocked]);
 
@@ -517,6 +574,7 @@ export default function App() {
         onOpenLegal={(tab) => handleOpenLegal(tab)}
         onShowInDevelopment={(feature) => setInDevelopmentFeature(feature)}
         onRequireLevel3={(feature) => setLockedFeatureModal(feature)}
+        onOpenXpRewards={() => setShowXpRewardsModal(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         isQuestMapActive={activeTab === 'quest' && questViewMode === 'map' && !showHero}
@@ -732,8 +790,15 @@ export default function App() {
           />
         )}
 
-        {/* Tab 3: Pocket Handbook */}
-        {activeTab === 'handbook' && <HandbookView />}
+        {/* Tab 3: Pocket Handbook (Publicly accessible for SEO & Search Visitors) */}
+        {activeTab === 'handbook' && (
+          <HandbookView
+            initialTab={handbookInitialTab}
+            initialQuery={handbookInitialQuery}
+            onStartFreeQuest={() => handleProceedToLearning(1)}
+            onOpenXpRewards={() => setShowXpRewardsModal(true)}
+          />
+        )}
 
         {/* Tab 4: Forum of Masters & Programs Marketplace */}
         {activeTab === 'forum' && (
@@ -818,6 +883,19 @@ export default function App() {
         progress={progress}
         onActivatePaidTier={handleActivatePaidTier}
         onOpenLegal={handleOpenLegal}
+        onOpenXpRewards={() => setShowXpRewardsModal(true)}
+      />
+
+      {/* XP Bank, Discounts, Bonus Features & Online Store Modal */}
+      <XpRewardsModal
+        isOpen={showXpRewardsModal}
+        onClose={() => setShowXpRewardsModal(false)}
+        progress={progress}
+        onUpdateProgress={(updated) => {
+          setProgress((prev) => ({ ...prev, ...updated }));
+        }}
+        onOpenPricing={() => setShowPricingModal(true)}
+        onStartFreeQuest={() => handleProceedToLearning(1)}
       />
 
       <LegalModal
@@ -1008,6 +1086,9 @@ export default function App() {
         }}
         featureName={lockedFeatureModal || ''}
       />
+
+      {/* Live In-App Visual Text Editor strictly for AI Studio preview */}
+      <LiveTextEditor />
     </div>
   );
 }

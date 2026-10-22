@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://banya-school.ru/sitemap.xml
-Host: banya-school.ru

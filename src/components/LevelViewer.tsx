@@ -760,15 +760,46 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               </div>
             </div>
 
+            {/* XP Discount Conversion Banner right at Level 2 Completion */}
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-stone-900 to-amber-950/50 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+              <div className="text-xs text-stone-200 space-y-0.5">
+                {progress.xp >= 600 ? (
+                  <>
+                    <div className="font-bold text-emerald-300 flex items-center gap-1.5">
+                      <span>🔥 Вы собрали {progress.xp} XP (100% за 2 уровня)!</span>
+                    </div>
+                    <p className="text-[11px] text-stone-300">
+                      В «Банке Опыта» вам доступен максимальный <strong>Бонус №2: скидка -500 ₽</strong> — заберите полный курс за <strong>2 890 ₽</strong> вместо 3 390 ₽!
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="font-bold text-amber-300 flex items-center gap-1.5">
+                      <span>🎟️ Ваш баланс: {progress.xp} XP — открыт Бонус №1 (скидка -250 ₽)!</span>
+                    </div>
+                    <p className="text-[11px] text-stone-300">
+                      Вы уже можете забрать курс за <strong>3 140 ₽</strong> (или добрать ещё {Math.max(0, 600 - progress.xp)} XP за секреты 1–2 уровня для максимальной скидки <strong>-500 ₽ → 2 890 ₽</strong>).
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
             {/* Price & CTA Buttons */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-stone-800 relative z-10">
               <div className="text-center sm:text-left">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-serif font-bold text-amber-300">3 390 ₽</span>
-                  <span className="text-xs text-stone-500 line-through">6 990 ₽</span>
-                  <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">-52%</span>
+                  <span className="text-2xl sm:text-3xl font-serif font-bold text-amber-300">
+                    {progress.xp >= 600 ? '2 890 ₽' : '3 140 ₽'}
+                  </span>
+                  <span className="text-xs text-stone-500 line-through">3 390 ₽</span>
+                  <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    {progress.xp >= 600 ? 'Скидка -500 ₽ за XP' : 'Скидка -250 ₽ за XP'}
+                  </span>
                 </div>
-                <span className="text-[11px] text-stone-400 font-mono">Единоразовая оплата через СБП или банковскую карту</span>
+                <span className="text-[11px] text-stone-400 font-mono">
+                  Активируйте купон за XP в Банке Опыта перед оплатой
+                </span>
               </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
@@ -780,7 +811,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-xl shadow-amber-500/25 cursor-pointer text-center flex items-center justify-center gap-2 active:scale-95"
                 >
                   <Lock className="w-3.5 h-3.5 text-stone-950" />
-                  <span>Оплатить курс и открыть Уровень 3 →</span>
+                  <span>Забрать со скидкой и открыть Уровень 3 →</span>
                 </button>
                 <button
                   onClick={() => {
@@ -789,7 +820,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                   }}
                   className="w-full sm:w-auto px-4 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-stone-200 border border-stone-800 text-xs font-semibold transition-colors cursor-pointer text-center"
                 >
-                  Позже
+                  Добрать XP
                 </button>
               </div>
             </div>

@@ -36,6 +36,7 @@ interface PricingModalProps {
   onPurchaseSuccess?: (orderId: string) => void;
   onActivatePaidTier?: (orderId?: string) => Promise<void> | void;
   onOpenLegal?: (tab: 'offer' | 'privacy' | 'requisites') => void;
+  onOpenXpRewards?: () => void;
 }
 
 export const PricingModal: React.FC<PricingModalProps> = ({
@@ -43,6 +44,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   onClose,
   progress,
   onOpenLegal,
+  onOpenXpRewards,
 }) => {
   const { user } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState<'sbp' | 'card' | 'tpay'>('sbp');
@@ -86,7 +88,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   );
 
   const basePrice = 3390;
-  const finalPrice = appliedPromo ? 3050 : basePrice;
+  const xpDiscount = Math.min(500, progress.xpDiscountRub || 0);
+  const promoDiscount = appliedPromo ? 340 : 0;
+  const totalDiscount = Math.min(500, Math.max(xpDiscount, promoDiscount));
+  const finalPrice = basePrice - totalDiscount;
+  const availableXp = Math.max(0, (progress.xp || 0) - (progress.spentXp || 0));
 
   const handleApplyPromo = () => {
     playWoodTap(progress.soundEnabled);
@@ -96,7 +102,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       setPromoMessage('Скидка 10% активирована: стоимость курса 3 050 ₽');
     } else {
       setAppliedPromo(null);
-      setPromoMessage('Промокод не найден (подписчикам @BatyaVBane доступен код BATYA10)');
+      setPromoMessage('Промокод не найден (или обменяйте свои XP на скидку -250 ₽ / -500 ₽!)');
     }
   };
 
@@ -366,7 +372,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   Полная система подготовки пармастера от фундамента до именного диплома
                 </p>
 
-                <div className="flex items-baseline gap-2.5 mb-5">
+                <div className="flex items-baseline gap-2.5 mb-3">
                   <span className="text-3xl font-serif font-bold text-amber-300 tabular-nums">
                     {finalPrice.toLocaleString('ru-RU')} ₽
                   </span>
@@ -374,9 +380,44 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                     6 990 ₽
                   </span>
                   <span className="text-xs text-emerald-400 font-mono font-semibold">
-                    {appliedPromo ? 'Скидка по промокоду' : 'Выгода 52%'}
+                    {xpDiscount > 0
+                      ? `Скидка за XP (-${xpDiscount} ₽)`
+                      : appliedPromo
+                      ? 'Скидка по промокоду'
+                      : 'Выгода 52%'}
                   </span>
                 </div>
+
+                {/* XP to Discount Banner */}
+                {onOpenXpRewards && (
+                  <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2 text-xs">
+                    <div className="text-amber-200 leading-snug">
+                      {xpDiscount >= 500 ? (
+                        <span>
+                          🔥 Применён <strong>Бонус №2 (-500 ₽ за 600 XP)</strong> — максимальная скидка новичка!
+                        </span>
+                      ) : xpDiscount >= 250 ? (
+                        <span>
+                          🎟️ Применён <strong>Бонус №1 (-250 ₽)</strong>. Доберите 600 XP на 1–2 ур. для скидки <strong>-500 ₽</strong>!
+                        </span>
+                      ) : (
+                        <span>
+                          ⚡ У вас <strong>{availableXp} XP</strong>: обменяйте 350 XP на <strong>-250 ₽</strong> или все 600 XP на <strong>-500 ₽</strong>!
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenXpRewards();
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] whitespace-nowrap cursor-pointer transition-colors shrink-0"
+                    >
+                      {xpDiscount > 0 ? 'Банк XP →' : 'Обменять XP →'}
+                    </button>
+                  </div>
+                )}
 
                 <div className="space-y-2.5 text-xs text-stone-200">
                   <div className="flex items-center gap-2.5">

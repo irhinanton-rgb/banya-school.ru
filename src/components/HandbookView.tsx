@@ -29,12 +29,32 @@ import {
   X
 } from 'lucide-react';
 
-export const HandbookView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'glossary' | 'brooms' | 'herbs' | 'climate' | 'safety' | 'protocols'>('glossary');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+interface HandbookViewProps {
+  initialTab?: 'glossary' | 'brooms' | 'herbs' | 'climate' | 'safety' | 'protocols';
+  initialQuery?: string;
+  onStartFreeQuest?: () => void;
+  onOpenXpRewards?: () => void;
+}
+
+export const HandbookView: React.FC<HandbookViewProps> = ({
+  initialTab = 'glossary',
+  initialQuery = '',
+  onStartFreeQuest,
+  onOpenXpRewards,
+}) => {
+  const [activeTab, setActiveTab] = useState<'glossary' | 'brooms' | 'herbs' | 'climate' | 'safety' | 'protocols'>(initialTab);
+  const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
   const [selectedGlossaryCategory, setSelectedGlossaryCategory] = useState<string>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showFitotekaAtlas, setShowFitotekaAtlas] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (initialTab) setActiveTab(initialTab);
+  }, [initialTab]);
+
+  React.useEffect(() => {
+    if (initialQuery) setSearchQuery(initialQuery);
+  }, [initialQuery]);
 
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -743,6 +763,49 @@ export const HandbookView: React.FC = () => {
                   </ul>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SEO Conversion Funnel Block: Convert encyclopedia readers into Free Level 1 & 2 Quest players */}
+      {onStartFreeQuest && (
+        <div className="rounded-3xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/60 via-stone-950 to-amber-950/40 p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-mono uppercase tracking-wider font-bold">
+                <span>🔥 Бесплатный интерактивный практикум</span>
+                <span>·</span>
+                <span>+550 XP за 2 уровня</span>
+              </div>
+              <h2 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-stone-100">
+                Хотите отработать эти знания на практике в парной?
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                Пройдите <strong>первые 2 уровня квеста «Пармастер» совершенно бесплатно</strong>: порулите температурой и точкой росы 60/60 в симуляторе печи, освойте 8 базовых приёмов веника, соберите Золотой Ключ и обменяйте заработанные очки XP на скидку!
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={onStartFreeQuest}
+                className="px-6 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-sm shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+              >
+                <span>Начать бесплатные 2 уровня</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              {onOpenXpRewards && (
+                <button
+                  type="button"
+                  onClick={onOpenXpRewards}
+                  className="px-4 py-4 rounded-2xl bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-amber-300 font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Кладовая XP и скидок</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

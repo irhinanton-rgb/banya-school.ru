@@ -115,9 +115,24 @@ export interface RandomEmergencyEvent {
 
 export type UserTariff = 'free' | 'master_pro';
 
+export type XpPerkId =
+  | 'course_discount_250'
+  | 'course_discount_300'
+  | 'course_discount_500'
+  | 'course_discount_800'
+  | 'bonus_recipes_pack'
+  | 'shop_voucher_500'
+  | 'pro_gift_1000'
+  | 'simulators_trial_pass';
+
 export interface UserProgress {
   name: string;
   xp: number;
+  spentXp?: number;
+  xpDiscountRub?: number;
+  unlockedPerks?: XpPerkId[];
+  referralCount?: number;
+  referralShareCount?: number;
   completedLevels: LevelId[];
   unlockedBadges: BadgeId[];
   quizScores: Record<LevelId, number>;
@@ -136,3 +151,4 @@ export interface UserProgress {
   favoriteBrooms?: string[];
   isAdmin?: boolean;
 }
+

@@ -1,32 +1,27 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" class="dark">
   <head>
-
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0c0a09" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
-    <meta name="yandex-verification" content="913ea4ab29f498ef" />
-    <meta name="google-site-verification" content="google01a8244ca76231d6" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="copyright" content="© Пармастер Квест — Школа Банного Мастерства. Все права защищены." />
-    <meta name="author" content="Пармастер Квест — Школа Банного Мастерства" />
-    <title>Пармастер Квест — Обучение пармастеров онлайн</title>
-    <meta name="description" content="Онлайн-школа банного мастерства. Геймифицированный курс парения: техники веника, фитотерапия, интерактивные симуляторы парной и именной сертификат пармейстера." />
-    <meta name="keywords" content="школа банного мастерства, обучение пармастеров, курсы пармейстера онлайн, банщик обучение, пармастер квест, техники парения веником, фитотерапия в бане, микроклимат бани, сертификат пармастера" />
-    <meta property="og:title" content="Пармастер Квест — Обучение пармастеров" />
-    <meta property="og:description" content="Первая интерактивная программа банного обучения от первого пара до уверенного мастера. Геймифицированный курс парения, симуляторы и именной сертификат пармейстера." />
+    <meta name="author" content="Антон Ирхин — Пармастер Квест (banya-school.ru)" />
+    <title>Пармастер Квест — Школа Банного Мастерства, Техники Веника, Травы и Симулятор Парной</title>
+    <meta name="description" content="Интерактивная школа банного мастерства: как правильно запаривать дубовый и берёзовый веник, 22 целебные травы для бани (полынь, донник, пихта), 8 приёмов парения и бесплатный симулятор русской печи 60/60." />
+    <meta name="keywords" content="как запаривать дубовый веник, как запаривать березовый веник, травы для бани, полынь в бане, донник в бане, пихтовый веник, приемы парения веником, припарка веником, омахивание, паровой пирог в бане, режим 60 на 60 русская баня, обучение пармастеров онлайн, школа банного мастерства, сертификат пармейстера" />
+    <meta property="og:title" content="Пармастер Квест — Интерактивная Школа Банного Мастерства и Энциклопедия Пара" />
+    <meta property="og:description" content="Бесплатные 2 уровня квеста пармастера: симулятор печи, 8 приёмов работы веником, фитотека 22 трав и обмен очков XP на скидку!" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Пармастер Квест · banya-school.ru" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Пармастер Квест" />
-    <meta name="twitter:description" content="Курс обучения пармастеров с интерактивными симуляторами и сертификацией." />
-        <link rel="canonical" href="https://banya-school.ru/" />
+    <meta name="twitter:title" content="Пармастер Квест — Школа Банного Мастерства" />
+    <meta name="twitter:description" content="Как запаривать веники, целебные травы для парной, техники парения и интерактивный тренажер пармастера." />
+    
+    <link rel="canonical" href="https://banya-school.ru/" />
     <meta property="og:image" content="https://banya-school.ru/og-banner.svg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:image" content="https://banya-school.ru/og-banner.svg" />
+
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -34,73 +29,149 @@
         {
           "@type": "EducationalOrganization",
           "@id": "https://banya-school.ru/#organization",
-          "name": "Школа Банного Мастерства",
+          "name": "Школа Банного Мастерства «Пармастер Квест»",
           "url": "https://banya-school.ru/",
-          "description": "Школа банного мастерства, искусство парения, подготовка сертифицированных пармейстеров."
+          "founder": {
+            "@type": "Person",
+            "name": "Антон Ирхин"
+          },
+          "description": "Интерактивная школа банного мастерства: искусство первого пара, биомеханика венечного массажа, фитотерапия и подготовка сертифицированных пармейстеров."
         },
         {
           "@type": "Course",
           "@id": "https://banya-school.ru/#course",
           "name": "Пармастер Квест: Путь к Мастерству",
-          "description": "Интерактивная геймифицированная система обучения банному мастерству, технике парения, ароматерапии и безопасности парной.",
+          "description": "Геймифицированный курс банного мастерства с бесплатными первыми двумя уровнями, симулятором печи, справочником трав и именным дипломом.",
           "provider": {
             "@id": "https://banya-school.ru/#organization"
           },
           "educationalCredentialAwarded": "Именной Сертификат Пармейстера",
           "courseMode": "Online",
           "inLanguage": "ru",
-          "isAccessibleForFree": true
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "3390",
+            "priceCurrency": "RUB",
+            "availability": "https://schema.org/InStock",
+            "url": "https://banya-school.ru/"
+          }
+        },
+        {
+          "@type": "HowTo",
+          "name": "Как правильно запаривать дубовый и берёзовый веник для бани без кипятка",
+          "description": "Пошаговый профессиональный метод подготовки банного веника, сохраняющий листву, танины и эфирные масла на 3–4 парения.",
+          "totalTime": "PT20M",
+          "step": [
+            {
+              "@type": "HowToStep",
+              "name": "Ополаскивание в прохладной воде",
+              "text": "Опустите сухой дубовый или берёзовый веник в таз с прохладной или чуть тёплой водой (35–45°C, категорически не в крутой кипяток!) на 15 минут."
+            },
+            {
+              "@type": "HowToStep",
+              "name": "Томление во влажном пакете или ткани",
+              "text": "Выньте веник, стряхните лишнюю воду и заверните его во влажное полотенце или плотный пакет на 1–2 часа до захода в парную."
+            },
+            {
+              "@type": "HowToStep",
+              "name": "Доводка в паровом пироге",
+              "text": "Перед парением подержите веник 40–60 секунд в верхнем горячем паровом пироге под потолком парной: лист расправится, станет мягким и ароматным."
+            }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Почему нельзя заваривать банный веник в крутом кипятке?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "При температуре воды выше 80°C дубильные вещества (танины) и эфирные масла в листьях дуба и берёзы сворачиваются, черешок листа разрушается, и веник осыпается за первые 3 минуты парения. Замачивайте веник только в тёплой или прохладной воде (до 50°C)."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Какие травы лучше всего запаривать в русской бане и как их подавать?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Лучшие целебные травы для парной: полынь таврическая (антисептик и снятие головной боли), донник жёлтый и таволга (глубокое расслабление и сон), пихта сибирская и эвкалипт (раскрытие бронхов), мята и мелисса (мягкий пар). Запаривайте травы при 65–70°C и подавайте на деревянные стены, а не на раскалённые камни, чтобы избежать канцерогенной гари."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Какие основные приёмы парения веником существуют?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "8 базовых приёмов профессионального пармастера: 1) Омахивание (бесконтактное опускание пара), 2) Опахивание (прогрев вдоль тела), 3) Малый контакт (поглаживание), 4) Потряхивание и вибрации, 5) Припарка (глубокий компресс горячими вениками на поясницу, лопатки и стопы), 6) Ритмичная Единичка, 7) Двойка и Четвёрка с перехлёстом, 8) Растирка через веник."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Какая идеальная температура и влажность в настоящей русской бане?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Золотой стандарт русской паровой бани — «Правило 120»: температура 55–65°C при относительной влажности 55–60%. В таком режиме на коже выпадает тёплая роса, которая прогревает мышцы и суставы в 3 раза глубже и безопаснее, чем сухая сауна 100–110°C."
+              }
+            }
+          ]
         }
       ]
     }
     </script>
+
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>" />
     <meta name="zen-verification" content="QvL6Z19eY08UccV9D9WLcnNb9ziJoB4NfwVW0qbqjvLYBx2vyvQGHCzU8KwnM5bi" />
   </head>
   <body class="bg-stone-950 text-stone-100 antialiased selection:bg-amber-600/30 selection:text-amber-200" style="margin:0;background-color:#0c0a09;color:#f5f5f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
     <div id="root">
-      <!-- Instant pre-rendered shell (replaced automatically when JS mounts) -->
+      <!-- Instant pre-rendered SEO shell (indexed by Yandex & Google bots, replaced automatically when React mounts) -->
       <div style="min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;background-color:#0c0a09;color:#f5f5f4;">
         <header style="border-bottom:1px solid #292524;background:rgba(12,10,9,0.95);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fde68a;">Пармастер Квест</div>
-          <div style="display:flex;gap:16px;font-size:13px;color:#d6d3d1;">
-            <span style="color:#fde68a;border-bottom:2px solid #f59e0b;padding-bottom:4px;">Карта Квеста</span>
-            <span>Тренажеры и Симуляторы</span>
-            <span>Банный Справочник</span>
-          </div>
-          <div style="font-size:12px;background:#1c1917;border:1px solid #292524;padding:6px 12px;border-radius:8px;color:#fcd34d;">0 XP · Аттестация</div>
+          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fde68a;">Пармастер Квест — Школа Банного Мастерства</div>
+          <nav style="display:flex;gap:16px;font-size:13px;color:#d6d3d1;">
+            <a href="/?level=1" style="color:#fde68a;text-decoration:none;">Бесплатные 2 уровня Квеста</a>
+            <a href="/?brooms=all" style="color:#d6d3d1;text-decoration:none;">Как запаривать веники</a>
+            <a href="/?herb=полынь" style="color:#d6d3d1;text-decoration:none;">Травы для бани (Фитотека)</a>
+            <a href="/?protocol=all" style="color:#d6d3d1;text-decoration:none;">Приёмы парения</a>
+          </nav>
+          <div style="font-size:12px;background:#1c1917;border:1px solid #292524;padding:6px 12px;border-radius:8px;color:#fcd34d;">100 XP · Скидка за опыт</div>
         </header>
+
         <main style="max-width:1200px;width:100%;margin:0 auto;padding:32px 20px;box-sizing:border-box;">
-          <div style="border:1px solid #292524;background:#1c1917;border-radius:24px;padding:36px;margin-bottom:28px;">
+          <article style="border:1px solid #292524;background:#1c1917;border-radius:24px;padding:36px;margin-bottom:28px;">
             <div style="display:inline-block;padding:4px 12px;border-radius:999px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:#fcd34d;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;">
-              Геймифицированная Школа Банного Мастерства
+              Интерактивная Школа Банного Мастерства · Первые 2 уровня бесплатно
             </div>
-            <h1 style="font-family:Georgia,serif;font-size:40px;line-height:1.15;margin:0 0 16px 0;color:#f5f5f4;">
-              Пармастер Квест: <span style="color:#fbbf24;">Путь к Мастерству</span>
+            <h1 style="font-family:Georgia,serif;font-size:38px;line-height:1.15;margin:0 0 16px 0;color:#f5f5f4;">
+              Пармастер Квест: <span style="color:#fbbf24;">Искусство Русской Бани, Веников и Целебных Трав</span>
             </h1>
-            <p style="font-size:15px;line-height:1.6;color:#d6d3d1;max-width:680px;margin:0 0 24px 0;">
-              Вы — авантюрист, стремящийся стать легендарным пармейстером. Ваш путь пройдёт через древние традиции бани, где вы научитесь искусству первого пара, венечного массажа, фито- и ароматерапии, а также освоите физиологию пара и секреты безопасности.
+            <p style="font-size:15px;line-height:1.6;color:#d6d3d1;max-width:780px;margin:0 0 24px 0;">
+              Пройдите бесплатный интерактивный практикум пармастера (Уровни 1 и 2): научитесь создавать мягкий пар 60°C / 60% без перегрева, правильно запаривать дубовые, берёзовые и пихтовые веники, применять 8 профессиональных приёмов венечного массажа и заваривать 22 целебные травы. Зарабатывайте очки опыта (XP) и обменивайте их на скидку до 500 ₽!
             </p>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;max-width:680px;">
-              <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
-                <div style="color:#fbbf24;font-family:Georgia,serif;font-size:24px;font-weight:700;">7</div>
-                <div style="font-size:11px;color:#a8a29e;">Квестовых уровней</div>
+
+            <section style="margin-top:24px;border-top:1px solid #292524;padding-top:20px;">
+              <h2 style="font-family:Georgia,serif;font-size:22px;color:#fde68a;margin-bottom:12px;">
+                Энциклопедия Пармастера: частые вопросы о бане, вениках и травах
+              </h2>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;font-size:13px;color:#d6d3d1;line-height:1.5;">
+                <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
+                  <strong style="color:#fbbf24;display:block;margin-bottom:6px;">🍃 Как правильно запаривать веник для бани?</strong>
+                  Не используйте крутой кипяток (выше 80°C лист варится и облетает). Замочите сухой дубовый или берёзовый веник в прохладной воде на 15–20 минут, затем укутайте во влажную ткань или пакет на 1–2 часа и прогрейте 1 минуту в паровом пироге под потолком.
+                </div>
+                <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
+                  <strong style="color:#fbbf24;display:block;margin-bottom:6px;">🌿 Какие травы лучше всего подходят для парной?</strong>
+                  Полынь таврическая (степной антисептик и перезагрузка головы), донник жёлтый и таволга (глубокий релакс и здоровый сон), сибирская пихта и эвкалипт (ингаляция бронхов), перечная мята, чабрец, ромашка и шалфей. Запаривайте при 65–70°C и подавайте только на деревянные стены!
+                </div>
+                <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
+                  <strong style="color:#fbbf24;display:block;margin-bottom:6px;">🥁 8 приёмов парения двумя вениками:</strong>
+                  Омахивание (бесконтактное нагнетание пара), Опахивание вдоль тела, Малый контакт, Потряхивание, Припарка (глубокий компресс на поясницу, стопы и лопатки), Единичка, Двойка с перехлёстом и Растирка.
+                </div>
               </div>
-              <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
-                <div style="color:#fbbf24;font-family:Georgia,serif;font-size:24px;font-weight:700;">8</div>
-                <div style="font-size:11px;color:#a8a29e;">Техник веника</div>
-              </div>
-              <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
-                <div style="color:#fbbf24;font-family:Georgia,serif;font-size:24px;font-weight:700;">8</div>
-                <div style="font-size:11px;color:#a8a29e;">Целебных трав</div>
-              </div>
-              <div style="background:#0c0a09;border:1px solid #292524;border-radius:12px;padding:14px;">
-                <div style="color:#fbbf24;font-family:Georgia,serif;font-size:24px;font-weight:700;">👑</div>
-                <div style="font-size:11px;color:#a8a29e;">Именной Сертификат</div>
-              </div>
-            </div>
-          </div>
+            </section>
+          </article>
         </main>
       </div>
     </div>
