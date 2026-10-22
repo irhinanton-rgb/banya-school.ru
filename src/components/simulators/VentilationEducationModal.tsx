@@ -77,8 +77,8 @@ export const VentilationEducationModal: React.FC<VentilationEducationModalProps>
             </h4>
 
             {/* Stage 1: Before */}
-            <div className="rounded-2xl bg-stone-900/80 border border-stone-800 p-4 sm:p-5 space-y-2 hover:border-cyan-500/30 transition-colors">
-              <div className="flex items-center justify-between">
+            <div className="rounded-2xl bg-stone-900/80 border border-stone-800 p-4 sm:p-5 space-y-2.5 hover:border-cyan-500/30 transition-colors">
+              <div className="flex items-center justify-between gap-2">
                 <span className="font-serif font-bold text-amber-300 text-sm sm:text-base flex items-center gap-2">
                   <span>🚪</span>
                   <span>1. До процедур (Перед парением):</span>
@@ -87,14 +87,19 @@ export const VentilationEducationModal: React.FC<VentilationEducationModalProps>
                   Перед каждым заходом
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                Пока парная топилась или простаивала, воздух застаивается, кислород выгорает. Перед заходом гостя парная проветривается залпом: окно и дверь открываются настежь на 2–3 минуты, наполняя помещение свежим воздухом с 21% O₂. Парение без свежего воздуха провоцирует резкий сосудистый спазм, пульсацию в висках и тошноту.
-              </p>
+              <div className="space-y-2 text-xs sm:text-sm text-stone-300 leading-relaxed">
+                <p>
+                  Пока парная топилась или простаивала, воздух застаивается, кислород выгорает. Перед заходом гостя парная проветривается залпом: окно и дверь открываются настежь на 2–3 минуты, наполняя помещение свежим воздухом с 21% O₂.
+                </p>
+                <p>
+                  Парение без свежего воздуха провоцирует резкий сосудистый спазм, пульсацию в висках и тошноту.
+                </p>
+              </div>
             </div>
 
             {/* Stage 2: During */}
-            <div className="rounded-2xl bg-stone-900/80 border border-stone-800 p-4 sm:p-5 space-y-2 hover:border-cyan-500/30 transition-colors">
-              <div className="flex items-center justify-between">
+            <div className="rounded-2xl bg-stone-900/80 border border-stone-800 p-4 sm:p-5 space-y-2.5 hover:border-cyan-500/30 transition-colors">
+              <div className="flex items-center justify-between gap-2">
                 <span className="font-serif font-bold text-cyan-300 text-sm sm:text-base flex items-center gap-2">
                   <span>🌿</span>
                   <span>2. Во время процедур (В процессе парения):</span>
@@ -103,15 +108,24 @@ export const VentilationEducationModal: React.FC<VentilationEducationModalProps>
                   Приточно-вытяжная вентиляция
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                Критически важна постоянная <strong>приточно-вытяжная вентиляция</strong> (непрерывный приток свежего уличного кислорода под печь и вытяжка тяжелого отработанного воздуха из-под полка). Она обеспечивает легкое дыхание без разрушения парового пирога. <br className="hidden sm:inline" />
-                <span className="text-amber-200"><strong>Если приточно-вытяжной вентиляции в парной нет:</strong> обязательно проводите проветривание прямо во время процедуры — если парение долгое, то примерно в середине сеанса.</span> Пармастер на 15–20 секунд приоткрывает форточку или дверь для смены воздуха в дыхательной зоне, предотвращая гипоксию и головокружение гостя.
-              </p>
+              <div className="space-y-2.5 text-xs sm:text-sm text-stone-300 leading-relaxed">
+                <p>
+                  Критически важна постоянная <strong>приточно-вытяжная вентиляция</strong> (непрерывный приток свежего уличного кислорода под печь и вытяжка тяжелого отработанного воздуха из-под полка). Она обеспечивает легкое дыхание без разрушения парового пирога.
+                </p>
+                <div className="p-3 rounded-xl bg-stone-950/75 border border-amber-500/25 space-y-1.5">
+                  <p className="text-amber-200">
+                    <strong>Если приточно-вытяжной вентиляции в парной нет:</strong> обязательно проводите проветривание прямо во время процедуры — если парение долгое, то примерно в середине сеанса.
+                  </p>
+                  <p className="text-stone-300">
+                    Пармастер на 15–20 секунд приоткрывает форточку или дверь для смены воздуха в дыхательной зоне, предотвращая гипоксию и головокружение гостя.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Stage 3: After */}
-            <div className="rounded-2xl bg-stone-900/80 border border-stone-800 p-4 sm:p-5 space-y-2 hover:border-cyan-500/30 transition-colors">
-              <div className="flex items-center justify-between">
+            <div className="rounded-2xl bg-stone-900/80 border border-stone-800 p-4 sm:p-5 space-y-2.5 hover:border-cyan-500/30 transition-colors">
+              <div className="flex items-center justify-between gap-2">
                 <span className="font-serif font-bold text-emerald-300 text-sm sm:text-base flex items-center gap-2">
                   <span>💨</span>
                   <span>3. После процедур (Залповый сброс и просушка):</span>
@@ -120,9 +134,14 @@ export const VentilationEducationModal: React.FC<VentilationEducationModalProps>
                   После выхода гостей
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                Отработанный пар насыщен токсинами, испарениями пота и углекислым газом. Окно и дверь распахиваются настежь на 2–3 минуты для полного сброса отработанной массы. Затем окна закрывают: мощное аккумулированное тепло печи высушивает древесину полок и стен до звона, полностью предотвращая появление плесени, грибка и гниения.
-              </p>
+              <div className="space-y-2 text-xs sm:text-sm text-stone-300 leading-relaxed">
+                <p>
+                  Отработанный пар насыщен токсинами, испарениями пота и углекислым газом. Окно и дверь распахиваются настежь на 2–3 минуты для полного сброса отработанной массы.
+                </p>
+                <p>
+                  Затем окна закрывают: мощное аккумулированное тепло печи высушивает древесину полок и стен до звона, полностью предотвращая появление плесени, грибка и гниения.
+                </p>
+              </div>
             </div>
           </div>
 

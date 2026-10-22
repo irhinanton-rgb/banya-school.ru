@@ -238,8 +238,8 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Card 1: Gear */}
-          <div className="rounded-xl bg-stone-950/90 border border-stone-800 p-4 flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
+          <div className="rounded-2xl bg-stone-950/90 border border-stone-800 p-4 sm:p-5 flex flex-col justify-between space-y-3.5">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="px-2.5 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-mono font-bold">
                   01 · ЭКИПИРОВКА
@@ -249,25 +249,38 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
               <h4 className="font-serif font-bold text-sm sm:text-base text-stone-100">
                 Термобарьер и защита стоп
               </h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                <strong>Войлочная шапка (5–8 мм)</strong> бережёт голову от +85°C под потолком. <strong>Рашгард</strong> создаёт воздушный термомост от ошпаривания паром. <strong>Закрытые кроксы и шерстяные/неопреновые носки</strong> защищают ноги от холодного сквозняка по полу и скользких листьев.
-              </p>
+              <ul className="space-y-2 text-xs text-stone-300 leading-relaxed">
+                <li className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  <strong>Войлочная шапка (5–8 мм)</strong> бережёт голову от +85°C под потолком.
+                </li>
+                <li className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  <strong>Рашгард</strong> создаёт воздушный термомост от ошпаривания паром.
+                </li>
+                <li className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  <strong>Закрытые кроксы и шерстяные/неопреновые носки</strong> защищают ноги от холодного сквозняка по полу и скользких листьев.
+                </li>
+              </ul>
             </div>
-            <div className="p-2.5 rounded-lg bg-sky-950/30 border border-sky-500/30 text-[11px] text-sky-200 leading-snug">
-              💡 <strong>Табу:</strong> не прыгайте в ледяную купель во время смены (
-              <TermTooltip
-                title="«Эффект термоса» (спазм периферии)"
-                text="От ледяной воды капилляры кожи мгновенно захлопываются, и внутренний жар оказывается заперт в ядре тела. Температура внутренних органов продолжает расти, вызывая перегрузку сердца и тепловой удар."
-              >
-                «эффект термоса»
-              </TermTooltip>{' '}
-              запирает жар внутри!). Замёрзли стопы — сразу согрейте их в воде +40...+42°C.
+            <div className="p-3 rounded-xl bg-sky-950/30 border border-sky-500/30 text-[11px] sm:text-xs text-sky-200 leading-relaxed space-y-1.5">
+              <p>
+                💡 <strong>Табу:</strong> не прыгайте в ледяную купель во время смены (
+                <TermTooltip
+                  title="«Эффект термоса» (спазм периферии)"
+                  text="От ледяной воды капилляры кожи мгновенно захлопываются, и внутренний жар оказывается заперт в ядре тела. Температура внутренних органов продолжает расти, вызывая перегрузку сердца и тепловой удар."
+                >
+                  «эффект термоса»
+                </TermTooltip>{' '}
+                запирает жар внутри!).
+              </p>
+              <p>
+                Замёрзли стопы — сразу согрейте их в воде +40...+42°C.
+              </p>
             </div>
           </div>
 
           {/* Card 2: Nutrition & Electrolytes */}
-          <div className="rounded-xl bg-stone-950/90 border border-stone-800 p-4 flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
+          <div className="rounded-2xl bg-stone-950/90 border border-stone-800 p-4 sm:p-5 flex flex-col justify-between space-y-3.5">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold">
                   02 · ЭЛЕКТРОЛИТЫ И ЕДА
@@ -277,25 +290,33 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
               <h4 className="font-serif font-bold text-sm sm:text-base text-stone-100">
                 Защита от судорог и истощения
               </h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                С потом уходит до 2 л жидкости и{' '}
-                <TermTooltip
-                  title="Электролиты (калий, магний, натрий)"
-                  text="Минеральные ионы, которые проводят электрические импульсы к мышцам и сердцу. Если в жаре пить только пустую пресную воду, концентрация солей в крови падает, вызывая судороги икр и слабость."
-                >
-                  электролитов
-                </TermTooltip>{' '}
-                (калий, магний, натрий). Пресная вода лишь разжижает кровь и вызывает судороги. <strong>Изотоники — только дополнение</strong>, а 90% минералов мастер добирает из тарелки: печёный картофель, бананы, квашеная капуста и гречка.
-              </p>
+              <div className="space-y-2 text-xs text-stone-300 leading-relaxed">
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  С потом уходит до 2 л жидкости и{' '}
+                  <TermTooltip
+                    title="Электролиты (калий, магний, натрий)"
+                    text="Минеральные ионы, которые проводят электрические импульсы к мышцам и сердцу. Если в жаре пить только пустую пресную воду, концентрация солей в крови падает, вызывая судороги икр и слабость."
+                  >
+                    электролитов
+                  </TermTooltip>{' '}
+                  (калий, магний, натрий).
+                </p>
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  Пресная вода лишь разжижает кровь и вызывает судороги.
+                </p>
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  <strong>Изотоники — только дополнение</strong>, а 90% минералов мастер добирает из тарелки: печёный картофель, бананы, квашеная капуста и гречка.
+                </p>
+              </div>
             </div>
-            <div className="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-[11px] text-emerald-200 leading-snug">
+            <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-[11px] sm:text-xs text-emerald-200 leading-relaxed">
               💡 <strong>Совместимость:</strong> разделяйте молочный кальций (творог/сыр) и продукты с железом/магнием (мясо, гречка) на 2–3 часа, чтобы они не мешали усвоению друг друга.
             </div>
           </div>
 
           {/* Card 3: First Aid & Foot Hygiene */}
-          <div className="rounded-xl bg-stone-950/90 border border-stone-800 p-4 flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
+          <div className="rounded-2xl bg-stone-950/90 border border-stone-800 p-4 sm:p-5 flex flex-col justify-between space-y-3.5">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="px-2.5 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono font-bold">
                   03 · АПТЕЧКА И СТОПЫ
@@ -305,18 +326,23 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
               <h4 className="font-serif font-bold text-sm sm:text-base text-stone-100">
                 Гидрогели и паста Теймурова
               </h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                От ожогов в аптечке держите стерильные <strong>гидрогелевые повязки («ОжоговНет») и Пантенол-спрей</strong>. А для защиты стоп во влажной среде бани от грибка используйте{' '}
-                <TermTooltip
-                  title="Паста Теймурова"
-                  text="Классическое аптечное средство с борной и салициловой кислотой, оксидом цинка и маслом мяты: подсушивает кожу стоп, регулирует потоотделение и надёжно защищает от бактерий и грибка на влажной смене."
-                >
-                  пасту Теймурова
-                </TermTooltip>{' '}
-                до смены, дегтярное мыло после и дезинфекцию обуви.
-              </p>
+              <div className="space-y-2 text-xs text-stone-300 leading-relaxed">
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  От ожогов в аптечке держите стерильные <strong>гидрогелевые повязки («ОжоговНет») и Пантенол-спрей</strong>.
+                </p>
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  А для защиты стоп во влажной среде бани от грибка используйте{' '}
+                  <TermTooltip
+                    title="Паста Теймурова"
+                    text="Классическое аптечное средство с борной и салициловой кислотой, оксидом цинка и маслом мяты: подсушивает кожу стоп, регулирует потоотделение и надёжно защищает от бактерий и грибка на влажной смене."
+                  >
+                    пасту Теймурова
+                  </TermTooltip>{' '}
+                  до смены, дегтярное мыло после и дезинфекцию обуви.
+                </p>
+              </div>
             </div>
-            <div className="p-2.5 rounded-lg bg-rose-950/30 border border-rose-500/30 text-[11px] text-rose-200 leading-snug">
+            <div className="p-3 rounded-xl bg-rose-950/30 border border-rose-500/30 text-[11px] sm:text-xs text-rose-200 leading-relaxed">
               🛑 <strong>Строжайшее табу:</strong> никогда не мажьте свежий ожог маслом или жиром — масляная плёнка запирает жар внутри кожи и углубляет ожог!
             </div>
           </div>
@@ -343,25 +369,35 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
         </div>
 
         {/* Concise 2-card legal & medical boundary reminder */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-500/30 space-y-1.5">
-            <strong className="text-rose-300 font-bold text-sm flex items-center gap-1.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+          <div className="p-4 sm:p-5 rounded-2xl bg-rose-950/20 border border-rose-500/30 space-y-2.5">
+            <strong className="text-rose-300 font-bold text-sm sm:text-base flex items-center gap-1.5">
               <Ban className="w-4 h-4 text-rose-400 shrink-0" />
               <span>Закон: Табу на таблетки и диагнозы</span>
             </strong>
-            <p className="text-stone-300 leading-relaxed">
-              Пармастер — не врач. <strong>Категорически запрещено давать гостям любые лекарства</strong> (даже «таблетку от давления или сердца»). Разрешена только доврачебная помощь: вывести в прохладу, уложить горизонтально, <strong>приподнять ноги выше головы</strong>, дать свежий воздух и вызвать <strong>112</strong>.
-            </p>
+            <div className="space-y-2 text-stone-300 leading-relaxed">
+              <p>
+                Пармастер — не врач. <strong>Категорически запрещено давать гостям любые лекарства</strong> (даже «таблетку от давления или сердца»).
+              </p>
+              <p className="p-3 rounded-xl bg-stone-950/70 border border-rose-500/20">
+                Разрешена только доврачебная помощь: вывести в прохладу, уложить горизонтально, <strong>приподнять ноги выше головы</strong>, дать свежий воздух и вызвать <strong>112</strong>.
+              </p>
+            </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-500/30 space-y-1.5">
-            <strong className="text-amber-300 font-bold text-sm flex items-center gap-1.5">
+          <div className="p-4 sm:p-5 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-2.5">
+            <strong className="text-amber-300 font-bold text-sm sm:text-base flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
               <span>Красные флаги при входном опросе</span>
             </strong>
-            <p className="text-stone-300 leading-relaxed">
-              <strong>Вход строго запрещён (🔴):</strong> температура тела выше 37°C (простуда/лихорадка), алкоголь, гипертонический криз, недавний инфаркт/инсульт. <strong>Щадящий режим (🟡):</strong> варикоз (не парить ноги вениками!), беременность, возраст 60+ или стентирование в ремиссии — только мягкий прогрев 50–55°C без ледяной купели.
-            </p>
+            <div className="space-y-2 text-stone-300 leading-relaxed">
+              <p className="p-2.5 rounded-xl bg-rose-950/35 border border-rose-500/30">
+                <strong>Вход строго запрещён (🔴):</strong> температура тела выше 37°C (простуда/лихорадка), алкоголь, гипертонический криз, недавний инфаркт/инсульт.
+              </p>
+              <p className="p-2.5 rounded-xl bg-amber-950/35 border border-amber-500/30">
+                <strong>Щадящий режим (🟡):</strong> варикоз (не парить ноги вениками!), беременность, возраст 60+ или стентирование в ремиссии — только мягкий прогрев 50–55°C без ледяной купели.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -643,8 +679,13 @@ export const GuestTriageSimulator: React.FC<GuestTriageSimulatorProps> = ({
         </div>
 
         {/* Short rule on space prep */}
-        <div className="p-3.5 rounded-xl bg-stone-950/90 border border-stone-800 text-xs text-stone-300 leading-relaxed">
-          <strong className="text-amber-300">Закон сохранения сил:</strong> в горячем пару энергия сгорает в 3–4 раза быстрее. До захода гостя выставьте черпак (ручка 50–70 см), запарники, веники и холодную пихту на расстоянии вытянутой руки по сценарию программы, а опавшие листья сразу смывайте в трап, чтобы не поскользнуться.
+        <div className="p-4 sm:p-5 rounded-2xl bg-stone-950/90 border border-stone-800 text-xs sm:text-sm text-stone-300 leading-relaxed space-y-2">
+          <p>
+            <strong className="text-amber-300">Закон сохранения сил:</strong> в горячем пару энергия сгорает в 3–4 раза быстрее.
+          </p>
+          <p>
+            До захода гостя выставьте черпак (ручка 50–70 см), запарники, веники и холодную пихту на расстоянии вытянутой руки по сценарию программы, а опавшие листья сразу смывайте в трап, чтобы не поскользнуться.
+          </p>
         </div>
 
         {/* Sliders */}

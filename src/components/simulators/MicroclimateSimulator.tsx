@@ -154,7 +154,7 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
         </div>
 
         {/* ШАГ 1 */}
-        <div className="space-y-3 pb-6 border-b border-stone-800/80">
+        <div className="space-y-4 pb-7 border-b border-stone-800/80">
           <div className="flex items-center justify-between gap-2">
             <h4 className="font-serif text-lg sm:text-xl font-bold text-amber-300">
               1. Церемония первого пара и правило сухой кожи
@@ -166,23 +166,49 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
             )}
           </div>
 
-          <div className="space-y-2.5 text-sm sm:text-base text-stone-200 leading-relaxed">
-            <p>
-              <strong>Мягкий бесконтактный старт (+45...+55 °C, до 60 °C):</strong> Баня начинается не с хлестания вениками и не с экстремального жара. Первый заход длится 10–12 минут в режиме <strong>бесконтактного прогрева</strong> (плавное опахивание вениками на высоте 20–30 см над телом без касания кожи). Если сразу дать 90 °C на неразогретое тело — сосуды сожмутся в защитный спазм («броню»), пульс участится, а уровень гормона стресса кортизола взлетит вверх. Мягкое же тепло стимулирует выработку природного сосудорасширителя — оксида азота (NO), снижает уровень кортизола до 40% и плавно пробуждает капиллярную сеть.
-            </p>
-            <p>
-              <strong>Гигиенический душ ДО парной — и вход СТРОГО сухим:</strong> Перед первым заходом гость принимает тёплый душ, чтобы смыть пыль и кожные выделения, но <u>обязательно насухо вытирается полотенцем</u>. Если войти в парную мокрым, капли прохладной воды на коже станут центрами мгновенной конденсации горячего пара (сработает <strong>эффект «точки росы»</strong>): пар мгновенно сконденсируется с выделением скрытой теплоты, ошпаривая верхний слой кожи (эпидермис) резким жжением и вызывая спазм капилляров вместо плавного раскрытия пор.
-            </p>
-            <p>
-              <strong>Тёплый душ ПОСЛЕ первого пара (табу на ледяную купель):</strong> После первого прогрева капилляры только приоткрылись, а потовые железы начали первичный вывод солей и токсинов. Окунаться в ледяную купель или нырять в прорубь после первого захода <u>строго запрещено</u>: резкий холод вызовет мгновенный спазм сосудов, запечатает первичный пот в устьях пор и создаст опасную перегрузку для сердца. Поэтому после первого пара — исключительно комфортный тёплый душ (+36...+38 °C), смывающий первичный пот, сухой халат и 15–20 минут спокойного отдыха с травяным чаем.
-            </p>
+          <div className="grid grid-cols-1 gap-3.5 text-sm sm:text-base text-stone-200 leading-relaxed">
+            <div className="rounded-2xl bg-stone-950/75 border border-stone-800/90 p-4 sm:p-5 space-y-2">
+              <strong className="block text-amber-200 font-bold text-base">
+                Мягкий бесконтактный старт (+45...+55 °C, до 60 °C):
+              </strong>
+              <p className="text-stone-300">
+                Баня начинается не с хлестания вениками и не с экстремального жара. Первый заход длится 10–12 минут в режиме <strong>бесконтактного прогрева</strong> (плавное опахивание вениками на высоте 20–30 см над телом без касания кожи).
+              </p>
+              <p className="text-stone-300">
+                Если сразу дать 90 °C на неразогретое тело — сосуды сожмутся в защитный спазм («броню»), пульс участится, а уровень гормона стресса кортизола взлетит вверх. Мягкое же тепло стимулирует выработку природного сосудорасширителя — оксида азота (NO), снижает уровень кортизола до 40% и плавно пробуждает капиллярную сеть.
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-stone-950/75 border border-stone-800/90 p-4 sm:p-5 space-y-2">
+              <strong className="block text-amber-200 font-bold text-base">
+                Гигиенический душ ДО парной — и вход СТРОГО сухим:
+              </strong>
+              <p className="text-stone-300">
+                Перед первым заходом гость принимает тёплый душ, чтобы смыть пыль и кожные выделения, но <u>обязательно насухо вытирается полотенцем</u>.
+              </p>
+              <p className="text-stone-300">
+                Если войти в парную мокрым, капли прохладной воды на коже станут центрами мгновенной конденсации горячего пара (сработает <strong>эффект «точки росы»</strong>): пар мгновенно сконденсируется с выделением скрытой теплоты, ошпаривая верхний слой кожи (эпидермис) резким жжением и вызывая спазм капилляров вместо плавного раскрытия пор.
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-stone-950/75 border border-stone-800/90 p-4 sm:p-5 space-y-2">
+              <strong className="block text-amber-200 font-bold text-base">
+                Тёплый душ ПОСЛЕ первого пара (табу на ледяную купель):
+              </strong>
+              <p className="text-stone-300">
+                После первого прогрева капилляры только приоткрылись, а потовые железы начали первичный вывод солей и токсинов. Окунаться в ледяную купель или нырять в прорубь после первого захода <u>строго запрещено</u>: резкий холод вызовет мгновенный спазм сосудов, запечатает первичный пот в устьях пор и создаст опасную перегрузку для сердца.
+              </p>
+              <p className="text-stone-300">
+                Поэтому после первого пара — исключительно комфортный тёплый душ (+36...+38 °C), смывающий первичный пот, сухой халат и 15–20 минут спокойного отдыха с травяным чаем.
+              </p>
+            </div>
           </div>
 
           <div className="pt-1">
             <button
               type="button"
               onClick={() => handleToggleStep(1)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 readSteps.includes(1)
                   ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/40'
                   : 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md'
@@ -195,7 +221,7 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
         </div>
 
         {/* ШАГ 2 */}
-        <div className="space-y-3 pb-6 border-b border-stone-800/80">
+        <div className="space-y-4 pb-7 border-b border-stone-800/80">
           <div className="flex items-center justify-between gap-2">
             <h4 className="font-serif text-lg sm:text-xl font-bold text-cyan-300">
               2. Дыхание парной: почему болит голова и как проветривать
@@ -207,20 +233,44 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
             )}
           </div>
 
-          <div className="space-y-2.5 text-sm sm:text-base text-stone-200 leading-relaxed">
-            <p>
-              <strong>Главный враг в парной — не температура, а гипоксия:</strong> Когда у гостя на 8-й минуте появляется тяжесть в затылке, вялость или пульсация в висках — причина почти всегда в нехватке кислорода (O₂) и скоплении углекислого газа (CO₂).
-            </p>
-            <p>
-              <strong>Три момента залпового проветривания:</strong> Парная должна дышать. Окно и дверь открывают настежь на 1–2 минуты: <strong>1) ДО захода гостя</strong> (впустить свежий воздух 21% O₂), <strong>2) ВО ВРЕМЯ долгого парения</strong> (если нет постоянной приточно-вытяжной вентиляции — пустить свежую струю воздуха в середине сеанса) и <strong>3) ПОСЛЕ выхода гостей</strong> (сбросить тяжёлый отработанный пар и высушить дерево).
-            </p>
+          <div className="space-y-3.5 text-sm sm:text-base text-stone-200 leading-relaxed">
+            <div className="rounded-2xl bg-stone-950/75 border border-cyan-500/30 p-4 sm:p-5 space-y-1.5">
+              <strong className="block text-cyan-200 font-bold text-base">
+                Главный враг в парной — не температура, а гипоксия:
+              </strong>
+              <p className="text-stone-300">
+                Когда у гостя на 8-й минуте появляется тяжесть в затылке, вялость или пульсация в висках — причина почти всегда в нехватке кислорода (O₂) и скоплении углекислого газа (CO₂).
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-stone-950/75 border border-stone-800/90 p-4 sm:p-5 space-y-3">
+              <div>
+                <strong className="block text-cyan-200 font-bold text-base mb-1">
+                  Три момента залпового проветривания:
+                </strong>
+                <p className="text-stone-300">
+                  Парная должна дышать. Окно и дверь открывают настежь на 1–2 минуты:
+                </p>
+              </div>
+              <ul className="space-y-2">
+                <li className="p-3.5 rounded-xl bg-stone-900/90 border border-stone-800/80 text-stone-200 leading-relaxed">
+                  <strong className="text-amber-300">1) ДО захода гостя</strong> (впустить свежий воздух 21% O₂),
+                </li>
+                <li className="p-3.5 rounded-xl bg-stone-900/90 border border-stone-800/80 text-stone-200 leading-relaxed">
+                  <strong className="text-cyan-300">2) ВО ВРЕМЯ долгого парения</strong> (если нет постоянной приточно-вытяжной вентиляции — пустить свежую струю воздуха в середине сеанса) и
+                </li>
+                <li className="p-3.5 rounded-xl bg-stone-900/90 border border-stone-800/80 text-stone-200 leading-relaxed">
+                  <strong className="text-emerald-300">3) ПОСЛЕ выхода гостей</strong> (сбросить тяжёлый отработанный пар и высушить дерево).
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div className="pt-1">
             <button
               type="button"
               onClick={() => handleToggleStep(2)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 readSteps.includes(2)
                   ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/40'
                   : 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md'
@@ -233,7 +283,7 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
         </div>
 
         {/* ШАГ 3 */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between gap-2">
             <h4 className="font-serif text-lg sm:text-xl font-bold text-emerald-300">
               3. Сердце бани: закрытая каменка и секрет «лёгкого пара»
@@ -245,20 +295,37 @@ export const MicroclimateSimulator: React.FC<MicroclimateSimulatorProps> = ({
             )}
           </div>
 
-          <div className="space-y-2.5 text-sm sm:text-base text-stone-200 leading-relaxed">
-            <p>
-              <strong>Как получить «лёгкий» мелкодисперсный пар:</strong> Если плеснуть полный ковш холодной воды на открытые камни (200°C), получится тяжёлый, сырой и обжигающий туман. Настоящий «лёгкий пар» рождается внутри <strong>закрытой каменки</strong>, где камни раскалены до <strong>400–550°C</strong>. Воду подают <u>горячей и малыми порциями по 100–200 мл</u> с небольшими паузами — тогда вода взрывается в мельчайший невидимый пар, которым легко дышать.
-            </p>
-            <p>
-              <strong>Каменный саркофаг и покой конвекции:</strong> Облицовка печи натуральным камнем (талькомагнезит, нефрит, кирпич) преобразует жёсткое излучение раскалённого металла в мягкое глубокое тепло. А перед парением вениками конвекционные заслонки печи обязательно закрывают, чтобы восходящий поток не сдувал и не размывал «паровой пирог» под потолком.
-            </p>
+          <div className="grid grid-cols-1 gap-3.5 text-sm sm:text-base text-stone-200 leading-relaxed">
+            <div className="rounded-2xl bg-stone-950/75 border border-stone-800/90 p-4 sm:p-5 space-y-2">
+              <strong className="block text-emerald-200 font-bold text-base">
+                Как получить «лёгкий» мелкодисперсный пар:
+              </strong>
+              <p className="text-stone-300">
+                Если плеснуть полный ковш холодной воды на открытые камни (200°C), получится тяжёлый, сырой и обжигающий туман.
+              </p>
+              <p className="text-stone-300">
+                Настоящий «лёгкий пар» рождается внутри <strong>закрытой каменки</strong>, где камни раскалены до <strong>400–550°C</strong>. Воду подают <u>горячей и малыми порциями по 100–200 мл</u> с небольшими паузами — тогда вода взрывается в мельчайший невидимый пар, которым легко дышать.
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-stone-950/75 border border-stone-800/90 p-4 sm:p-5 space-y-2">
+              <strong className="block text-emerald-200 font-bold text-base">
+                Каменный саркофаг и покой конвекции:
+              </strong>
+              <p className="text-stone-300">
+                Облицовка печи натуральным камнем (талькомагнезит, нефрит, кирпич) преобразует жёсткое излучение раскалённого металла в мягкое глубокое тепло.
+              </p>
+              <p className="text-stone-300">
+                А перед парением вениками конвекционные заслонки печи обязательно закрывают, чтобы восходящий поток не сдувал и не размывал «паровой пирог» под потолком.
+              </p>
+            </div>
           </div>
 
           <div className="pt-1">
             <button
               type="button"
               onClick={() => handleToggleStep(3)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 readSteps.includes(3)
                   ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/40'
                   : 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md'

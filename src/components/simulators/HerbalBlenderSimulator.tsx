@@ -268,8 +268,8 @@ export const HerbalBlenderSimulator: React.FC<HerbalBlenderSimulatorProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Card 1: 0.2 sec brain reaction */}
-          <div className="rounded-xl bg-stone-950/90 border border-stone-800 p-4 flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
+          <div className="rounded-2xl bg-stone-950/90 border border-stone-800 p-4 sm:p-5 flex flex-col justify-between space-y-3.5">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold">
                   01 · ОТКЛИК ЗА 0.2 СЕК
@@ -279,32 +279,37 @@ export const HerbalBlenderSimulator: React.FC<HerbalBlenderSimulatorProps> = ({
               <h4 className="font-serif font-bold text-sm sm:text-base text-stone-100">
                 Прямой путь в лимбическую систему
               </h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Природные{' '}
-                <TermTooltip
-                  title="Фитонциды растений"
-                  text="Летучие биологически активные вещества, выделяемые хвоей и травами. В тёплом влажном пару они работают как природный ингалятор: уничтожают бактерии в воздухе и мягко расширяют бронхи."
-                >
-                  фитонциды
-                </TermTooltip>{' '}
-                уничтожают до 90% бактерий в воздухе. Через обонятельные рецепторы молекулы эфирных масел попадают в{' '}
-                <TermTooltip
-                  title="Лимбическая система мозга"
-                  text="Древний центр мозга, управляющий эмоциями, пульсом, дыханием и сном. Обоняние — единственное чувство, сигналы которого попадают сюда напрямую без задержки за 0.2 секунды."
-                >
-                  лимбический центр мозга
-                </TermTooltip>{' '}
-                всего за <strong>0.2 секунды — быстрее болевого импульса</strong>, сразу регулируя пульс и настроение.
-              </p>
+              <div className="space-y-2 text-xs text-stone-300 leading-relaxed">
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  Природные{' '}
+                  <TermTooltip
+                    title="Фитонциды растений"
+                    text="Летучие биологически активные вещества, выделяемые хвоей и травами. В тёплом влажном пару они работают как природный ингалятор: уничтожают бактерии в воздухе и мягко расширяют бронхи."
+                  >
+                    фитонциды
+                  </TermTooltip>{' '}
+                  уничтожают до 90% бактерий в воздухе.
+                </p>
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  Через обонятельные рецепторы молекулы эфирных масел попадают в{' '}
+                  <TermTooltip
+                    title="Лимбическая система мозга"
+                    text="Древний центр мозга, управляющий эмоциями, пульсом, дыханием и сном. Обоняние — единственное чувство, сигналы которого попадают сюда напрямую без задержки за 0.2 секунды."
+                  >
+                    лимбический центр мозга
+                  </TermTooltip>{' '}
+                  всего за <strong>0.2 секунды — быстрее болевого импульса</strong>, сразу регулируя пульс и настроение.
+                </p>
+              </div>
             </div>
-            <div className="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-[11px] text-emerald-200 leading-snug">
+            <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-[11px] sm:text-xs text-emerald-200 leading-relaxed">
               💡 <strong>Согласование:</strong> всегда дайте гостю вдохнуть аромат до захода. Если запах неприятен — пользы не будет.
             </div>
           </div>
 
           {/* Card 2: 5 methods without burning */}
-          <div className="rounded-xl bg-stone-950/90 border border-stone-800 p-4 flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
+          <div className="rounded-2xl bg-stone-950/90 border border-stone-800 p-4 sm:p-5 flex flex-col justify-between space-y-3.5">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="px-2.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold">
                   02 · 5 МЕТОДОВ БЕЗ ГАРИ
@@ -314,18 +319,30 @@ export const HerbalBlenderSimulator: React.FC<HerbalBlenderSimulatorProps> = ({
               <h4 className="font-serif font-bold text-sm sm:text-base text-stone-100">
                 Табу на полив раскалённых камней
               </h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                Эфирные масла горят при <strong>t &gt; 80°C</strong>. Лить масла и отвары на камни (350–450°C) нельзя — они превращаются в канцерогенный угар! <strong>5 чистых методов:</strong> 1) на тёплые деревянные стены, 2) веник со льдом под лицо («второе дыхание»), 3) вплетение в веник, 4) снопы под потолком, 5) прогрев пучка над паром каменки.
-              </p>
+              <div className="space-y-2 text-xs text-stone-300 leading-relaxed">
+                <p className="p-2.5 rounded-lg bg-rose-950/25 border border-rose-500/25">
+                  Эфирные масла горят при <strong>t &gt; 80°C</strong>. Лить масла и отвары на камни (350–450°C) нельзя — они превращаются в канцерогенный угар!
+                </p>
+                <div className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80 space-y-1.5">
+                  <strong className="text-amber-300 block">5 чистых методов:</strong>
+                  <ul className="space-y-1 text-stone-300">
+                    <li>1) на тёплые деревянные стены,</li>
+                    <li>2) веник со льдом под лицо («второе дыхание»),</li>
+                    <li>3) вплетение в веник,</li>
+                    <li>4) снопы под потолком,</li>
+                    <li>5) прогрев пучка над паром каменки.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
-            <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-500/30 text-[11px] text-amber-200 leading-snug">
+            <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-[11px] sm:text-xs text-amber-200 leading-relaxed">
               ⚠️ <strong>Осторожно у печи:</strong> прогревая пучок трав над струёй пара, стойте сбоку и работайте в плотных рукавицах (40–50 см от устья).
             </div>
           </div>
 
           {/* Card 3: Biorhythms & Contraindications */}
-          <div className="rounded-xl bg-stone-950/90 border border-stone-800 p-4 flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
+          <div className="rounded-2xl bg-stone-950/90 border border-stone-800 p-4 sm:p-5 flex flex-col justify-between space-y-3.5">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="px-2.5 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-mono font-bold">
                   03 · БИОРИТМЫ И ВОЗДУХ
@@ -335,19 +352,32 @@ export const HerbalBlenderSimulator: React.FC<HerbalBlenderSimulatorProps> = ({
               <h4 className="font-serif font-bold text-sm sm:text-base text-stone-100">
                 Утро — тонус, вечер — покой
               </h4>
-              <p className="text-xs text-stone-300 leading-relaxed">
-                <strong>Утром и днём</strong> выбирайте тонизирующие травы (хвоя пихты, эвкалипт, можжевельник, полынь). <strong>Вечером</strong> — мягкие седативные травы для глубокого сна (донник, таволга, ромашка, чабрец). Не смешивайте более 2–3 трав за один заход.
-              </p>
+              <div className="space-y-2 text-xs text-stone-300 leading-relaxed">
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  <strong>Утром и днём</strong> выбирайте тонизирующие травы (хвоя пихты, эвкалипт, можжевельник, полынь).
+                </p>
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  <strong>Вечером</strong> — мягкие седативные травы для глубокого сна (донник, таволга, ромашка, чабрец).
+                </p>
+                <p className="p-2.5 rounded-lg bg-stone-900/80 border border-stone-800/80">
+                  Не смешивайте более 2–3 трав за один заход.
+                </p>
+              </div>
             </div>
-            <div className="p-2.5 rounded-lg bg-rose-950/30 border border-rose-500/30 text-[11px] text-rose-200 leading-snug">
-              🛑 <strong>Важно:</strong> между заходами обязательно{' '}
-              <TermTooltip
-                title="Залповое проветривание"
-                text="Открытие окна и двери парной на 1–2 минуты между заходами: поток свежего воздуха полностью вытесняет углекислый газ (CO₂) и старый запах, при этом массивные стены печи и полка не успевают остыть."
-              >
-                залповое проветривание
-              </TermTooltip>
-              . Беременным строго противопоказаны <strong>душица (орегано) и пижма</strong>!
+            <div className="p-3 rounded-xl bg-rose-950/30 border border-rose-500/30 text-[11px] sm:text-xs text-rose-200 leading-relaxed space-y-1.5">
+              <p>
+                🛑 <strong>Важно:</strong> между заходами обязательно{' '}
+                <TermTooltip
+                  title="Залповое проветривание"
+                  text="Открытие окна и двери парной на 1–2 минуты между заходами: поток свежего воздуха полностью вытесняет углекислый газ (CO₂) и старый запах, при этом массивные стены печи и полка не успевают остыть."
+                >
+                  залповое проветривание
+                </TermTooltip>
+                .
+              </p>
+              <p>
+                Беременным строго противопоказаны <strong>душица (орегано) и пижма</strong>!
+              </p>
             </div>
           </div>
         </div>
@@ -561,11 +591,16 @@ export const HerbalBlenderSimulator: React.FC<HerbalBlenderSimulatorProps> = ({
                 )}
               </div>
 
-              <p className="text-xs text-stone-300 leading-relaxed">
-                <strong className="text-emerald-300">Физиология: </strong>
-                {quest.resultEffect} {quest.scientificProof}
-              </p>
-              <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-500/30 text-xs text-amber-200">
+              <div className="p-3.5 rounded-xl bg-stone-900/90 border border-stone-800 text-xs sm:text-sm text-stone-300 leading-relaxed space-y-1.5">
+                <p>
+                  <strong className="text-emerald-300">Физиология: </strong>
+                  {quest.resultEffect}
+                </p>
+                <p className="text-stone-400">
+                  {quest.scientificProof}
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-xs sm:text-sm text-amber-200 leading-relaxed">
                 💡 <strong>Совет мастера:</strong> {quest.proTip}
               </div>
             </div>

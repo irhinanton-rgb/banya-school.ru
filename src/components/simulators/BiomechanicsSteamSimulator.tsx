@@ -350,31 +350,31 @@ const SectionVideotheque: React.FC<SectionVideothequeProps> = ({
               </span>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <h4 className="font-serif text-xl sm:text-2xl font-bold text-stone-100">
                 {selectedLesson.title}
               </h4>
-              <p className="text-xs sm:text-sm text-stone-300 mt-1.5 leading-relaxed">
+              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
                 {selectedLesson.description}
               </p>
             </div>
 
-            <div className="space-y-3 pt-1 text-xs">
-              <div className="p-3 rounded-xl bg-amber-950/25 border border-amber-800/40 space-y-1">
+            <div className="space-y-3 pt-1 text-xs sm:text-sm">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-amber-950/25 border border-amber-800/40 space-y-1.5">
                 <strong className="text-amber-300 block font-semibold">
                   🎯 Главная цель:
                 </strong>
                 <p className="text-amber-100/90 leading-relaxed">{selectedLesson.purpose}</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-stone-900 border border-stone-800/80 space-y-1">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-stone-900 border border-stone-800/80 space-y-1.5">
                 <strong className="text-stone-200 block font-semibold">
                   👐 Как выполнять:
                 </strong>
                 <p className="text-stone-300 leading-relaxed">{selectedLesson.execution}</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-rose-950/25 border border-rose-800/40 space-y-1">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-rose-950/25 border border-rose-800/40 space-y-1.5">
                 <strong className="text-rose-300 block font-semibold flex items-center gap-1.5">
                   <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
                   <span>Частая ошибка:</span>
@@ -583,20 +583,20 @@ export const BiomechanicsSteamSimulator: React.FC<BiomechanicsSteamSimulatorProp
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs sm:text-sm text-stone-200 leading-relaxed">
-          <div className="p-4 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
-            <strong className="text-amber-300 block font-serif text-base">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs sm:text-sm text-stone-200 leading-relaxed">
+          <div className="p-5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-2">
+            <strong className="text-amber-300 block font-serif text-base pb-1 border-b border-stone-800/80">
               1. Ритмика и бархатный звук
             </strong>
-            <p className="text-stone-300">
+            <p className="text-stone-300 leading-relaxed">
               Веники работают без пауз в ритме спокойного сердца (60–75 уд/мин) и ложатся всей плоскостью кроны — без хлестких ударов прутьями.
             </p>
           </div>
-          <div className="p-4 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
-            <strong className="text-emerald-300 block font-serif text-base">
+          <div className="p-5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-2">
+            <strong className="text-emerald-300 block font-serif text-base pb-1 border-b border-stone-800/80">
               2. Точечный захват пара
             </strong>
-            <p className="text-stone-300">
+            <p className="text-stone-300 leading-relaxed">
               Пар забирают из{' '}
               <TermTooltip
                 title="Паровой пирог (+75...+85 °C)"
@@ -607,11 +607,11 @@ export const BiomechanicsSteamSimulator: React.FC<BiomechanicsSteamSimulatorProp
               сложенными «лодочкой» вениками и опускают строго от стоп вверх.
             </p>
           </div>
-          <div className="p-4 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
-            <strong className="text-sky-300 block font-serif text-base">
+          <div className="p-5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-2">
+            <strong className="text-sky-300 block font-serif text-base pb-1 border-b border-stone-800/80">
               3. Удержание тепла на теле
             </strong>
-            <p className="text-stone-300">
+            <p className="text-stone-300 leading-relaxed">
               Смена веников внахлёст (
               <TermTooltip
                 title="«Двойной замок» (перехлёст веников)"

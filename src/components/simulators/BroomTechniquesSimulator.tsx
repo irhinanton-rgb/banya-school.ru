@@ -301,29 +301,39 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
           </p>
         </div>
 
-        <div className="space-y-5 text-sm sm:text-base text-stone-200 leading-relaxed">
-          <div className="space-y-1.5">
+        <div className="space-y-4 text-sm sm:text-base text-stone-200 leading-relaxed">
+          <div className="rounded-2xl bg-stone-950/80 border border-stone-800/90 p-4 sm:p-5 space-y-2.5">
             <h4 className="font-serif text-base sm:text-lg font-bold text-amber-300">
               1. Точка старта — всегда со стоп (снизу вверх)
             </h4>
-            <p className="text-stone-300">
-              Контактное парение всегда начинается <strong>со стоп гостя</strong>, а не со спины или шеи. Стопы — нижняя поворотная точка большого круга кровообращения. Прогревая стопы и икры первыми, вы мягко раскрываете{' '}
-              <TermTooltip termKey="periphery">периферические сосуды</TermTooltip>, запускаете{' '}
-              <TermTooltip termKey="lymph">лимфоток</TermTooltip> и защищаете голову гостя от резкого прилива крови и пульсации в висках.
-            </p>
+            <div className="space-y-2 text-stone-300">
+              <p>
+                Контактное парение всегда начинается <strong>со стоп гостя</strong>, а не со спины или шеи. Стопы — нижняя поворотная точка большого круга кровообращения.
+              </p>
+              <p>
+                Прогревая стопы и икры первыми, вы мягко раскрываете{' '}
+                <TermTooltip termKey="periphery">периферические сосуды</TermTooltip>, запускаете{' '}
+                <TermTooltip termKey="lymph">лимфоток</TermTooltip> и защищаете голову гостя от резкого прилива крови и пульсации в висках.
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-1.5 pt-4 border-t border-stone-800/80">
+          <div className="rounded-2xl bg-stone-950/80 border border-stone-800/90 p-4 sm:p-5 space-y-2.5">
             <h4 className="font-serif text-base sm:text-lg font-bold text-amber-300">
               2. Хват веника: «Как живую птицу — не задушить и не выпустить»
             </h4>
-            <p className="text-stone-300">
-              Если вцепиться в ручку веника «мёртвой хваткой», мышцы предплечий пережмут сосуды и устанут уже через 5 минут. Держите рукоять расслабленной кистью: пальцы и запястье свободно пружинят, а само движение рождается от переката стоп и мягких коленей — это и есть{' '}
-              <TermTooltip termKey="taichi">принцип «Банного тай-чи»</TermTooltip>.
-            </p>
+            <div className="space-y-2 text-stone-300">
+              <p>
+                Если вцепиться в ручку веника «мёртвой хваткой», мышцы предплечий пережмут сосуды и устанут уже через 5 минут.
+              </p>
+              <p>
+                Держите рукоять расслабленной кистью: пальцы и запястье свободно пружинят, а само движение рождается от переката стоп и мягких коленей — это и есть{' '}
+                <TermTooltip termKey="taichi">принцип «Банного тай-чи»</TermTooltip>.
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-1.5 pt-4 border-t border-stone-800/80">
+          <div className="rounded-2xl bg-stone-950/80 border border-stone-800/90 p-4 sm:p-5 space-y-3">
             <h4 className="font-serif text-base sm:text-lg font-bold text-emerald-300">
               3. Алгоритм запарки веника (никакого крутого кипятка!)
             </h4>
@@ -331,11 +341,17 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
               Крутой кипяток (100 °C) разрушает{' '}
               <TermTooltip termKey="tannins">дубильные вещества</TermTooltip> и буквально «варит» лист, превращая веник в тяжёлую скользкую тряпку. Правильная подготовка состоит из 3 шагов:
             </p>
-            <p className="text-stone-300 pl-3 border-l-2 border-emerald-500/40">
-              <strong>Шаг А:</strong> Ополосните веник в тёплой или прохладной воде — смойте пыль и оставьте капли влаги на листве.<br />
-              <strong>Шаг Б:</strong> Поставьте веник <u>ручками в воду</u>, а крону укройте пакетом или влажным полотенцем — капилляры веток напитают древесину изнутри, сделав прутья гибкими.<br />
-              <strong>Шаг В:</strong> Молодой свежий веник дойдёт до кондиции сам в тепле парной, а сухой прошлогодний веник перед работой прогрейте 1–2 минуты в паре над каменкой (берегите руки от ожога!).
-            </p>
+            <ul className="space-y-2 text-stone-300 pl-3 border-l-2 border-emerald-500/40">
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3">
+                <strong className="text-emerald-300">Шаг А:</strong> Ополосните веник в тёплой или прохладной воде — смойте пыль и оставьте капли влаги на листве.
+              </li>
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3">
+                <strong className="text-emerald-300">Шаг Б:</strong> Поставьте веник <u>ручками в воду</u>, а крону укройте пакетом или влажным полотенцем — капилляры веток напитают древесину изнутри, сделав прутья гибкими.
+              </li>
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3">
+                <strong className="text-emerald-300">Шаг В:</strong> Молодой свежий веник дойдёт до кондиции сам в тепле парной, а сухой прошлогодний веник перед работой прогрейте 1–2 минуты в паре над каменкой (берегите руки от ожога!).
+              </li>
+            </ul>
           </div>
         </div>
       </div>
@@ -603,29 +619,29 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
               </div>
 
               <div className="space-y-3 pt-1 text-xs sm:text-sm">
-                <div className="p-3 rounded-xl bg-amber-950/25 border border-amber-800/40 space-y-1">
-                  <strong className="text-amber-300 block font-semibold text-xs">
+                <div className="p-3.5 sm:p-4 rounded-xl bg-amber-950/25 border border-amber-800/40 space-y-1.5">
+                  <strong className="text-amber-300 block font-semibold text-xs sm:text-sm">
                     🎯 Зачем нужен:
                   </strong>
-                  <p className="text-amber-100/90 leading-relaxed text-xs">
+                  <p className="text-amber-100/90 leading-relaxed text-xs sm:text-sm">
                     {selectedTech.purpose}
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-stone-900 border border-stone-800/80 space-y-1">
-                  <strong className="text-stone-200 block font-semibold text-xs">
+                <div className="p-3.5 sm:p-4 rounded-xl bg-stone-900 border border-stone-800/80 space-y-1.5">
+                  <strong className="text-stone-200 block font-semibold text-xs sm:text-sm">
                     👐 Как выполнять:
                   </strong>
-                  <p className="text-stone-300 leading-relaxed text-xs">
+                  <p className="text-stone-300 leading-relaxed text-xs sm:text-sm">
                     {selectedTech.execution}
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-emerald-950/25 border border-emerald-800/40 space-y-1">
-                  <strong className="text-emerald-300 block font-semibold text-xs">
+                <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-950/25 border border-emerald-800/40 space-y-1.5">
+                  <strong className="text-emerald-300 block font-semibold text-xs sm:text-sm">
                     ✨ Что чувствует гость:
                   </strong>
-                  <p className="text-emerald-100/90 leading-relaxed italic text-xs">
+                  <p className="text-emerald-100/90 leading-relaxed italic text-xs sm:text-sm">
                     {selectedTech.guestSensations}
                   </p>
                 </div>
@@ -686,36 +702,52 @@ export const BroomTechniquesSimulator: React.FC<BroomTechniquesSimulatorProps> =
         </div>
 
         <div className="space-y-4 text-sm sm:text-base text-stone-200 leading-relaxed">
-          <div className="space-y-1">
+          <div className="rounded-2xl bg-stone-950/80 border border-stone-800/90 p-4 sm:p-5 space-y-3">
             <h4 className="font-serif text-base sm:text-lg font-bold text-emerald-300">
               1. Защита Гостя (Близкого человека)
             </h4>
-            <p className="text-stone-300">
-              • <strong>Никакого алкоголя и температуры тела &gt;37 °C:</strong> алкоголь расширяет сосуды, а жар сгущает кровь — это прямой риск скачка давления и аритмии.<br />
-              • <strong>На голове — СУХАЯ шапка:</strong> сухая шерсть или войлок работают как термос. Мокрая шапка в парной быстро нагревается и превращается в горячий компресс.<br />
-              • <strong>Подъём через паузу (защита от <TermTooltip termKey="orthostatic">ортостатического спазма</TermTooltip>):</strong> после парения дайте человеку спокойно полежать 1–2 минуты, затем плавно сесть и только потом вставать.
-            </p>
+            <ul className="space-y-2.5 text-stone-300">
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3.5">
+                • <strong>Никакого алкоголя и температуры тела &gt;37 °C:</strong> алкоголь расширяет сосуды, а жар сгущает кровь — это прямой риск скачка давления и аритмии.
+              </li>
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3.5">
+                • <strong>На голове — СУХАЯ шапка:</strong> сухая шерсть или войлок работают как термос. Мокрая шапка в парной быстро нагревается и превращается в горячий компресс.
+              </li>
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3.5">
+                • <strong>Подъём через паузу (защита от <TermTooltip termKey="orthostatic">ортостатического спазма</TermTooltip>):</strong> после парения дайте человеку спокойно полежать 1–2 минуты, затем плавно сесть и только потом вставать.
+              </li>
+            </ul>
           </div>
 
-          <div className="space-y-1 pt-4 border-t border-stone-800/80">
+          <div className="rounded-2xl bg-stone-950/80 border border-stone-800/90 p-4 sm:p-5 space-y-3">
             <h4 className="font-serif text-base sm:text-lg font-bold text-amber-300">
               2. Защита Пространства
             </h4>
-            <p className="text-stone-300">
-              • <strong>Чистый пол без скользких листьев:</strong> между заходами обязательно смывайте с пола опавшие листья и лишнюю воду.<br />
-              • <strong>Подача воды только сбоку от печи:</strong> никогда не наклоняйте лицо над открытой дверцей каменки — струя пара вылетает мгновенно.<br />
-              • <strong>Свежий кислород:</strong> проветривайте парную залпом на 1–2 минуты между заходами.
-            </p>
+            <ul className="space-y-2.5 text-stone-300">
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3.5">
+                • <strong>Чистый пол без скользких листьев:</strong> между заходами обязательно смывайте с пола опавшие листья и лишнюю воду.
+              </li>
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3.5">
+                • <strong>Подача воды только сбоку от печи:</strong> никогда не наклоняйте лицо над открытой дверцей каменки — струя пара вылетает мгновенно.
+              </li>
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3.5">
+                • <strong>Свежий кислород:</strong> проветривайте парную залпом на 1–2 минуты между заходами.
+              </li>
+            </ul>
           </div>
 
-          <div className="space-y-1 pt-4 border-t border-stone-800/80">
+          <div className="rounded-2xl bg-stone-950/80 border border-stone-800/90 p-4 sm:p-5 space-y-3">
             <h4 className="font-serif text-base sm:text-lg font-bold text-sky-300">
               3. Защита Себя (Спины и сил мастера)
             </h4>
-            <p className="text-stone-300">
-              • <strong>Прямая спина и подстройка под полок:</strong> если полок <u>слишком низкий</u> — расставьте ноги шире в полуприседе или уложите гостя на матрас (трапик под ноги ставить нельзя — полок станет ещё ниже!). Трапик нужен только тогда, когда полок <u>слишком высокий</u>.<br />
-              • <strong>Водно-солевой баланс:</strong> каждые 15 минут пейте тёплую воду с долькой лимона и щепоткой соли.
-            </p>
+            <ul className="space-y-2.5 text-stone-300">
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3.5">
+                • <strong>Прямая спина и подстройка под полок:</strong> если полок <u>слишком низкий</u> — расставьте ноги шире в полуприседе или уложите гостя на матрас (трапик под ноги ставить нельзя — полок станет ещё ниже!). Трапик нужен только тогда, когда полок <u>слишком высокий</u>.
+              </li>
+              <li className="rounded-xl bg-stone-900/80 border border-stone-800/80 p-3.5">
+                • <strong>Водно-солевой баланс:</strong> каждые 15 минут пейте тёплую воду с долькой лимона и щепоткой соли.
+              </li>
+            </ul>
           </div>
         </div>
       </div>

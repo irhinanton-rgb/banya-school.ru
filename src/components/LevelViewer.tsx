@@ -214,17 +214,46 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
           )}
         </div>
 
-        {/* Clean compact mentor bar across all Levels 1-7 */}
+        {/* Clean structured mentor bar across all Levels 1-7 */}
         {level.proTip && (
-          <div className="rounded-xl bg-amber-950/20 border border-amber-500/30 p-3.5 text-xs sm:text-sm text-amber-200/90 flex items-start gap-2.5">
-            <ShieldCheck className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              {level.proTip.startsWith('Совет наставника:') ? (
-                level.proTip
+          <div className="rounded-2xl bg-amber-950/25 border border-amber-500/35 p-4 sm:p-5 text-xs sm:text-sm text-amber-200/95 flex items-start gap-3 shadow-sm">
+            <ShieldCheck className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-2 leading-relaxed flex-1">
+              {level.proTip.includes('1)') && level.proTip.includes('2)') ? (
+                (() => {
+                  const [intro, rest] = level.proTip.split(/(?=1\))/);
+                  const items = rest ? rest.split(/(?=2\))/) : [];
+                  return (
+                    <>
+                      <div>
+                        {!level.proTip.startsWith('Совет наставника:') && (
+                          <strong className="text-amber-300">Совет наставника: </strong>
+                        )}
+                        <span>{intro.trim()}</span>
+                      </div>
+                      <ul className="space-y-1.5 pt-0.5">
+                        {items.map((item, idx) => (
+                          <li
+                            key={idx}
+                            className="p-2.5 rounded-xl bg-stone-950/60 border border-amber-500/20 text-amber-100/95 leading-relaxed"
+                          >
+                            {item.trim()}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  );
+                })()
               ) : (
-                <>
-                  <strong>Совет наставника:</strong> {level.proTip}
-                </>
+                <div>
+                  {level.proTip.startsWith('Совет наставника:') ? (
+                    level.proTip
+                  ) : (
+                    <>
+                      <strong className="text-amber-300">Совет наставника:</strong> {level.proTip}
+                    </>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -443,20 +472,20 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
 
       {/* Mini-Quiz (Unless Final Exam) */}
       {level.quiz.length > 0 && (
-        <div className="rounded-2xl border border-stone-800 bg-stone-900/90 p-6 space-y-6">
-          <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+        <div className="rounded-3xl border border-stone-800 bg-stone-900/95 p-6 sm:p-8 space-y-6 shadow-xl">
+          <div className="flex items-center justify-between border-b border-stone-800 pb-4">
             <div>
-              <div className="text-xs font-mono uppercase text-amber-400">
+              <div className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
                 Проверка знаний уровня
               </div>
-              <h4 className="font-serif text-xl font-bold text-stone-100 mt-0.5">
+              <h4 className="font-serif text-xl sm:text-2xl font-bold text-stone-100 mt-1">
                 Мини-Тест: Закрепление Знаний
               </h4>
             </div>
 
             {isCompleted && (
-              <span className="px-3 py-1 rounded-md bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5" />
+              <span className="px-3.5 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
                 <span>Уровень сдан!</span>
               </span>
             )}
@@ -468,25 +497,29 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
               const isTestPassed = isCompleted && hasCompletedQuiz;
 
               return (
-                <div key={q.id} className="rounded-xl bg-stone-950/70 border border-stone-800 p-5 space-y-3">
-                  <div className="flex items-start gap-2.5">
-                    <span className="font-mono text-xs text-amber-400 font-bold mt-0.5">
+                <div
+                  key={q.id}
+                  className="rounded-2xl bg-stone-950/80 border border-stone-800 p-5 sm:p-6 space-y-4 shadow-md"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 font-mono text-xs text-amber-300 font-bold flex items-center justify-center shrink-0 mt-0.5">
                       {qIdx + 1}.
                     </span>
-                    <h5 className="font-medium text-xs sm:text-sm text-stone-200">
+                    <h5 className="font-semibold text-sm sm:text-base text-stone-100 leading-relaxed">
                       {q.question}
                     </h5>
                   </div>
 
                   {/* Options */}
-                  <div className="space-y-2 pt-1 pl-4">
+                  <div className="space-y-2.5 pt-1 sm:pl-10">
                     {q.options.map((opt, optIdx) => {
                       const isChosen = selectedOpt === optIdx;
-                      let optClass = 'border-stone-800 bg-stone-900/80 hover:bg-stone-850 hover:border-stone-700 text-stone-300';
+                      let optClass =
+                        'border-stone-800 bg-stone-900/80 hover:bg-stone-850 hover:border-stone-700 text-stone-200';
 
                       if (isTestPassed) {
                         if (optIdx === q.correctIndex) {
-                          optClass = 'border-emerald-500 bg-emerald-950/40 text-emerald-200';
+                          optClass = 'border-emerald-500 bg-emerald-950/40 text-emerald-100';
                         } else if (isChosen && optIdx !== q.correctIndex) {
                           optClass = 'border-rose-500 bg-rose-950/40 text-rose-200';
                         } else {
@@ -494,7 +527,8 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                         }
                       } else {
                         if (isChosen) {
-                          optClass = 'border-amber-400 bg-amber-500/15 text-amber-200 ring-1 ring-amber-400/40 shadow-sm';
+                          optClass =
+                            'border-amber-400 bg-amber-500/15 text-amber-100 ring-1 ring-amber-400/40 shadow-sm';
                         }
                       }
 
@@ -503,11 +537,11 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                           key={optIdx}
                           onClick={() => handleSelectAnswer(qIdx, optIdx)}
                           disabled={isTestPassed}
-                          className={`w-full p-3.5 rounded-xl border text-left text-xs sm:text-sm transition-all cursor-pointer ${optClass}`}
+                          className={`w-full p-4 rounded-xl border text-left text-xs sm:text-sm transition-all cursor-pointer ${optClass}`}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-start gap-3">
                             <div
-                              className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                              className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                                 isChosen
                                   ? 'border-amber-400 bg-amber-400 text-stone-950'
                                   : 'border-stone-600 bg-stone-900'
@@ -515,7 +549,7 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
                             >
                               {isChosen && <div className="w-1.5 h-1.5 rounded-full bg-stone-950" />}
                             </div>
-                            <span className="font-mono text-xs opacity-60 shrink-0">
+                            <span className="font-mono text-xs opacity-70 shrink-0 mt-0.5 font-bold">
                               {String.fromCharCode(65 + optIdx)})
                             </span>
                             <span className="leading-relaxed">{opt}</span>
@@ -527,15 +561,17 @@ export const LevelViewer: React.FC<LevelViewerProps> = ({
 
                   {/* Immediate feedback & rationale ONLY after test has been passed */}
                   {isTestPassed && (
-                    <div className="text-xs p-3.5 rounded-xl mt-2 bg-emerald-950/30 text-emerald-300 border border-emerald-500/30 leading-relaxed space-y-1">
-                      <strong className="block text-emerald-200">
-                        ✓ Пояснение мастера:
-                      </strong>
-                      <p>{q.explanation}</p>
+                    <div className="text-xs sm:text-sm p-4 sm:p-5 rounded-2xl mt-3 sm:ml-10 bg-emerald-950/30 text-emerald-200 border border-emerald-500/35 leading-relaxed space-y-2.5">
+                      <div className="space-y-1">
+                        <strong className="block text-emerald-300 font-bold">
+                          ✓ Пояснение мастера:
+                        </strong>
+                        <p className="text-stone-200 leading-relaxed">{q.explanation}</p>
+                      </div>
                       {q.proTip && (
-                        <p className="text-amber-300/90 font-mono text-[11px] pt-1">
+                        <div className="pt-2.5 border-t border-emerald-500/20 text-amber-300/95 font-mono text-xs leading-relaxed">
                           💡 {q.proTip}
-                        </p>
+                        </div>
                       )}
                     </div>
                   )}

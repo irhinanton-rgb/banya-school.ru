@@ -305,8 +305,8 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
 
           <div className="space-y-4 text-sm sm:text-base text-stone-300 leading-relaxed">
             {/* Этап 1 */}
-            <div className="p-5 rounded-xl bg-stone-950/70 border border-stone-800 space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
+            <div className="p-5 sm:p-6 rounded-2xl bg-stone-950/75 border border-stone-800 space-y-3.5">
+              <div className="flex items-center justify-between gap-2 border-b border-stone-800/80 pb-2.5">
                 <h5 className="font-bold text-amber-300">
                   1. Сенсорная архитектура встречи: настройка 5 органов чувств
                 </h5>
@@ -317,26 +317,26 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
                 отдыха бьёт в глаза холодный офисный свет, работает телевизор или тянет сквозняком по
                 ногам — нервная система гостя остаётся в режиме обороны.
               </p>
-              <ul className="space-y-1.5 text-xs sm:text-sm text-stone-300 pl-4 list-disc">
-                <li>
-                  <strong className="text-white">Свет:</strong> мягкий, тёплый янтарный полумрак (2700K),
+              <ul className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs sm:text-sm text-stone-300">
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                  <strong className="text-white block mb-1">Свет:</strong> мягкий, тёплый янтарный полумрак (2700K),
                   скрытая подсветка под полками без прямых ламп в глаза лежащего гостя.
                 </li>
-                <li>
-                  <strong className="text-white">Звук и речь:</strong> тишина, живое потрескивание дров,
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                  <strong className="text-white block mb-1">Звук и речь:</strong> тишина, живое потрескивание дров,
                   шум воды или мягкие природные обертоны. Мастер говорит спокойно, чуть медленнее обычного,
                   низким грудным тембром.
                 </li>
-                <li>
-                  <strong className="text-white">Тактильный тепловой комфорт:</strong> температура в зоне
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                  <strong className="text-white block mb-1">Тактильный тепловой комфорт:</strong> температура в зоне
                   отдыха +24...+25°C, тёплые тапочки, подогретые простыни и травяной чай приветствия.
                 </li>
               </ul>
             </div>
 
             {/* Этап 2 */}
-            <div className="p-5 rounded-xl bg-stone-950/70 border border-stone-800 space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
+            <div className="p-5 sm:p-6 rounded-2xl bg-stone-950/75 border border-stone-800 space-y-3.5">
+              <div className="flex items-center justify-between gap-2 border-b border-stone-800/80 pb-2.5">
                 <h5 className="font-bold text-amber-300">
                   2. Психология доверия и «Контракт безопасности»
                 </h5>
@@ -347,14 +347,14 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
                 страх обжечься веником, страх потерять сознание или неловкость за своё тело. Пока есть
                 страх — в крови держится адреналин, а сосуды спазмированы.
               </p>
-              <ul className="space-y-1.5 text-xs sm:text-sm text-stone-300 pl-4 list-disc">
-                <li>
-                  <strong className="text-white">Прозрачный маршрут:</strong> за 1 минуту расскажите гостю,
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs sm:text-sm text-stone-300">
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                  <strong className="text-white block mb-1">Прозрачный маршрут:</strong> за 1 минуту расскажите гостю,
                   что именно его ждёт («Сначала мягкий ароматный прогрев при +50°C, затем тёплый душ и
                   отдых с чаем, и только потом — глубокое парение»). Предсказуемость убирает тревогу.
                 </li>
-                <li>
-                  <strong className="text-white">Правило «Стоп-слова и главного человека»:</strong> дайте
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                  <strong className="text-white block mb-1">Правило «Стоп-слова и главного человека»:</strong> дайте
                   гостю чёткую установку: <em>«В парной не нужно ничего терпеть. Главный здесь — вы.
                   Достаточно поднять ладонь или сказать одно слово, и мы сразу убавим жар или выйдем»</em>.
                 </li>
@@ -362,8 +362,8 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
             </div>
 
             {/* Этап 3 */}
-            <div className="p-5 rounded-xl bg-stone-950/70 border border-stone-800 space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
+            <div className="p-5 sm:p-6 rounded-2xl bg-stone-950/75 border border-stone-800 space-y-3.5">
+              <div className="flex items-center justify-between gap-2 border-b border-stone-800/80 pb-2.5">
                 <h5 className="font-bold text-amber-300">
                   3. Невербальный радар на полке и «Правило 3 ступеней» при подъёме
                 </h5>
@@ -374,8 +374,8 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
                 каждый вопрос включает кору головного мозга и выбрасывает человека из глубокого транса.
                 Мастер считывает состояние по телу:
               </p>
-              <ul className="space-y-1.5 text-xs sm:text-sm text-stone-300 pl-4 list-disc">
-                <li>
+              <ul className="space-y-2.5 text-xs sm:text-sm text-stone-300">
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
                   <strong className="text-white">Маркеры скрытого перегрева:</strong> сжатые кулаки или
                   пальцы стоп, напряжённые икры, частое поверхностное дыхание ртом, побледнение{' '}
                   <TermTooltip
@@ -386,19 +386,30 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
                   </TermTooltip>
                   . Увидели — сразу переходите на мягкие поглаживания и охлаждайте голову!
                 </li>
-                <li>
-                  <strong className="text-white">Безопасный подъём в 3 ступени (защита от обморока):</strong>{' '}
-                  никогда не поднимайте гостя с полка резко! В жаре кровь депонирована в коже и ногах.
-                  <strong> Ступень 1:</strong> закончили парение, дали полежать спокойно 30 секунд.
-                  <strong> Ступень 2:</strong> помогли плавно сесть на край полка со спущенными ногами на
-                  30–60 секунд (выровнять давление). <strong> Ступень 3:</strong> бережно вывели под локоть.
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80 space-y-2">
+                  <div>
+                    <strong className="text-white">Безопасный подъём в 3 ступени (защита от обморока):</strong>{' '}
+                    никогда не поднимайте гостя с полка резко! В жаре кровь депонирована в коже и ногах.
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-1">
+                    <div className="p-2.5 rounded-lg bg-stone-950/90 border border-stone-800">
+                      <strong className="text-amber-300">Ступень 1:</strong> закончили парение, дали полежать спокойно 30 секунд.
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-stone-950/90 border border-stone-800">
+                      <strong className="text-amber-300">Ступень 2:</strong> помогли плавно сесть на край полка со спущенными ногами на
+                      30–60 секунд (выровнять давление).
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-stone-950/90 border border-stone-800">
+                      <strong className="text-amber-300">Ступень 3:</strong> бережно вывели под локоть.
+                    </div>
+                  </div>
                 </li>
               </ul>
             </div>
 
             {/* Этап 4 */}
-            <div className="p-5 rounded-xl bg-stone-950/70 border border-stone-800 space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
+            <div className="p-5 sm:p-6 rounded-2xl bg-stone-950/75 border border-stone-800 space-y-3.5">
+              <div className="flex items-center justify-between gap-2 border-b border-stone-800/80 pb-2.5">
                 <h5 className="font-bold text-amber-300">
                   4. Ритуал «Банного пеленания» и охрана 15 минут тишины
                 </h5>
@@ -415,14 +426,14 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
                 </TermTooltip>{' '}
                 («банная невесомость»).
               </p>
-              <ul className="space-y-1.5 text-xs sm:text-sm text-stone-300 pl-4 list-disc">
-                <li>
-                  <strong className="text-white">Сухое тёплое пеленание:</strong> промокните воду с кожи
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs sm:text-sm text-stone-300">
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                  <strong className="text-white block mb-1">Сухое тёплое пеленание:</strong> промокните воду с кожи
                   сухим полотенцем, уложите гостя на лежак с валиком под колени и плотно укутайте сухой
                   тёплой простынёй и пледом от плеч до самых кончиков пальцев ног.
                 </li>
-                <li>
-                  <strong className="text-white">Священная тишина:</strong> первые 10–15 минут не разговаривайте
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                  <strong className="text-white block mb-1">Священная тишина:</strong> первые 10–15 минут не разговаривайте
                   с гостем и не позволяйте другим шуметь рядом. Пусть человек побудет наедине с тишиной
                   и ощущением нового тела.
                 </li>
@@ -430,8 +441,8 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
             </div>
 
             {/* Этап 5 */}
-            <div className="p-5 rounded-xl bg-stone-950/70 border border-stone-800 space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
+            <div className="p-5 sm:p-6 rounded-2xl bg-stone-950/75 border border-stone-800 space-y-3.5">
+              <div className="flex items-center justify-between gap-2 border-b border-stone-800/80 pb-2.5">
                 <h5 className="font-bold text-amber-300">
                   5. Чайная церемония, минеральный баланс и послевкусие на неделю
                 </h5>
@@ -441,16 +452,16 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
                 По закону психологии («правило пика и финала») именно последние 20 минут визита определяют
                 90% воспоминаний гостя о бане:
               </p>
-              <ul className="space-y-1.5 text-xs sm:text-sm text-stone-300 pl-4 list-disc">
-                <li>
-                  <strong className="text-white">Правильная карта напитков:</strong> между заходами —
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs sm:text-sm text-stone-300">
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                  <strong className="text-white block mb-1">Правильная карта напитков:</strong> между заходами —
                   тёплая вода (+38...+40°C) с долькой лимона или ягодным морсом небольшими глотками. В финале —
                   ароматный травяной сбор (ферментированный иван-чай, липа, чабрец, мята, донник, шиповник)
                   с мёдом вприкуску, орехами и курагой (восполнение калия и магния). Никакого ледяного
                   пива или газировки!
                 </li>
-                <li>
-                  <strong className="text-white">Якорь памяти и забота на следующий день:</strong> подарите
+                <li className="p-3.5 rounded-xl bg-stone-900/80 border border-stone-800/80">
+                  <strong className="text-white block mb-1">Якорь памяти и забота на следующий день:</strong> подарите
                   гостю с собой маленький душистый пучок пихты или луговых трав в машину, пожелайте
                   спокойного сна, а на следующий день отправьте короткое тёплое сообщение:{' '}
                   <em>«Доброе утро! Как ваше самочувствие и сон после вчерашнего пара?»</em>. Такой гость
@@ -550,7 +561,7 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
           {/* Разбор выбранного варианта */}
           {selectedOpt && (
             <div
-              className={`p-4 rounded-xl border space-y-2 ${
+              className={`p-4 sm:p-5 rounded-2xl border space-y-3 ${
                 selectedOpt.isCorrect
                   ? 'bg-emerald-950/25 border-emerald-500/40 text-emerald-200'
                   : 'bg-red-950/25 border-red-500/40 text-red-200'
@@ -561,10 +572,10 @@ export const GuestServiceSimulator: React.FC<GuestServiceSimulatorProps> = ({
                   ? '✓ Верное решение мастера!'
                   : '✕ Ошибка сервиса — выберите другой вариант выше'}
               </p>
-              <p className="text-xs sm:text-sm text-stone-200">
+              <div className="p-3 rounded-xl bg-stone-950/70 border border-stone-800/80 text-xs sm:text-sm text-stone-200 leading-relaxed">
                 <strong>Реакция гостя:</strong> {selectedOpt.guestReaction}
-              </p>
-              <p className="text-xs text-stone-300">{selectedOpt.explanation}</p>
+              </div>
+              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">{selectedOpt.explanation}</p>
 
               {!selectedOpt.isCorrect && (
                 <button
