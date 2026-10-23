@@ -155,14 +155,18 @@ service cloud.firestore {
     // Forum posts and comments
     match /forum_posts/{postId} {
       allow get, list: if true;
-      allow create: if isSignedIn() && isValidId(postId) && isValidForumPost(incoming());
+      allow create: if isSignedIn() && isValidId(postId) && isValidForumPost(incoming())
+                    && incoming().authorId == request.auth.uid;
       allow update: if isSignedIn() && isValidId(postId) && isValidForumPost(incoming())
-                    && incoming().authorId == existing().authorId;
+                    && existing().authorId == request.auth.uid
+                    && incoming().authorId == existing().authorId
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'category', 'categoryTitle', 'categoryLabel', 'postType', 'summary', 'tags']);
       allow delete: if isAdmin();
 
       match /comments/{commentId} {
         allow get, list: if true;
-        allow create: if isSignedIn() && isValidId(commentId) && isValidForumComment(incoming());
+        allow create: if isSignedIn() && isValidId(commentId) && isValidForumComment(incoming())
+                      && incoming().authorId == request.auth.uid;
         allow update: if false;
         allow delete: if isAdmin();
       }
