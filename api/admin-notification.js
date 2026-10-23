@@ -1,9 +1,32 @@
 import { broadcastToAdmins, escapeHtml } from './telegram-notifier.js';
 import { verifyFirebaseIdToken } from '../server/firebase-admin-rest.js';
 
+// Best-effort per-instance throttling for unauthenticated public contact forms.
+const guestRequests = new Map();
+const GUEST_ALLOWED_TYPES = new Set(['question', 'bug', 'feedback']);
+const AUTHENTICATED_ALLOWED_TYPES = new Set(['question', 'bug', 'feedback', 'registration', 'payment_intent', 'ad_inquiry', 'b2b_inquiry']);
+
+function isGuestRateLimited(ip) {
+  const now = Date.now();
+  const recent = (guestRequests.get(ip) || []).filter((timestamp) => now - timestamp < 10 * 60 * 1000);
+  if (recent.length >= 5) {
+    guestRequests.set(ip, recent);
+    return true;
+  }
+  recent.push(now);
+  guestRequests.set(ip, recent);
+  if (guestRequests.size > 2000) {
+    for (const [key, timestamps] of guestRequests) {
+      if (!timestamps.some((timestamp) => now - timestamp < 10 * 60 * 1000)) guestRequests.delete(key);
+    }
+  }
+  return false;
+}
+
 export default async function handler(req, res) {
   const requestOrigin = req.headers.origin;
   const allowedOrigins = new Set(['https://banya-school.ru', 'https://www.banya-school.ru', 'http://localhost:3000', 'http://127.0.0.1:3000']);
+  if (requestOrigin && !allowedOrigins.has(requestOrigin)) return res.status(403).json({ error: 'Origin not allowed' });
   if (requestOrigin && allowedOrigins.has(requestOrigin)) {
     res.setHeader('Access-Control-Allow-Origin', requestOrigin);
     res.setHeader('Vary', 'Origin');
@@ -20,21 +43,30 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const authorization = String(req.headers.authorization || '');
-  const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
-  let firebaseUser;
-  try {
-    firebaseUser = await verifyFirebaseIdToken(idToken, process.env.FIREBASE_WEB_API_KEY);
-  } catch (error) {
-    console.error('[Admin notification]: Authentication service unavailable:', error);
-    return res.status(503).json({ error: 'Authentication temporarily unavailable' });
-  }
-  if (!firebaseUser) return res.status(401).json({ error: 'Authentication required' });
-
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const type = String(body.type || 'question').slice(0, 32);
     const message = String(body.message || '').trim().slice(0, 2000);
+    if (!message) return res.status(400).json({ error: 'Message is required' });
+
+    const authorization = String(req.headers.authorization || '');
+    const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+    let firebaseUser = null;
+    if (idToken) {
+      try {
+        firebaseUser = await verifyFirebaseIdToken(idToken, process.env.FIREBASE_WEB_API_KEY);
+      } catch (error) {
+        console.error('[Admin notification]: Authentication service unavailable:', error);
+        return res.status(503).json({ error: 'Authentication temporarily unavailable' });
+      }
+      if (!firebaseUser) return res.status(401).json({ error: 'Invalid authentication token' });
+      if (!AUTHENTICATED_ALLOWED_TYPES.has(type)) return res.status(400).json({ error: 'Unsupported notification type' });
+    } else {
+      if (!GUEST_ALLOWED_TYPES.has(type)) return res.status(401).json({ error: 'Authentication required for this notification type' });
+      const forwardedFor = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+      const ip = forwardedFor || String(req.socket?.remoteAddress || 'unknown');
+      if (isGuestRateLimited(ip)) return res.status(429).json({ error: 'Too many messages. Please try again later.' });
+    }
     const userName = String(body.userName || 'Гость курса').trim().slice(0, 100);
     const userEmail = String(body.userEmail || '').trim().slice(0, 150);
     const phoneNumber = String(body.phoneNumber || '').trim().slice(0, 40);
@@ -148,8 +180,13 @@ export default async function handler(req, res) {
 
     const fullMessage = textLines.filter(Boolean).join('\n');
     const tgResults = await broadcastToAdmins(fullMessage);
+    const delivered = tgResults.length > 0 && tgResults.every((result) => result?.ok === true);
+    if (!delivered) {
+      console.error('[Admin notification]: Telegram delivery failed or is not configured.');
+      return res.status(503).json({ error: 'Notification delivery temporarily unavailable' });
+    }
 
-    return res.status(200).json({ success: true, telegram: tgResults });
+    return res.status(200).json({ success: true });
   } catch (err) {
     console.error('Error in /api/admin-notification:', err);
     return res.status(500).json({ error: 'Server error' });
