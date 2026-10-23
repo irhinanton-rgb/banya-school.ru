@@ -175,7 +175,7 @@ service cloud.firestore {
     // User questions, bug reports, and feedback directed to admin (ONLY readable/modifiable by Admin)
     match /admin_messages/{messageId} {
       allow get, list: if isAdmin();
-      allow create: if isValidId(messageId) && isValidAdminMessage(incoming());
+      allow create: if isSignedIn() && isValidId(messageId) && incoming().userId == request.auth.uid && isValidAdminMessage(incoming());
       allow update, delete: if isAdmin();
     }
   }
