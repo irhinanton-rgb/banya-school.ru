@@ -73,3 +73,12 @@ test('guest question is not reported as delivered when Telegram is not configure
   assert.equal(res.statusCode, 503);
   assert.equal(res.body?.success, undefined);
 });
+
+
+test('YooKassa webhook rejects non-POST methods', async () => {
+  const { default: handler } = await import('../api/yookassa-webhook.js?test=method-check');
+  const res = responseRecorder();
+  await handler({ method: 'GET', headers: {}, body: {} }, res);
+  assert.equal(res.statusCode, 405);
+  assert.equal(res.body?.error, 'Method Not Allowed');
+});
