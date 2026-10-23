@@ -45,3 +45,11 @@ test('payment creation rejects a client-selected discounted amount until server-
   await handler({ method: 'POST', headers: {}, body: { amount: 3050 } }, res);
   assert.equal(res.statusCode, 400);
 });
+
+test('payment status endpoint rejects requests without a Firebase ID token', async () => {
+  const { default: handler } = await import('../api/payment-status.js?test=unauthenticated');
+  const res = responseRecorder();
+  await handler({ method: 'GET', headers: {}, query: { orderId: '123e4567-e89b-12d3-a456-426614174000' } }, res);
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.body?.error, 'Authentication required');
+});
