@@ -24,6 +24,12 @@ jobs:
         run: npm ci
       - name: 🧪 TypeScript check
         run: npm run lint
+      - name: 🐘 Set up PHP for syntax validation
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: 🐘 Validate PHP notification endpoint
+        run: php -l public/api/admin-notification.php
       - name: 🧪 Payment API regression tests
         run: npm test
       - name: 🔨 Build production site
