@@ -234,11 +234,9 @@ export function mergeUserProgress(
 
   const mergedXp = Math.max(local.xp || 0, remote.xp || 0);
   const highestLevel = Math.max(local.activeLevelId || 1, remote.activeLevelId || 1) as LevelId;
-  const isPaid = Boolean(local.isPaid || remote.isPaid || remote.isAdmin);
-  const tariff =
-    isPaid || local.tariff === 'master_pro' || remote.tariff === 'master_pro'
-      ? 'master_pro'
-      : 'free';
+  // Paid entitlements are server-authoritative. Never preserve localStorage/client claims.
+  const isPaid = Boolean(remote.isPaid || remote.isAdmin);
+  const tariff = isPaid && remote.tariff === 'master_pro' ? 'master_pro' : 'free';
 
   return {
     ...local,
@@ -254,7 +252,7 @@ export function mergeUserProgress(
     certifiedDate: remote.certifiedDate || local.certifiedDate,
     tariff,
     isPaid,
-    isAdmin: Boolean(remote.isAdmin || local.isAdmin),
+    isAdmin: Boolean(remote.isAdmin),
     paidAt: remote.paidAt || local.paidAt,
     orderId: remote.orderId || local.orderId,
     bio: remote.bio || local.bio,
