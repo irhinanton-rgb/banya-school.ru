@@ -415,7 +415,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                       type="button"
                       onClick={() => {
                         onClose();
-                        onOpenXpRewards();
+                        onOpenXpRewards?.();
                       }}
                       className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] whitespace-nowrap cursor-pointer transition-colors shrink-0"
                     >
