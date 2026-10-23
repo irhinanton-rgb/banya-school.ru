@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = process.cwd();
-const SCAN_ROOTS = ['api', 'public/api', 'server', 'src'];
+const SCAN_ROOTS = ['api', 'public/api', 'server', 'src', 'src_backup_v1'];
 const SECRET_PATTERNS = [
   ['Telegram bot token', /\b\d{8,12}:[A-Za-z0-9_-]{30,}\b/],
   ['VK access token', /\bvk1\.[A-Za-z0-9._-]{40,}\b/],
