@@ -66,7 +66,7 @@ async function notifySuccessfulPayment(order, payment, metadata) {
     `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
     ` `,
     `✅ <i>Платёж сверён с заказом; доступ к курсу выдан.</i>`,
-  ].filter(Boolean).join('\\n');
+  ].filter(Boolean).join('\n');
   const results = await broadcastToAdmins(message);
   const delivered = results.length > 0 && results.every((result) => result?.ok === true);
   if (!delivered) return false;
