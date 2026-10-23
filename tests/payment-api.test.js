@@ -53,3 +53,12 @@ test('payment status endpoint rejects requests without a Firebase ID token', asy
   assert.equal(res.statusCode, 401);
   assert.equal(res.body?.error, 'Authentication required');
 });
+
+
+test('admin notifications reject requests without a Firebase ID token', async () => {
+  const { default: handler } = await import('../api/admin-notification.js?test=unauthenticated');
+  const res = responseRecorder();
+  await handler({ method: 'POST', headers: {}, body: { type: 'question', message: 'test' } }, res);
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.body?.error, 'Authentication required');
+});
