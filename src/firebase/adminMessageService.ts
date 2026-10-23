@@ -181,7 +181,8 @@ export function formatTelegramMessageHtml(payload: AdminMessagePayload): string 
  * Deliver notifications through the server-side API only.
  */
 export async function sendServerTelegramNotification(payload: AdminMessagePayload): Promise<boolean> {
-  const candidateEndpoints = ['/api/admin-notification'];
+  // Node serverless endpoint first; secure PHP endpoint is the fallback for FTP/PHP hosting.
+  const candidateEndpoints = ['/api/admin-notification', '/api/admin-notification.php'];
   const currentUser = auth.currentUser;
   const idToken = currentUser ? await currentUser.getIdToken() : null;
 
