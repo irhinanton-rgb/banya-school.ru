@@ -141,44 +141,19 @@ export async function deleteUserFromDatabase(uid: string): Promise<boolean> {
   }
 }
 
-// Fetch all users in Firestore (for admin panel) and purge any non-owner test accounts
+/**
+ * Legacy destructive maintenance helper.
+ *
+ * Intentionally disabled: never bulk-delete user profiles based on email.
+ * If test data needs cleanup, use an explicit allowlist of verified test UIDs,
+ * preview the target list, and require a separate confirmation outside sign-in.
+ */
 export async function purgeTestAccountsFromDatabase(): Promise<{
   removedCount: number;
   keptAdminEmail: string;
 }> {
-  let removedCount = 0;
-  try {
-    // 1. Clean local storage from any legacy test caches
-    const keysToClean = [
-      'banya_school_forum_posts_v1',
-      'banya_school_forum_comments_v1',
-      'banya_community_chat_v1',
-      'banya_homework_submissions_v1',
-    ];
-    keysToClean.forEach((k) => {
-      try {
-        localStorage.removeItem(k);
-      } catch {}
-    });
-
-    // 2. Clean Firestore users collection if accessible
-    const usersSnap = await getDocs(collection(db, 'users'));
-    for (const userDoc of usersSnap.docs) {
-      const data = userDoc.data();
-      const email = String(data.email || '').trim().toLowerCase();
-      if (email !== ADMIN_EMAIL) {
-        await deleteUserFromDatabase(userDoc.id);
-        removedCount++;
-      }
-    }
-  } catch {
-    // Firestore rules may restrict listing all users if not yet deployed to remote project
-  }
-
-  return {
-    removedCount,
-    keptAdminEmail: ADMIN_EMAIL,
-  };
+  console.warn('Bulk account purge is disabled; no user data was changed.');
+  return { removedCount: 0, keptAdminEmail: ADMIN_EMAIL };
 }
 
 // Load progress from Firestore
