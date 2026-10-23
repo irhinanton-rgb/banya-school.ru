@@ -1,5 +1,6 @@
 import https from 'https';
 import crypto from 'crypto';
+import { createOrder, updateOrder, verifyFirebaseIdToken } from './_lib/firebase-admin-rest.js';
 
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
@@ -48,10 +49,16 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const { amount, description, userId, userEmail } = body;
+    const { amount, userEmail } = body;
+    const authorization = String(req.headers.authorization || '');
+    const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+    const firebaseUser = await verifyFirebaseIdToken(idToken, process.env.FIREBASE_WEB_API_KEY);
+    if (!firebaseUser) {
+      return res.status(401).json({ error: 'Войдите в аккаунт перед оплатой курса.' });
+    }
 
     // The server owns pricing. Do not accept client-selected/test amounts.
-    if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY) {
+    if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY || !process.env.FIREBASE_SERVICE_ACCOUNT_JSON || !process.env.FIREBASE_WEB_API_KEY) {
       console.error('YooKassa credentials are not configured.');
       return res.status(503).json({ error: 'Платёж временно недоступен. Свяжитесь с поддержкой.' });
     }
@@ -62,6 +69,22 @@ export default async function handler(req, res) {
     const paymentDesc = 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)';
 
     const idempotenceKey = crypto.randomUUID();
+    const orderRecord = {
+      orderId: idempotenceKey,
+      userId: firebaseUser.uid,
+      userEmail: firebaseUser.email,
+      amount: validAmount,
+      currency: 'RUB',
+      tariff: 'master_pro',
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      await createOrder(idempotenceKey, orderRecord);
+    } catch (error) {
+      console.error('Could not persist payment order:', error);
+      return res.status(503).json({ error: 'Не удалось создать заказ. Попробуйте позже.' });
+    }
     const authHeader = 'Basic ' + Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64');
 
     const safeOrigin = getSafeReturnOrigin(req.headers.origin || req.headers.referer);
@@ -79,8 +102,8 @@ export default async function handler(req, res) {
       },
       description: paymentDesc,
       metadata: {
-        userId: String(userId || 'guest').slice(0, 128),
-        userEmail: String(userEmail || 'guest@banya-school.ru').slice(0, 150),
+        userId: firebaseUser.uid,
+        userEmail: firebaseUser.email || String(userEmail || '').slice(0, 150),
         orderId: idempotenceKey,
         isTest: false
       }
@@ -117,6 +140,15 @@ export default async function handler(req, res) {
 
     if (yooResponse.statusCode >= 200 && yooResponse.statusCode < 300) {
       const confirmationUrl = yooResponse.data?.confirmation?.confirmation_url;
+      if (!confirmationUrl || !yooResponse.data?.id) {
+        await updateOrder(idempotenceKey, { status: 'creation_failed', updatedAt: new Date().toISOString() });
+        return res.status(502).json({ error: 'Платёжный шлюз не вернул ссылку для оплаты.' });
+      }
+      await updateOrder(idempotenceKey, {
+        paymentId: String(yooResponse.data.id),
+        status: String(yooResponse.data.status || 'pending'),
+        updatedAt: new Date().toISOString(),
+      });
       return res.status(200).json({
         success: true,
         paymentId: yooResponse.data?.id,
@@ -126,7 +158,8 @@ export default async function handler(req, res) {
         amount: validAmount
       });
     } else {
-      console.error('YooKassa API Error:', yooResponse.data);
+      console.error('YooKassa API Error:', yooResponse.statusCode);
+      await updateOrder(idempotenceKey, { status: 'creation_failed', updatedAt: new Date().toISOString() }).catch(() => {});
       return res.status(yooResponse.statusCode || 500).json({
         error: yooResponse.data?.description || 'Failed to create payment in YooKassa'
       });
