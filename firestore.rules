@@ -39,6 +39,21 @@ service cloud.firestore {
         && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64));
     }
 
+    // Paid entitlements must only be granted by a trusted server/admin.
+    function hasNoPaidEntitlements(data) {
+      return data.get('isPaid', false) == false
+        && data.get('tariff', 'free') == 'free'
+        && data.get('orderId', '') == ''
+        && data.get('paidAt', '') == '';
+    }
+
+    function paidEntitlementsUnchanged() {
+      return incoming().get('isPaid', false) == existing().get('isPaid', false)
+        && incoming().get('tariff', 'free') == existing().get('tariff', 'free')
+        && incoming().get('orderId', '') == existing().get('orderId', '')
+        && incoming().get('paidAt', '') == existing().get('paidAt', '');
+    }
+
     function isValidUserProgress(data) {
       return data.userId is string && data.userId.size() <= 128 && (data.userId == request.auth.uid || isAdmin())
         && data.name is string && data.name.size() <= 100
@@ -120,9 +135,10 @@ service cloud.firestore {
       // User progress subcollection
       match /progress/{progressId} {
         allow get, list: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
-        allow create: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin()) && isValidUserProgress(incoming());
+        allow create: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin()) && isValidUserProgress(incoming()) && (isAdmin() || hasNoPaidEntitlements(incoming()));
         allow update: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin()) && isValidUserProgress(incoming())
-                      && incoming().userId == existing().userId;
+                      && incoming().userId == existing().userId
+                      && (isAdmin() || paidEntitlementsUnchanged());
         allow delete: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
       }
     }
