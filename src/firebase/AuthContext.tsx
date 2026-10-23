@@ -17,7 +17,7 @@ import {
 } from 'firebase/auth';
 import { auth, isAdminEmail, isTestAccountEmail } from './config';
 import { sendUserRegistrationNotification } from './adminMessageService';
-import { deleteUserFromDatabase, purgeTestAccountsFromDatabase } from './progressSync';
+import { deleteUserFromDatabase } from './progressSync';
 
 export type AuthProviderType = 'google' | 'password' | 'phone' | 'unknown';
 
@@ -119,9 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      if (currentUser && isAdminEmail(currentUser.email)) {
-        purgeTestAccountsFromDatabase().catch(() => {});
-      }
+      // Do not run database-wide cleanup during admin sign-in.
+      // Test-account cleanup must be an explicit, reviewed maintenance action.
 
       setUser(currentUser);
       if (currentUser?.providerData && currentUser.providerData.length > 0) {
