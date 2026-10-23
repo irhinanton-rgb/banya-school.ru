@@ -47,7 +47,6 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
 
   // Never sync or persist test accounts
   if (isTestAccountEmail(user.email)) {
-    await deleteUserFromDatabase(user.uid);
     return;
   }
 
@@ -141,7 +140,7 @@ export async function deleteUserFromDatabase(uid: string): Promise<boolean> {
   }
 }
 
-// Fetch all users in Firestore (for admin panel) and purge any non-owner test accounts
+// Safely clean only explicit test accounts from local cache / Firestore when manually requested
 export async function purgeTestAccountsFromDatabase(): Promise<{
   removedCount: number;
   keptAdminEmail: string;
@@ -161,12 +160,12 @@ export async function purgeTestAccountsFromDatabase(): Promise<{
       } catch {}
     });
 
-    // 2. Clean Firestore users collection if accessible
+    // 2. Strictly remove ONLY accounts explicitly listed in TEST_ACCOUNT_EMAILS
     const usersSnap = await getDocs(collection(db, 'users'));
     for (const userDoc of usersSnap.docs) {
       const data = userDoc.data();
       const email = String(data.email || '').trim().toLowerCase();
-      if (email !== ADMIN_EMAIL) {
+      if (email && isTestAccountEmail(email)) {
         await deleteUserFromDatabase(userDoc.id);
         removedCount++;
       }
@@ -186,7 +185,6 @@ export async function fetchProgressFromCloud(user: User): Promise<Partial<UserPr
   if (!user || !user.uid) return null;
 
   if (isTestAccountEmail(user.email)) {
-    await deleteUserFromDatabase(user.uid);
     return null;
   }
 

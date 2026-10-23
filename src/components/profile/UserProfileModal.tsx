@@ -139,11 +139,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   const handlePurgeTestAccounts = async () => {
     playWoodTap(progress.soundEnabled);
-    setDbCleanupStatus('Очистка базы от пробных аккаунтов...');
+    setDbCleanupStatus('Проверка списка технических тестовых аккаунтов...');
     const res = await purgeTestAccountsFromDatabase();
     setDbCleanupStatus(
-      `База очищена! Оставлен только администратор: ${res.keptAdminEmail}${
-        res.removedCount > 0 ? ` (удалено пробных записей: ${res.removedCount})` : ' (пробных аккаунтов не обнаружено)'
+      `Проверка завершена! Все профили учеников и администратора (${res.keptAdminEmail}) сохранены${
+        res.removedCount > 0 ? ` (удалено технических тест-записей: ${res.removedCount})` : ' (тестовых записей не обнаружено)'
       }`
     );
     playSuccessChime(progress.soundEnabled);
