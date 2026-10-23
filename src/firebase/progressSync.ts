@@ -38,8 +38,9 @@ export interface CloudProgressData {
   updatedAt: string;
 }
 
+let lastSyncSignature = '';
 let lastSyncTimestamp = 0;
-const MIN_SYNC_INTERVAL_MS = 800; // Rate-limiting guard against request flooding / DDoS
+const MIN_IDENTICAL_SYNC_INTERVAL_MS = 600;
 
 // Save user profile and current progress to Firestore
 export async function syncProgressToCloud(user: User, progress: UserProgress): Promise<void> {
@@ -49,12 +50,6 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
   if (isTestAccountEmail(user.email)) {
     return;
   }
-
-  const now = Date.now();
-  if (now - lastSyncTimestamp < MIN_SYNC_INTERVAL_MS) {
-    return; // Throttle excessive concurrent writes
-  }
-  lastSyncTimestamp = now;
 
   const isOwnerAdmin = isAdminEmail(user.email);
   const userPath = `users/${user.uid}`;
@@ -67,11 +62,16 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
     .trim()
     .slice(0, 100);
   const sanitizedXp = Math.max(0, Math.min(1000000, Number(progress.xp) || 0));
+  const sanitizedSpentXp = Math.max(0, Math.min(1000000, Number(progress.spentXp) || 0));
+  const sanitizedDiscountRub = Math.max(0, Math.min(5000, Number(progress.xpDiscountRub) || 0));
   const sanitizedLevels = Array.isArray(progress.completedLevels)
     ? progress.completedLevels.filter((lvl) => typeof lvl === 'number' && lvl >= 1 && lvl <= 7).slice(0, 50)
     : [];
   const sanitizedBadges = Array.isArray(progress.unlockedBadges)
     ? progress.unlockedBadges.filter((b) => typeof b === 'string').slice(0, 50)
+    : [];
+  const sanitizedPerks = Array.isArray(progress.unlockedPerks)
+    ? progress.unlockedPerks.filter((p) => typeof p === 'string').slice(0, 30)
     : [];
   const sanitizedBrooms = Array.isArray(progress.favoriteBrooms)
     ? progress.favoriteBrooms
@@ -80,14 +80,46 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
         .slice(0, 20)
     : [];
 
+  // Deduplicate identical rapid writes without ever dropping new state changes
+  const stateSignature = JSON.stringify({
+    uid: user.uid,
+    name: sanitizedName,
+    xp: sanitizedXp,
+    spentXp: sanitizedSpentXp,
+    discount: sanitizedDiscountRub,
+    levels: sanitizedLevels,
+    badges: sanitizedBadges,
+    perks: sanitizedPerks,
+    active: progress.activeLevelId,
+    paid: Boolean(isOwnerAdmin || progress.isPaid),
+    tariff: progress.tariff,
+    cert: progress.certifiedDate,
+    status: progress.banyaStatus,
+    city: progress.city,
+    avatar: (progress.avatarUrl || '').slice(0, 64),
+  });
+
+  const now = Date.now();
+  if (stateSignature === lastSyncSignature && now - lastSyncTimestamp < MIN_IDENTICAL_SYNC_INTERVAL_MS) {
+    return;
+  }
+  lastSyncSignature = stateSignature;
+  lastSyncTimestamp = now;
+
+  const nowIso = new Date().toISOString();
+  const creationIso = user.metadata?.creationTime
+    ? new Date(user.metadata.creationTime).toISOString()
+    : nowIso;
+
   try {
-    // 1. Save or update user profile
+    // 1. Save or update user profile (preserve creation time)
     const profilePayload = {
       uid: user.uid,
       displayName: sanitizedName,
       email: String(user.email || '').slice(0, 150),
-      photoURL: String(user.photoURL || '').slice(0, 500),
-      createdAt: new Date().toISOString(),
+      photoURL: String(progress.avatarUrl || user.photoURL || '').slice(0, 50000),
+      createdAt: creationIso,
+      updatedAt: nowIso,
     };
 
     await setDoc(doc(db, 'users', user.uid), profilePayload, { merge: true });
@@ -101,6 +133,11 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
       userId: user.uid,
       name: sanitizedName,
       xp: isOwnerAdmin ? Math.max(2500, sanitizedXp) : sanitizedXp,
+      spentXp: sanitizedSpentXp,
+      xpDiscountRub: sanitizedDiscountRub,
+      unlockedPerks: sanitizedPerks,
+      referralCount: Math.max(0, Number(progress.referralCount) || 0),
+      referralShareCount: Math.max(0, Number(progress.referralShareCount) || 0),
       completedLevels: isOwnerAdmin ? [1, 2, 3, 4, 5, 6, 7] : sanitizedLevels,
       unlockedBadges: sanitizedBadges,
       activeLevelId: Math.max(1, Math.min(7, Number(progress.activeLevelId) || 1)),
@@ -118,8 +155,9 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
       bio: String(progress.bio || '').slice(0, 500),
       banyaStatus: String(progress.banyaStatus || '').slice(0, 100),
       city: String(progress.city || '').slice(0, 100),
+      avatarUrl: String(progress.avatarUrl || user.photoURL || '').slice(0, 55000),
       favoriteBrooms: sanitizedBrooms,
-      updatedAt: new Date().toISOString(),
+      updatedAt: nowIso,
     };
 
     await setDoc(doc(db, 'users', user.uid, 'progress', 'current'), progressPayload, { merge: true });
@@ -212,6 +250,11 @@ export async function fetchProgressFromCloud(user: User): Promise<Partial<UserPr
     return {
       name: data.name || user.displayName || (isOwnerAdmin ? 'Антон Ирхин' : 'Пармастер'),
       xp: typeof data.xp === 'number' ? data.xp : isOwnerAdmin ? 2500 : 0,
+      spentXp: typeof data.spentXp === 'number' ? data.spentXp : undefined,
+      xpDiscountRub: typeof data.xpDiscountRub === 'number' ? data.xpDiscountRub : undefined,
+      unlockedPerks: Array.isArray(data.unlockedPerks) ? data.unlockedPerks : undefined,
+      referralCount: typeof data.referralCount === 'number' ? data.referralCount : undefined,
+      referralShareCount: typeof data.referralShareCount === 'number' ? data.referralShareCount : undefined,
       completedLevels: Array.isArray(data.completedLevels)
         ? (data.completedLevels as LevelId[])
         : isOwnerAdmin
@@ -234,6 +277,8 @@ export async function fetchProgressFromCloud(user: User): Promise<Partial<UserPr
       banyaStatus:
         typeof data.banyaStatus === 'string' && data.banyaStatus ? data.banyaStatus : undefined,
       city: typeof data.city === 'string' && data.city ? data.city : undefined,
+      avatarUrl:
+        typeof data.avatarUrl === 'string' && data.avatarUrl ? data.avatarUrl : undefined,
       favoriteBrooms: Array.isArray(data.favoriteBrooms) ? data.favoriteBrooms : undefined,
     };
   } catch (error) {
@@ -255,7 +300,13 @@ export function mergeUserProgress(
     new Set([...(local.unlockedBadges || []), ...(remote.unlockedBadges || [])])
   ) as BadgeId[];
 
+  const mergedPerks = Array.from(
+    new Set([...(local.unlockedPerks || []), ...(remote.unlockedPerks || [])])
+  );
+
   const mergedXp = Math.max(local.xp || 0, remote.xp || 0);
+  const mergedSpentXp = Math.max(local.spentXp || 0, remote.spentXp || 0);
+  const mergedDiscountRub = Math.max(local.xpDiscountRub || 0, remote.xpDiscountRub || 0);
   const highestLevel = Math.max(local.activeLevelId || 1, remote.activeLevelId || 1) as LevelId;
   const isPaid = Boolean(local.isPaid || remote.isPaid || remote.isAdmin);
   const tariff =
@@ -267,6 +318,11 @@ export function mergeUserProgress(
     ...local,
     name: remote.name || local.name,
     xp: mergedXp,
+    spentXp: mergedSpentXp,
+    xpDiscountRub: mergedDiscountRub,
+    unlockedPerks: mergedPerks,
+    referralCount: Math.max(local.referralCount || 0, remote.referralCount || 0),
+    referralShareCount: Math.max(local.referralShareCount || 0, remote.referralShareCount || 0),
     completedLevels: mergedCompleted,
     unlockedBadges: mergedBadges,
     activeLevelId: highestLevel,
@@ -277,12 +333,13 @@ export function mergeUserProgress(
     certifiedDate: remote.certifiedDate || local.certifiedDate,
     tariff,
     isPaid,
-    isAdmin: Boolean(remote.isAdmin || local.isAdmin),
+    isAdmin: Boolean(remote.isAdmin),
     paidAt: remote.paidAt || local.paidAt,
     orderId: remote.orderId || local.orderId,
     bio: remote.bio || local.bio,
     banyaStatus: remote.banyaStatus || local.banyaStatus,
     city: remote.city || local.city,
+    avatarUrl: remote.avatarUrl || local.avatarUrl,
     favoriteBrooms: remote.favoriteBrooms?.length ? remote.favoriteBrooms : local.favoriteBrooms,
   };
 }

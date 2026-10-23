@@ -14,6 +14,10 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    const host = String(req.headers?.host || '').toLowerCase();
+    if (host.includes('banya-school.ru')) {
+      return res.status(403).json({ error: 'Live text override writes are disabled in production' });
+    }
     try {
       const incoming = req.body && req.body.overrides && typeof req.body.overrides === 'object'
         ? req.body.overrides

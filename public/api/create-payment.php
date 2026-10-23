@@ -18,17 +18,21 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $raw = file_get_contents('php://input');
 $body = json_decode($raw, true) ?: [];
 
-$amountNum = isset($body['amount']) ? (float)$body['amount'] : 3390;
-$validAmount = ($amountNum == 10) ? '10.00' : '3390.00';
+$amountNum = isset($body['amount']) ? (int)round((float)$body['amount']) : 3390;
+$allowedAmounts = [10, 2890, 3050, 3140, 3390];
+if (!in_array($amountNum, $allowedAmounts, true)) {
+    $amountNum = 3390;
+}
+$validAmount = number_format($amountNum, 2, '.', '');
 
-$description = !empty($body['description']) ? $body['description'] : (
-    $amountNum == 10
+$description = !empty($body['description']) ? mb_substr((string)$body['description'], 0, 128) : (
+    $amountNum === 10
         ? 'Тестовый платёж 10 ₽ (Курс Пармастера banya-school.ru)'
         : 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)'
 );
 
-$userId = !empty($body['userId']) ? $body['userId'] : 'guest';
-$userEmail = !empty($body['userEmail']) ? $body['userEmail'] : 'guest@banya-school.ru';
+$userId = !empty($body['userId']) ? mb_substr((string)$body['userId'], 0, 128) : 'guest';
+$userEmail = !empty($body['userEmail']) ? mb_substr((string)$body['userEmail'], 0, 150) : 'guest@banya-school.ru';
 
 $shopId = '1485718';
 $secretKey = 'live_pko1h4rfqyVG9Un0_S8qJAHmitTEhR6u2od3psGUd5s';
@@ -42,10 +46,14 @@ $idempotenceKey = sprintf(
     mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
 );
 
+$clientOrderId = !empty($body['orderId']) && preg_match('/^[a-zA-Z0-9_\-]{4,64}$/', (string)$body['orderId'])
+    ? (string)$body['orderId']
+    : $idempotenceKey;
+
 $host = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'banya-school.ru';
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
 $protocol = $isHttps ? 'https' : 'http';
-$returnUrl = "{$protocol}://{$host}/?payment=success&orderId={$idempotenceKey}&amount={$validAmount}";
+$returnUrl = "{$protocol}://{$host}/?payment=success&orderId=" . urlencode($clientOrderId) . "&amount=" . urlencode($validAmount);
 
 $payload = [
     'amount' => [
@@ -98,7 +106,7 @@ if ($httpCode >= 200 && $httpCode < 300) {
         'paymentId' => isset($data['id']) ? $data['id'] : null,
         'status' => isset($data['status']) ? $data['status'] : 'pending',
         'confirmationUrl' => $confUrl,
-        'orderId' => $idempotenceKey,
+        'orderId' => $clientOrderId,
         'amount' => $validAmount
     ]);
 } else {

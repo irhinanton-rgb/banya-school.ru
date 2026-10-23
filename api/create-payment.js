@@ -46,21 +46,29 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const { amount, description, userId, userEmail } = body;
+    const { amount, description, userId, userEmail, orderId } = body;
 
-    // Price can be 10 (test payment) or 3390 (official course price)
-    const validAmount = Number(amount) === 10 ? '10.00' : '3390.00';
+    // Price can be 10 (test payment) or official/discounted course prices (2890, 3050, 3140, 3390)
+    const roundedAmount = Math.round(Number(amount) || 3390);
+    const allowedAmounts = [10, 2890, 3050, 3140, 3390];
+    const finalNumericAmount = allowedAmounts.includes(roundedAmount) ? roundedAmount : 3390;
+    const validAmount = `${finalNumericAmount}.00`;
+
     const paymentDesc = String(
-      description || (Number(amount) === 10
+      description || (finalNumericAmount === 10
         ? 'Тестовый платёж 10 ₽ (Курс Пармастера banya-school.ru)'
         : 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)')
     ).slice(0, 128);
 
     const idempotenceKey = crypto.randomUUID();
+    const safeOrderId =
+      typeof orderId === 'string' && /^[a-zA-Z0-9_-]{4,64}$/.test(orderId)
+        ? orderId
+        : idempotenceKey;
     const authHeader = 'Basic ' + Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64');
 
     const safeOrigin = getSafeReturnOrigin(req.headers.origin || req.headers.referer);
-    const returnUrl = `${safeOrigin}/?payment=success&orderId=${encodeURIComponent(idempotenceKey)}&amount=${encodeURIComponent(validAmount)}`;
+    const returnUrl = `${safeOrigin}/?payment=success&orderId=${encodeURIComponent(safeOrderId)}&amount=${encodeURIComponent(validAmount)}`;
 
     const payload = JSON.stringify({
       amount: {
@@ -76,8 +84,8 @@ export default async function handler(req, res) {
       metadata: {
         userId: String(userId || 'guest').slice(0, 128),
         userEmail: String(userEmail || 'guest@banya-school.ru').slice(0, 150),
-        orderId: idempotenceKey,
-        isTest: Number(amount) === 10
+        orderId: safeOrderId,
+        isTest: finalNumericAmount === 10
       }
     });
 
@@ -117,7 +125,7 @@ export default async function handler(req, res) {
         paymentId: yooResponse.data?.id,
         status: yooResponse.data?.status,
         confirmationUrl,
-        orderId: idempotenceKey,
+        orderId: safeOrderId,
         amount: validAmount
       });
     } else {

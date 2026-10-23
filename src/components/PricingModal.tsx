@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { UserProgress } from '../types/banya';
 import { useAuth } from '../firebase/AuthContext';
+import { isAdminEmail } from '../firebase/config';
 import { sendAdminMessage } from '../firebase/adminMessageService';
 import { playWoodTap } from '../utils/audio';
 
@@ -130,6 +131,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
       try {
         localStorage.setItem('banya_pending_order_id', orderId);
+        localStorage.setItem(
+          'pq_pending_payment',
+          JSON.stringify({
+            orderId,
+            clientOrderId: orderId,
+            amount: amountToPay,
+            isTest: amountToPay === 10,
+            createdAt: Date.now(),
+          })
+        );
         if (trimmedContact) {
           localStorage.setItem('banya_buyer_contact', trimmedContact);
         }
@@ -178,7 +189,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 ? trimmedContact
                 : user?.email || 'student@banya-school.ru',
               userName: trimmedName,
-              returnUrl: `${window.location.origin}/?payment_success=1&order_id=${orderId}`,
+              returnUrl: `${window.location.origin}/?payment=success&orderId=${encodeURIComponent(orderId)}&amount=${encodeURIComponent(String(amountToPay))}`,
             }),
           });
 
@@ -200,6 +211,21 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       }
 
       if (responseData && responseData.confirmationUrl) {
+        try {
+          localStorage.setItem(
+            'pq_pending_payment',
+            JSON.stringify({
+              orderId: responseData.orderId || orderId,
+              clientOrderId: orderId,
+              paymentId: responseData.paymentId || '',
+              amount: amountToPay,
+              isTest: amountToPay === 10,
+              createdAt: Date.now(),
+            })
+          );
+        } catch {
+          // ignore storage errors
+        }
         window.location.href = responseData.confirmationUrl;
       } else {
         setPaymentError(lastError);
@@ -670,18 +696,20 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                       )}
                     </button>
 
-                    {/* Test Payment Button (10 RUB) */}
-                    <div className="pt-2 border-t border-stone-800/80">
-                      <button
-                        type="button"
-                        onClick={() => handleInitiatePayment(10)}
-                        disabled={isProcessing}
-                        className="w-full py-2 px-4 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-amber-500/30 hover:border-amber-500/60 text-stone-300 hover:text-amber-200 text-xs font-mono transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50"
-                      >
-                        <FlaskConical className="w-4 h-4 text-amber-400 shrink-0" />
-                        <span>Проверить эквайринг: тестовый платёж 10 ₽</span>
-                      </button>
-                    </div>
+                    {/* Test Payment Button (10 RUB — Admin Only) */}
+                    {(isAdminEmail(user?.email) || Boolean(progress.isAdmin)) && (
+                      <div className="pt-2 border-t border-stone-800/80">
+                        <button
+                          type="button"
+                          onClick={() => handleInitiatePayment(10)}
+                          disabled={isProcessing}
+                          className="w-full py-2 px-4 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-amber-500/30 hover:border-amber-500/60 text-stone-300 hover:text-amber-200 text-xs font-mono transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                        >
+                          <FlaskConical className="w-4 h-4 text-amber-400 shrink-0" />
+                          <span>Проверить эквайринг: тестовый платёж 10 ₽ (Админ)</span>
+                        </button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="w-full py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-center font-bold text-xs">

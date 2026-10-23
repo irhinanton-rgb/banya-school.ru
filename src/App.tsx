@@ -42,9 +42,11 @@ import {
   fetchProgressFromCloud,
   mergeUserProgress,
 } from './firebase/progressSync';
+import { isAdminEmail } from './firebase/config';
 import { sendCoursePurchaseNotification } from './firebase/adminMessageService';
 
 const STORAGE_KEY = 'banya_quest_master_progress_v1';
+const LAST_UID_KEY = 'banya_quest_last_uid_v1';
 
 const INITIAL_PROGRESS: UserProgress = {
   name: 'Александр Мастеров',
@@ -62,6 +64,7 @@ export default function App() {
   const [authInitialMode, setAuthInitialMode] = useState<'signup' | 'signin'>('signup');
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
   const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
+  const prevUserUidRef = React.useRef<string | null>(user?.uid || null);
 
   const [progress, setProgress] = useState<UserProgress>(() => {
     try {
@@ -186,7 +189,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // YooKassa Payment Return Listener (?payment=success)
+  // YooKassa Payment Return Listener (?payment=success or ?payment_success=1)
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState<boolean>(false);
   const [successfulOrderId, setSuccessfulOrderId] = useState<string>('');
 
@@ -194,37 +197,53 @@ export default function App() {
     if (typeof window === 'undefined') return;
     try {
       const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.get('payment') === 'success') {
-        const orderId = searchParams.get('orderId') || '';
+      const isSuccessReturn =
+        searchParams.get('payment') === 'success' || searchParams.get('payment_success') === '1';
+
+      if (isSuccessReturn) {
+        const orderId = searchParams.get('orderId') || searchParams.get('order_id') || '';
         const amount = searchParams.get('amount') || '3390.00';
 
         // Verify that this browser session actually initiated a matching payment order
         const rawPending = localStorage.getItem('pq_pending_payment');
+        const legacyPendingOrderId = localStorage.getItem('banya_pending_order_id');
         let isVerifiedSessionOrder = false;
+        let isTestOrder = Number(amount) === 10;
+
         if (rawPending && orderId) {
           try {
             const pending = JSON.parse(rawPending);
             const ageMs = Date.now() - Number(pending?.createdAt || 0);
-            if (pending?.orderId === orderId && ageMs >= 0 && ageMs < 24 * 60 * 60 * 1000) {
+            const matchesOrder =
+              pending?.orderId === orderId || pending?.clientOrderId === orderId;
+            if (matchesOrder && ageMs >= 0 && ageMs < 24 * 60 * 60 * 1000) {
               isVerifiedSessionOrder = true;
+              if (pending?.isTest) isTestOrder = true;
             }
           } catch {
             // ignore parse error
           }
+        } else if (legacyPendingOrderId && orderId && legacyPendingOrderId === orderId) {
+          isVerifiedSessionOrder = true;
         }
 
         if (isVerifiedSessionOrder) {
           localStorage.removeItem('pq_pending_payment');
+          localStorage.removeItem('banya_pending_order_id');
           setSuccessfulOrderId(orderId);
           setShowPaymentSuccessModal(true);
-          handleActivatePaidTier(orderId);
+
+          // Activate paid tier if this was a real course payment (or admin test)
+          if (!isTestOrder || isAdminEmail(user?.email)) {
+            handleActivatePaidTier(orderId);
+          }
 
           // Send instant notification to Telegram bot
           sendCoursePurchaseNotification({
             orderId,
-            amount: Number(amount) === 10 ? '10 ₽ (тестовая)' : '3 390 ₽',
+            amount: isTestOrder ? '10 ₽ (тестовая проверка)' : `${Math.round(Number(amount) || 3390)} ₽`,
             userName: progress.name || user?.displayName || 'Ученик',
-            userEmail: user?.email || '',
+            userEmail: user?.email || localStorage.getItem('banya_buyer_contact') || '',
           }).catch((err) => console.warn('Payment telegram notification warning:', err));
 
           try {
@@ -247,10 +266,8 @@ export default function App() {
     }
   }, []);
 
-  // Automatic admin promotion strictly for verified Firebase Auth admin emails
-  const isVerifiedAdminEmail =
-    user?.email?.toLowerCase() === 'irhinanton@gmail.com' ||
-    user?.email?.toLowerCase() === 'aniwalker1998@gmail.com';
+  // Automatic admin promotion strictly for the sole verified owner email (irhin_anton@mail.ru)
+  const isVerifiedAdminEmail = isAdminEmail(user?.email);
 
   useEffect(() => {
     if (isVerifiedAdminEmail) {
@@ -338,10 +355,35 @@ export default function App() {
     }
   }, [progress]);
 
-  // When user logs in, fetch cloud progress and merge
+  // Isolate localStorage across account switches / logouts and sync with Firestore
   useEffect(() => {
+    // If a logged-in user just signed out, clear cached progress so paid/admin state never leaks to guests or other accounts
+    if (prevUserUidRef.current && !user) {
+      prevUserUidRef.current = null;
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LAST_UID_KEY);
+      } catch {
+        // ignore
+      }
+      setProgress(INITIAL_PROGRESS);
+      return;
+    }
+
     if (!user) return;
     const currentUser = user;
+    prevUserUidRef.current = currentUser.uid;
+
+    let isDifferentUserFromCache = false;
+    try {
+      const cachedUid = localStorage.getItem(LAST_UID_KEY);
+      if (cachedUid && cachedUid !== currentUser.uid) {
+        isDifferentUserFromCache = true;
+      }
+      localStorage.setItem(LAST_UID_KEY, currentUser.uid);
+    } catch {
+      // ignore
+    }
 
     let isCancelled = false;
     async function loadCloud() {
@@ -351,10 +393,21 @@ export default function App() {
         if (isCancelled) return;
 
         if (remote) {
-          setProgress((prev) => mergeUserProgress(prev, remote));
+          setProgress((prev) =>
+            mergeUserProgress(isDifferentUserFromCache ? INITIAL_PROGRESS : prev, remote)
+          );
         } else {
-          // Push local progress to cloud
-          await syncProgressToCloud(currentUser, progress);
+          // New cloud profile: if switching from another account, start fresh instead of leaking previous user's localStorage
+          const baseProgress = isDifferentUserFromCache
+            ? {
+                ...INITIAL_PROGRESS,
+                name: currentUser.displayName || INITIAL_PROGRESS.name,
+              }
+            : progress;
+          if (isDifferentUserFromCache) {
+            setProgress(baseProgress);
+          }
+          await syncProgressToCloud(currentUser, baseProgress);
         }
         setLastSyncedTime(
           new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
