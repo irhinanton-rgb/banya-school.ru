@@ -55,10 +55,21 @@ test('payment status endpoint rejects requests without a Firebase ID token', asy
 });
 
 
-test('admin notifications reject requests without a Firebase ID token', async () => {
-  const { default: handler } = await import('../api/admin-notification.js?test=unauthenticated');
+test('guests cannot forge payment notifications', async () => {
+  const { default: handler } = await import('../api/admin-notification.js?test=guest-payment');
   const res = responseRecorder();
-  await handler({ method: 'POST', headers: {}, body: { type: 'question', message: 'test' } }, res);
+  await handler({ method: 'POST', headers: {}, body: { type: 'payment', message: 'fake payment' } }, res);
   assert.equal(res.statusCode, 401);
-  assert.equal(res.body?.error, 'Authentication required');
+  assert.equal(res.body?.error, 'Authentication required for this notification type');
+});
+
+test('guest question is not reported as delivered when Telegram is not configured', async () => {
+  delete process.env.PARMASTER_BOT_TOKEN;
+  delete process.env.TELEGRAM_BOT_TOKEN;
+  delete process.env.TELEGRAM_ADMIN_CHAT_ID;
+  const { default: handler } = await import('../api/admin-notification.js?test=guest-question-no-telegram');
+  const res = responseRecorder();
+  await handler({ method: 'POST', headers: {}, body: { type: 'question', message: 'test question' } }, res);
+  assert.equal(res.statusCode, 503);
+  assert.equal(res.body?.success, undefined);
 });
