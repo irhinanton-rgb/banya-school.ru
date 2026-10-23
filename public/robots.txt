@@ -1,5 +1,15 @@
+User-agent: Yandex
+Allow: /
+Disallow: /api/
+Clean-param: ref&utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid&gclid&payment&payment_success&orderId&order_id&amount /
+
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+
 User-agent: *
 Allow: /
+Disallow: /api/
 
+Host: https://banya-school.ru
 Sitemap: https://banya-school.ru/sitemap.xml
-Host: banya-school.ru

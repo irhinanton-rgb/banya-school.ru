@@ -44,6 +44,11 @@ import {
 } from './firebase/progressSync';
 import { isAdminEmail } from './firebase/config';
 import { sendCoursePurchaseNotification } from './firebase/adminMessageService';
+import {
+  SEO_PAGES,
+  findSeoPageByPathname,
+  applyDynamicSeoMeta,
+} from './seo/seoPagesData';
 
 const STORAGE_KEY = 'banya_quest_master_progress_v1';
 const LAST_UID_KEY = 'banya_quest_last_uid_v1';
@@ -126,9 +131,10 @@ export default function App() {
     return false;
   });
 
-  // SEO Deep-Link & Referral URL Listener (?herb=..., ?brooms=..., ?topic=..., ?ref=...)
+  // SEO Clean Path, Deep-Link & Referral URL Listener (/veniki, /travy, ?herb=..., ?brooms=..., ?topic=..., ?ref=...)
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const seoPage = findSeoPageByPathname(window.location.pathname);
     const params = new URLSearchParams(window.location.search);
     const herbParam = params.get('herb');
     const broomParam = params.get('broom') || params.get('brooms');
@@ -136,30 +142,70 @@ export default function App() {
     const protocolParam = params.get('protocol');
     const refParam = params.get('ref');
 
-    if (herbParam) {
+    if (seoPage) {
+      setShowHero(false);
+      setActiveTab(seoPage.targetTab);
+      if (seoPage.targetTab === 'handbook' && seoPage.handbookTab) {
+        setHandbookInitialTab(seoPage.handbookTab);
+        setHandbookInitialQuery('');
+      } else if (seoPage.targetTab === 'quest') {
+        setQuestViewMode('map');
+      }
+      applyDynamicSeoMeta({
+        title: seoPage.title,
+        description: seoPage.description,
+        canonicalPath: seoPage.path,
+      });
+    } else if (herbParam) {
       setShowHero(false);
       setActiveTab('handbook');
       setHandbookInitialTab('herbs');
-      setHandbookInitialQuery(herbParam);
-      document.title = `${herbParam} в русской бане: как запаривать и полезные свойства — Справочник Пармастера`;
+      setHandbookInitialQuery(herbParam === 'all' ? '' : herbParam);
+      applyDynamicSeoMeta({
+        title:
+          herbParam === 'all'
+            ? 'Травы для бани и парной: полынь, донник, таволга, пихта — Фитотека'
+            : `${herbParam} в русской бане: как запаривать и полезные свойства — Справочник Пармастера`,
+        description:
+          'Полный справочник 22 целебных трав для русской бани: как заваривать и подавать полынь, донник, таволгу, мяту, чабрец и эвкалипт без гари.',
+        canonicalPath: '/travy',
+      });
     } else if (broomParam) {
       setShowHero(false);
       setActiveTab('handbook');
       setHandbookInitialTab('brooms');
       setHandbookInitialQuery(broomParam === 'all' ? '' : broomParam);
-      document.title = `Как правильно запаривать банный веник (${broomParam}) — Школа Банного Мастерства`;
+      applyDynamicSeoMeta({
+        title:
+          broomParam === 'all'
+            ? 'Как правильно запаривать дубовый, берёзовый и пихтовый веник для бани — Справочник'
+            : `Как правильно запаривать банный веник (${broomParam}) — Школа Банного Мастерства`,
+        description:
+          'Пошаговое руководство пармастера: как запарить дубовый, берёзовый, пихтовый, липовый и эвкалиптовый веник без кипятка.',
+        canonicalPath: '/veniki',
+      });
     } else if (protocolParam) {
       setShowHero(false);
       setActiveTab('handbook');
       setHandbookInitialTab('protocols');
       setHandbookInitialQuery(protocolParam === 'all' ? '' : protocolParam);
-      document.title = `Техкарты и приёмы парения в русской бане — Пармастер Квест`;
+      applyDynamicSeoMeta({
+        title: 'Приёмы и техника парения веником в русской бане: 8 базовых движений пармастера',
+        description:
+          'Изучите 8 профессиональных приёмов работы двумя вениками: омахивание, опахивание, припарка, потряхивание, единичка, двойка и растирка.',
+        canonicalPath: '/priemy-pareniya',
+      });
     } else if (topicParam) {
       setShowHero(false);
       setActiveTab('handbook');
       setHandbookInitialTab('glossary');
       setHandbookInitialQuery(topicParam);
-      document.title = `${topicParam} — Энциклопедия Русской Бани | banya-school.ru`;
+      applyDynamicSeoMeta({
+        title: `${topicParam} — Энциклопедия Русской Бани | banya-school.ru`,
+        description:
+          'Интерактивная энциклопедия банного мастерства: термины парной, виды веников, фитотека 22 трав, термодинамика печи и техкарты парения.',
+        canonicalPath: '/spravochnik',
+      });
     }
 
     // Grant +50 welcome referral XP if visitor arrived via friend's ?ref= link
@@ -184,6 +230,20 @@ export default function App() {
       const p = window.location.pathname.toLowerCase();
       const s = window.location.search.toLowerCase();
       setIsRequisitesRoute(p.includes('requisites') || p.includes('inn') || p.includes('legal') || s.includes('requisites'));
+      const matchedSeo = findSeoPageByPathname(p);
+      if (matchedSeo) {
+        setShowHero(false);
+        setActiveTab(matchedSeo.targetTab);
+        if (matchedSeo.targetTab === 'handbook' && matchedSeo.handbookTab) {
+          setHandbookInitialTab(matchedSeo.handbookTab);
+          setHandbookInitialQuery('');
+        }
+        applyDynamicSeoMeta({
+          title: matchedSeo.title,
+          description: matchedSeo.description,
+          canonicalPath: matchedSeo.path,
+        });
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -1025,80 +1085,123 @@ export default function App() {
 
       {/* Footer */}
       <footer className="w-full border-t border-stone-800/80 bg-stone-950 py-6 pb-24 md:pb-6 print:hidden">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
-          <div>
-            © {new Date().getFullYear()} Пармастер Квест: Путь к Мастерству · banya-school.ru
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-            <button
-              type="button"
-              onClick={() => setShowPricingModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-200 border border-amber-500/40 transition-all font-semibold cursor-pointer flex items-center gap-1.5"
-            >
-              <span>🎁</span>
-              <span>Подарить курс</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const shareText = '🌿 Интерактивная школа банного мастерства «Пармастер Квест»: симулятор печи, веники и 22 целебные травы! Первые 2 уровня бесплатно:';
-                window.open(
-                  `https://t.me/share/url?url=${encodeURIComponent('https://banya-school.ru')}&text=${encodeURIComponent(shareText)}`,
-                  '_blank',
-                  'noopener,noreferrer'
-                );
-              }}
-              className="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition-all font-semibold cursor-pointer flex items-center gap-1"
-              title="Поделиться проектом в Telegram"
-            >
-              <span>✈️</span>
-              <span>Поделиться в TG</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const shareText = '🌿 Интерактивная школа банного мастерства «Пармастер Квест»: симулятор печи, веники и травы!';
-                window.open(
-                  `https://vk.com/share.php?url=${encodeURIComponent('https://banya-school.ru')}&title=${encodeURIComponent(shareText)}`,
-                  '_blank',
-                  'noopener,noreferrer'
-                );
-              }}
-              className="px-2.5 py-1.5 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 text-blue-300 border border-blue-500/30 transition-all font-semibold cursor-pointer flex items-center gap-1"
-              title="Поделиться проектом ВКонтакте"
-            >
-              <span>📘</span>
-              <span>ВКонтакте</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowPartnershipModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-amber-200 border border-amber-500/30 transition-all font-semibold cursor-pointer flex items-center gap-1.5"
-            >
-              <span>🤝</span>
-              <span>Сотрудничество · Реклама · B2B</span>
-            </button>
-            <span aria-hidden="true">·</span>
-            <button
-              onClick={() => handleOpenLegal('offer')}
-              className="hover:text-stone-300 transition-colors cursor-pointer"
-            >
-              Публичная оферта
-            </button>
-            <span aria-hidden="true">·</span>
-            <button
-              onClick={() => handleOpenLegal('privacy')}
-              className="hover:text-stone-300 transition-colors cursor-pointer"
-            >
-              Политика 152-ФЗ
-            </button>
-            <span aria-hidden="true">·</span>
-            <button
-              onClick={() => handleOpenLegal('requisites')}
-              className="hover:text-stone-300 transition-colors cursor-pointer"
-            >
-              Реквизиты самозанятого
-            </button>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
+          {/* Crawlable SEO Knowledge Links for Search Engines & Quick Topic Access */}
+          <nav
+            aria-label="Разделы банной энциклопедии и обучения"
+            className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1.5 text-[11px] text-stone-500 border-b border-stone-900 pb-3"
+          >
+            <span className="text-stone-400 font-mono uppercase tracking-wider text-[10px]">
+              База знаний:
+            </span>
+            {SEO_PAGES.map((page) => {
+              const shortLabel =
+                page. breadcrumbs[page.breadcrumbs.length - 1]?.name || page.slug;
+              return (
+                <a
+                  key={page.slug}
+                  href={page.path}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.history.pushState({}, page.title, page.path);
+                    setShowHero(false);
+                    setActiveTab(page.targetTab);
+                    if (page.targetTab === 'handbook' && page.handbookTab) {
+                      setHandbookInitialTab(page.handbookTab);
+                      setHandbookInitialQuery('');
+                    } else if (page.targetTab === 'quest') {
+                      setQuestViewMode('map');
+                    }
+                    applyDynamicSeoMeta({
+                      title: page.title,
+                      description: page.description,
+                      canonicalPath: page.path,
+                    });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="hover:text-amber-300 transition-colors"
+                >
+                  {shortLabel}
+                </a>
+              );
+            })}
+          </nav>
+
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
+            <div>
+              © {new Date().getFullYear()} Пармастер Квест: Путь к Мастерству · banya-school.ru
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+              <button
+                type="button"
+                onClick={() => setShowPricingModal(true)}
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-200 border border-amber-500/40 transition-all font-semibold cursor-pointer flex items-center gap-1.5"
+              >
+                <span>🎁</span>
+                <span>Подарить курс</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const shareText = '🌿 Интерактивная школа банного мастерства «Пармастер Квест»: симулятор печи, веники и 22 целебные травы! Первые 2 уровня бесплатно:';
+                  window.open(
+                    `https://t.me/share/url?url=${encodeURIComponent('https://banya-school.ru')}&text=${encodeURIComponent(shareText)}`,
+                    '_blank',
+                    'noopener,noreferrer'
+                  );
+                }}
+                className="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition-all font-semibold cursor-pointer flex items-center gap-1"
+                title="Поделиться проектом в Telegram"
+              >
+                <span>✈️</span>
+                <span>Поделиться в TG</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const shareText = '🌿 Интерактивная школа банного мастерства «Пармастер Квест»: симулятор печи, веники и травы!';
+                  window.open(
+                    `https://vk.com/share.php?url=${encodeURIComponent('https://banya-school.ru')}&title=${encodeURIComponent(shareText)}`,
+                    '_blank',
+                    'noopener,noreferrer'
+                  );
+                }}
+                className="px-2.5 py-1.5 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 text-blue-300 border border-blue-500/30 transition-all font-semibold cursor-pointer flex items-center gap-1"
+                title="Поделиться проектом ВКонтакте"
+              >
+                <span>📘</span>
+                <span>ВКонтакте</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPartnershipModal(true)}
+                className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-amber-200 border border-amber-500/30 transition-all font-semibold cursor-pointer flex items-center gap-1.5"
+              >
+                <span>🤝</span>
+                <span>Сотрудничество · Реклама · B2B</span>
+              </button>
+              <span aria-hidden="true">·</span>
+              <button
+                onClick={() => handleOpenLegal('offer')}
+                className="hover:text-stone-300 transition-colors cursor-pointer"
+              >
+                Публичная оферта
+              </button>
+              <span aria-hidden="true">·</span>
+              <button
+                onClick={() => handleOpenLegal('privacy')}
+                className="hover:text-stone-300 transition-colors cursor-pointer"
+              >
+                Политика 152-ФЗ
+              </button>
+              <span aria-hidden="true">·</span>
+              <button
+                onClick={() => handleOpenLegal('requisites')}
+                className="hover:text-stone-300 transition-colors cursor-pointer"
+              >
+                Реквизиты самозанятого
+              </button>
+            </div>
           </div>
         </div>
       </footer>

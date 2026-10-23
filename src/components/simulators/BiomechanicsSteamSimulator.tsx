@@ -25,6 +25,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { TermTooltip } from '../TermTooltip';
+import { RhythmMetronomeTrainer } from './RhythmMetronomeTrainer';
 
 interface BiomechanicsSteamSimulatorProps {
   soundEnabled: boolean;
@@ -792,6 +793,14 @@ export const BiomechanicsSteamSimulator: React.FC<BiomechanicsSteamSimulatorProp
           isLastSection={true}
         />
       )}
+
+      {/* ========================================================= */}
+      {/* КЛАССИЧЕСКИЙ МЕТРОНОМ, ЭТАЛОННЫЕ АУДИО И ПРОВЕРКА МИКРОФОНОМ */}
+      {/* ========================================================= */}
+      <RhythmMetronomeTrainer
+        soundEnabled={soundEnabled}
+        onGrantXp={onGrantXp}
+      />
 
       {/* ========================================================= */}
       {/* КОВАНЫЙ СУНДУК ТАЙНЫХ ЗНАНИЙ (ПРЯМО НА 3-М УРОВНЕ!) */}

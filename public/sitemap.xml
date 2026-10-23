@@ -2,74 +2,56 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://banya-school.ru/</loc>
-    <lastmod>2026-10-21</lastmod>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://banya-school.ru/?brooms=all</loc>
-    <lastmod>2026-10-21</lastmod>
+    <loc>https://banya-school.ru/kurs-parmastera</loc>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://banya-school.ru/?herb=all</loc>
-    <lastmod>2026-10-21</lastmod>
+    <loc>https://banya-school.ru/spravochnik</loc>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://banya-school.ru/?protocol=all</loc>
-    <lastmod>2026-10-21</lastmod>
+    <loc>https://banya-school.ru/veniki</loc>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://banya-school.ru/?topic=par</loc>
-    <lastmod>2026-10-21</lastmod>
+    <loc>https://banya-school.ru/travy</loc>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://banya-school.ru/?herb=%D0%BF%D0%BE%D0%BB%D1%8B%D0%BD%D1%8C</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://banya-school.ru/priemy-pareniya</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://banya-school.ru/?herb=%D0%B4%D0%BE%D0%BD%D0%BD%D0%B8%D0%BA</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://banya-school.ru/pravilo-60-60</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
   </url>
   <url>
-    <loc>https://banya-school.ru/?herb=%D0%BF%D0%B8%D1%85%D1%82%D0%B0</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://banya-school.ru/?herb=%D1%82%D0%B0%D0%B2%D0%BE%D0%BB%D0%B3%D0%B0</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://banya-school.ru/?herb=%D1%87%D0%B0%D0%B1%D1%80%D0%B5%D1%86</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://banya-school.ru/?herb=%D0%BC%D1%8F%D1%82%D0%B0</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://banya-school.ru/bezopasnost-v-bane</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
   </url>
   <url>
     <loc>https://banya-school.ru/legal</loc>
-    <lastmod>2026-10-21</lastmod>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.60</priority>
   </url>
 </urlset>
