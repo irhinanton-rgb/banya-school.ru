@@ -1,5 +1,6 @@
 import https from 'https';
 import { broadcastToAdmins, escapeHtml } from './telegram-notifier.js';
+import { getOrder, updateOrder, grantPaidEntitlement } from './_lib/firebase-admin-rest.js';
 
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
@@ -70,9 +71,46 @@ export default async function handler(req, res) {
       const metadata = verifiedPayment?.metadata || {};
 
       // Never treat arbitrary successful payments (including 10 RUB tests) as course purchases.
-      if (currency !== 'RUB' || amountVal !== '3390.00' || metadata?.isTest === true || !metadata?.orderId) {
+      if (currency !== 'RUB' || amountVal !== '3390.00' || metadata?.isTest === true || typeof metadata?.orderId !== 'string' || !metadata.orderId) {
         console.warn('[YooKassa Webhook]: Payment does not match a full course order:', incomingPayment.id);
         return res.status(400).json({ error: 'Payment does not match a course order' });
+      }
+
+      // Match the verified gateway payment to a server-created order before granting access.
+      let order;
+      try {
+        order = await getOrder(metadata.orderId);
+      } catch (error) {
+        console.error('[YooKassa Webhook]: Could not read payment order:', error);
+        return res.status(503).json({ error: 'Order verification temporarily unavailable' });
+      }
+      if (
+        !order ||
+        order.orderId !== metadata.orderId ||
+        order.paymentId !== verifiedPayment.id ||
+        order.userId !== metadata.userId ||
+        order.amount !== amountVal ||
+        order.currency !== currency ||
+        order.tariff !== 'master_pro'
+      ) {
+        console.warn('[YooKassa Webhook]: Payment does not match a stored order:', verifiedPayment.id);
+        return res.status(400).json({ error: 'Payment does not match a stored order' });
+      }
+
+      if (order.status === 'succeeded') {
+        return res.status(200).json({ status: 'already_processed' });
+      }
+
+      try {
+        await grantPaidEntitlement(order.userId, order.orderId, verifiedPayment.created_at || new Date().toISOString());
+        await updateOrder(order.orderId, {
+          status: 'succeeded',
+          paidAt: new Date().toISOString(),
+          verifiedPaymentId: verifiedPayment.id,
+        });
+      } catch (error) {
+        console.error('[YooKassa Webhook]: Could not grant course entitlement:', error);
+        return res.status(503).json({ error: 'Payment verified; entitlement processing will retry' });
       }
 
       broadcastToAdmins(
@@ -87,7 +125,7 @@ export default async function handler(req, res) {
           verifiedPayment?.description ? `📝 <b>Назначение:</b> ${escapeHtml(verifiedPayment.description)}` : null,
           `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
           ``,
-          `⚠️ <i>Платёж подтверждён шлюзом. Перед выдачей доступа необходимо сверить заказ и пользователя.</i>`,
+          `✅ <i>Платёж сверён с заказом; доступ к курсу выдан.</i>`,
         ].filter(Boolean).join('\n')
       ).catch((e) => console.warn('TG webhook notify warning:', e));
 
