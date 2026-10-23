@@ -1,6 +1,6 @@
 import https from 'https';
 import { broadcastToAdmins, escapeHtml } from './telegram-notifier.js';
-import { getOrder, updateOrder, grantPaidEntitlement } from './_lib/firebase-admin-rest.js';
+import { getOrder, updateOrder, grantPaidEntitlement } from '../server/firebase-admin-rest.js';
 
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
