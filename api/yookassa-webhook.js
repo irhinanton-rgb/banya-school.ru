@@ -1,13 +1,17 @@
 import https from 'https';
 import { broadcastToAdmins, escapeHtml } from './telegram-notifier.js';
 
-const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID || '1485718';
-const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY || 'live_pko1h4rfqyVG9Un0_S8qJAHmitTEhR6u2od3psGUd5s';
+const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
+const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
 
 /**
  * Verify payment status directly from YooKassa API so spoofed webhook POST requests are rejected.
  */
 function fetchVerifiedPayment(paymentId) {
+  if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY) {
+    console.error('YooKassa credentials are not configured.');
+    return Promise.resolve(null);
+  }
   return new Promise((resolve) => {
     if (!paymentId || typeof paymentId !== 'string' || !/^[a-zA-Z0-9_-]{10,64}$/.test(paymentId)) {
       return resolve(null);
@@ -61,9 +65,15 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Payment verification failed' });
       }
 
-      const amountVal = verifiedPayment?.amount?.value || '3390.00';
-      const currency = verifiedPayment?.amount?.currency || 'RUB';
+      const amountVal = verifiedPayment?.amount?.value;
+      const currency = verifiedPayment?.amount?.currency;
       const metadata = verifiedPayment?.metadata || {};
+
+      // Never treat arbitrary successful payments (including 10 RUB tests) as course purchases.
+      if (currency !== 'RUB' || amountVal !== '3390.00' || metadata?.isTest === true || !metadata?.orderId) {
+        console.warn('[YooKassa Webhook]: Payment does not match a full course order:', incomingPayment.id);
+        return res.status(400).json({ error: 'Payment does not match a course order' });
+      }
 
       broadcastToAdmins(
         [
@@ -77,7 +87,7 @@ export default async function handler(req, res) {
           verifiedPayment?.description ? `📝 <b>Назначение:</b> ${escapeHtml(verifiedPayment.description)}` : null,
           `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
           ``,
-          `👑 <i>Оплата успешно зачислена, доступ к курсу открыт на сайте!</i>`,
+          `⚠️ <i>Платёж подтверждён шлюзом. Перед выдачей доступа необходимо сверить заказ и пользователя.</i>`,
         ].filter(Boolean).join('\n')
       ).catch((e) => console.warn('TG webhook notify warning:', e));
 
@@ -91,6 +101,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ status: 'received' });
   } catch (error) {
     console.error('[YooKassa Webhook Error]:', error);
-    return res.status(200).json({ status: 'error_handled' });
+    return res.status(500).json({ error: 'Temporary webhook processing failure' });
   }
 }
