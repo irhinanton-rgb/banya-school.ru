@@ -110,7 +110,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     const trimmedName =
       buyerName.trim() || user?.displayName || progress.name || 'Ученик курса';
 
-    // Require contact for non-logged-in guests on full course payment so lead is never lost
+    // Paid access is tied to a verified Firebase account; guest orders cannot safely unlock a profile.
+    if (!user) {
+      setPaymentError('Перед оплатой войдите или зарегистрируйтесь: доступ будет привязан к вашему аккаунту.');
+      return;
+    }
+
     if (!customAmount && !trimmedContact) {
       setPaymentError(
         'Пожалуйста, укажите ваш телефон, @Telegram или Email для отправки чека и закрепления именного сертификата.'
@@ -155,10 +160,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
       for (const endpoint of endpoints) {
         try {
+          const idToken = await user.getIdToken();
           const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${idToken}`,
             },
             body: JSON.stringify({
               amount: amountToPay,
