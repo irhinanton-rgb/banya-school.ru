@@ -45,11 +45,8 @@ const MIN_SYNC_INTERVAL_MS = 800; // Rate-limiting guard against request floodin
 export async function syncProgressToCloud(user: User, progress: UserProgress): Promise<void> {
   if (!user || !user.uid) return;
 
-  // Never sync or persist test accounts
-  if (isTestAccountEmail(user.email)) {
-    await deleteUserFromDatabase(user.uid);
-    return;
-  }
+  // Test accounts are excluded from cloud sync, but sign-in must never delete stored data.
+  if (isTestAccountEmail(user.email)) return;
 
   const now = Date.now();
   if (now - lastSyncTimestamp < MIN_SYNC_INTERVAL_MS) {
@@ -157,10 +154,8 @@ export async function purgeTestAccountsFromDatabase(): Promise<{
 export async function fetchProgressFromCloud(user: User): Promise<Partial<UserProgress> | null> {
   if (!user || !user.uid) return null;
 
-  if (isTestAccountEmail(user.email)) {
-    await deleteUserFromDatabase(user.uid);
-    return null;
-  }
+  // Do not load test-account progress, but never delete records automatically during sign-in.
+  if (isTestAccountEmail(user.email)) return null;
 
   const progressPath = `users/${user.uid}/progress/current`;
   const isOwnerAdmin = isAdminEmail(user.email);
