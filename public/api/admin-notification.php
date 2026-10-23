@@ -53,12 +53,13 @@ if ($message === '') {
     echo json_encode(['error' => 'Message is required'], JSON_UNESCAPED_UNICODE);
     exit;
 }
-$message = mb_substr($message, 0, 2000);
-$userName = mb_substr(trim((string)($body['userName'] ?? 'Гость курса')), 0, 100);
-$userEmail = mb_substr(trim((string)($body['userEmail'] ?? '')), 0, 150);
-$answer = mb_substr(trim((string)($body['answer'] ?? '')), 0, 1500);
-$level = mb_substr(trim((string)($body['currentLevel'] ?? '')), 0, 10);
-$source = mb_substr(trim((string)($body['referralSource'] ?? '')), 0, 120);
+$truncate = static fn(string $value, int $limit): string => function_exists('mb_substr') ? mb_substr($value, 0, $limit, 'UTF-8') : substr($value, 0, $limit);
+$message = $truncate($message, 2000);
+$userName = $truncate(trim((string)($body['userName'] ?? 'Гость курса')), 100);
+$userEmail = $truncate(trim((string)($body['userEmail'] ?? '')), 150);
+$answer = $truncate(trim((string)($body['answer'] ?? '')), 1500);
+$level = $truncate(trim((string)($body['currentLevel'] ?? '')), 10);
+$source = $truncate(trim((string)($body['referralSource'] ?? '')), 120);
 
 $ip = (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
 $rateFile = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'banya-notify-' . hash('sha256', $ip) . '.json';
@@ -88,6 +89,12 @@ fwrite($rateHandle, json_encode($timestamps));
 fflush($rateHandle);
 flock($rateHandle, LOCK_UN);
 fclose($rateHandle);
+
+if (!function_exists('curl_init')) {
+    http_response_code(503);
+    echo json_encode(['error' => 'Notification service temporarily unavailable'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 $token = getenv('PARMASTER_BOT_TOKEN') ?: getenv('TELEGRAM_BOT_TOKEN') ?: '';
 $chatId = getenv('TELEGRAM_ADMIN_CHAT_ID') ?: '';
