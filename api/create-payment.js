@@ -50,22 +50,23 @@ export default async function handler(req, res) {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const { amount, userEmail } = body;
-    const authorization = String(req.headers.authorization || '');
-    const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
-    const firebaseUser = await verifyFirebaseIdToken(idToken, process.env.FIREBASE_WEB_API_KEY);
-    if (!firebaseUser) {
-      return res.status(401).json({ error: 'Войдите в аккаунт перед оплатой курса.' });
-    }
 
-    // The server owns pricing. Do not accept client-selected/test amounts.
+    // Reject invalid prices and fail closed before any payment/order side effects.
     if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY || !process.env.FIREBASE_SERVICE_ACCOUNT_JSON || !process.env.FIREBASE_WEB_API_KEY) {
-      console.error('YooKassa credentials are not configured.');
+      console.error('Payment/Firebase server credentials are not configured.');
       return res.status(503).json({ error: 'Платёж временно недоступен. Свяжитесь с поддержкой.' });
     }
     if (Number(amount) !== 3390) {
       return res.status(400).json({ error: 'Стоимость заказа изменилась. Обновите страницу и повторите попытку.' });
     }
     const validAmount = '3390.00';
+
+    const authorization = String(req.headers.authorization || '');
+    const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+    const firebaseUser = await verifyFirebaseIdToken(idToken, process.env.FIREBASE_WEB_API_KEY);
+    if (!firebaseUser) {
+      return res.status(401).json({ error: 'Войдите в аккаунт перед оплатой курса.' });
+    }
     const paymentDesc = 'Курс Пармастера: Путь к Мастерству (Тариф Мастер PRO)';
 
     const idempotenceKey = crypto.randomUUID();
