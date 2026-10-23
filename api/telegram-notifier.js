@@ -1,15 +1,13 @@
 import https from 'https';
 
 // Credentials must be configured in the server environment. Never commit bot tokens.
-export const TELEGRAM_BOT_TOKEN = process.env.PARMASTER_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '';
+function getTelegramBotToken() {
+  return process.env.PARMASTER_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '';
+}
 
-export const ADMIN_CHAT_IDS = Array.from(
-  new Set(
-    [process.env.TELEGRAM_ADMIN_CHAT_ID]
-      .filter(Boolean)
-      .map(id => String(id).trim())
-  )
-);
+function getAdminChatIds() {
+  return Array.from(new Set([process.env.TELEGRAM_ADMIN_CHAT_ID].filter(Boolean).map((id) => String(id).trim())));
+}
 
 export function escapeHtml(str) {
   if (!str) return '';
@@ -20,7 +18,8 @@ export function escapeHtml(str) {
 }
 
 export async function sendTelegramToChat(chatId, text, extra = {}) {
-  if (!TELEGRAM_BOT_TOKEN || !chatId) {
+  const telegramBotToken = getTelegramBotToken();
+  if (!telegramBotToken || !chatId) {
     return { ok: false, error: 'Telegram bot token or chat ID is not configured' };
   }
   const payload = JSON.stringify({
@@ -36,7 +35,7 @@ export async function sendTelegramToChat(chatId, text, extra = {}) {
       {
         hostname: 'api.telegram.org',
         port: 443,
-        path: `/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        path: `/bot${telegramBotToken}/sendMessage`,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,11 +61,12 @@ export async function sendTelegramToChat(chatId, text, extra = {}) {
 }
 
 export async function broadcastToAdmins(text, extra = {}) {
-  if (!TELEGRAM_BOT_TOKEN || ADMIN_CHAT_IDS.length === 0) {
+  const adminChatIds = getAdminChatIds();
+  if (!getTelegramBotToken() || adminChatIds.length === 0) {
     return [{ ok: false, error: 'Telegram bot token or admin chat ID is not configured' }];
   }
   const results = await Promise.allSettled(
-    ADMIN_CHAT_IDS.map((chatId) => sendTelegramToChat(chatId, text, extra))
+    adminChatIds.map((chatId) => sendTelegramToChat(chatId, text, extra))
   );
   return results.map((r) => (r.status === 'fulfilled' ? r.value : { ok: false, error: r.reason }));
 }
