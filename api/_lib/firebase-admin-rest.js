@@ -123,28 +123,17 @@ export async function updateOrder(orderId, data) {
 
 export async function grantPaidEntitlement(uid, orderId, paidAt) {
   if (!uid || !/^[A-Za-z0-9_-]{1,128}$/.test(uid)) throw new Error('Invalid Firebase UID');
-  const existing = await firestoreRequest(`/users/${encodeURIComponent(uid)}/progress/current`);
-  const old = decodeDocument(existing);
-  const fields = {
-    userId: encodeValue(uid),
-    name: encodeValue(typeof old.name === 'string' && old.name ? old.name : 'Ученик курса'),
-    xp: encodeValue(typeof old.xp === 'number' ? old.xp : 0),
-    completedLevels: encodeValue(Array.isArray(old.completedLevels) ? old.completedLevels : []),
-    unlockedBadges: encodeValue(Array.isArray(old.unlockedBadges) ? old.unlockedBadges : []),
-    activeLevelId: encodeValue(typeof old.activeLevelId === 'number' ? old.activeLevelId : 1),
-    examScore: encodeValue(typeof old.examScore === 'number' ? old.examScore : 0),
-    certifiedDate: encodeValue(typeof old.certifiedDate === 'string' ? old.certifiedDate : ''),
-    tariff: encodeValue('master_pro'),
-    isPaid: encodeValue(true),
-    paidAt: encodeValue(paidAt),
-    orderId: encodeValue(orderId),
-    bio: encodeValue(typeof old.bio === 'string' ? old.bio : ''),
-    banyaStatus: encodeValue(typeof old.banyaStatus === 'string' ? old.banyaStatus : ''),
-    city: encodeValue(typeof old.city === 'string' ? old.city : ''),
-    favoriteBrooms: encodeValue(Array.isArray(old.favoriteBrooms) ? old.favoriteBrooms : []),
-    updatedAt: encodeValue(paidAt),
+  // Update only server-owned entitlement fields; do not overwrite student progress.
+  const data = {
+    tariff: 'master_pro',
+    isPaid: true,
+    paidAt,
+    orderId,
+    updatedAt: new Date().toISOString(),
   };
-  await firestoreRequest(`/users/${encodeURIComponent(uid)}/progress/current`, {
+  const fields = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, encodeValue(v)]));
+  const masks = Object.keys(data).map(k => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');
+  await firestoreRequest(`/users/${encodeURIComponent(uid)}/progress/current?${masks}`, {
     method: 'PATCH',
     body: JSON.stringify({ fields }),
   });
