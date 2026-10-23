@@ -215,17 +215,10 @@ export default function App() {
 
         if (isVerifiedSessionOrder) {
           localStorage.removeItem('pq_pending_payment');
+          // A browser return URL and localStorage are not proof of payment.
+          // Never grant course access or announce a successful purchase from client-controlled data.
           setSuccessfulOrderId(orderId);
           setShowPaymentSuccessModal(true);
-          handleActivatePaidTier(orderId);
-
-          // Send instant notification to Telegram bot
-          sendCoursePurchaseNotification({
-            orderId,
-            amount: Number(amount) === 10 ? '10 ₽ (тестовая)' : '3 390 ₽',
-            userName: progress.name || user?.displayName || 'Ученик',
-            userEmail: user?.email || '',
-          }).catch((err) => console.warn('Payment telegram notification warning:', err));
 
           try {
             confetti({
@@ -934,13 +927,13 @@ export default function App() {
             </div>
             <div className="space-y-2">
               <span className="text-xs font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
-                ЮKassa • Оплата успешно подтверждена
+                ЮKassa • Ожидается подтверждение платежа
               </span>
               <h3 className="text-2xl font-serif font-bold text-stone-100">
-                Добро пожаловать в «Мастер Пара PRO»!
+                Платёж отправлен на проверку
               </h3>
               <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                Ваш доступ к полному курсу, всем 7 станциям квеста, банным симуляторам и итоговой аттестации успешно открыт!
+                Мы не открываем курс только по возврату с платёжной страницы. Доступ появится после подтверждения платежа на сервере. Если проверка затянулась, обратитесь в поддержку с номером операции.
               </p>
             </div>
 
@@ -957,7 +950,7 @@ export default function App() {
               }}
               className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-sm transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
             >
-              Перейти к изучению курса
+              Вернуться на сайт
             </button>
           </div>
         </div>
