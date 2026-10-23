@@ -87,7 +87,7 @@ export default async function handler(req, res) {
       if (
         !order ||
         order.orderId !== metadata.orderId ||
-        order.paymentId !== verifiedPayment.id ||
+        (order.paymentId && order.paymentId !== verifiedPayment.id) ||
         order.userId !== metadata.userId ||
         order.amount !== amountVal ||
         order.currency !== currency ||
@@ -106,6 +106,7 @@ export default async function handler(req, res) {
         await updateOrder(order.orderId, {
           status: 'succeeded',
           paidAt: new Date().toISOString(),
+          paymentId: verifiedPayment.id,
           verifiedPaymentId: verifiedPayment.id,
         });
       } catch (error) {
