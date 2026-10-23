@@ -112,10 +112,7 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
           ? 100
           : 0,
       certifiedDate: String(progress.certifiedDate || '').slice(0, 64),
-      tariff: isOwnerAdmin || progress.tariff === 'master_pro' ? 'master_pro' : 'free',
-      isPaid: Boolean(isOwnerAdmin || progress.isPaid),
-      paidAt: String(progress.paidAt || '').slice(0, 64),
-      orderId: String(progress.orderId || '').slice(0, 64),
+      // Entitlement fields are written only by the trusted payment backend.
       bio: String(progress.bio || '').slice(0, 500),
       banyaStatus: String(progress.banyaStatus || '').slice(0, 100),
       city: String(progress.city || '').slice(0, 100),
