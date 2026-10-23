@@ -188,6 +188,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       }
 
       if (responseData && responseData.confirmationUrl) {
+        try {
+          if (responseData.orderId) {
+            localStorage.setItem('pq_pending_payment', JSON.stringify({
+              orderId: responseData.orderId,
+              createdAt: Date.now(),
+            }));
+          }
+        } catch {
+          // Payment flow still proceeds if browser storage is unavailable.
+        }
         window.location.href = responseData.confirmationUrl;
       } else {
         setPaymentError(lastError);
