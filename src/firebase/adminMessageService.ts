@@ -2,7 +2,7 @@ import {
   doc, 
   setDoc, 
 } from 'firebase/firestore';
-import { db } from './config';
+import { auth, db } from './config';
 
 export type AdminMessageType =
   | 'question'
@@ -182,6 +182,9 @@ export function formatTelegramMessageHtml(payload: AdminMessagePayload): string 
  */
 export async function sendServerTelegramNotification(payload: AdminMessagePayload): Promise<boolean> {
   const candidateEndpoints = ['/api/admin-notification'];
+  const currentUser = auth.currentUser;
+  if (!currentUser) return false;
+  const idToken = await currentUser.getIdToken();
 
   const bodyStr = JSON.stringify({
     ...payload,
@@ -194,7 +197,10 @@ export async function sendServerTelegramNotification(payload: AdminMessagePayloa
       const timer = setTimeout(() => controller.abort(), 6000);
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
         body: bodyStr,
         signal: controller.signal,
       });
