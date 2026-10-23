@@ -72,7 +72,11 @@ export default function App() {
           return {
             ...INITIAL_PROGRESS,
             ...parsed,
-            isAdmin: false, // Never trust isAdmin from client localStorage
+            isAdmin: false, // Never trust roles or paid entitlements from client localStorage
+            isPaid: false,
+            tariff: 'free',
+            paidAt: undefined,
+            orderId: undefined,
             completedLevels: Array.isArray(parsed.completedLevels) ? parsed.completedLevels : [],
             unlockedBadges: Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : [],
             quizScores: parsed.quizScores && typeof parsed.quizScores === 'object' ? parsed.quizScores : INITIAL_PROGRESS.quizScores,
