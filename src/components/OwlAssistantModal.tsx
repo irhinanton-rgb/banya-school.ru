@@ -137,7 +137,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
       setChatHistory(prev => [...prev, owlMsg]);
 
       // 2. Deliver question + Owl's answer to Anton's Telegram helper bot (@ParmasterQuest_bot)
-      await sendAdminMessage({
+      const notificationSent = await sendAdminMessage({
         type: 'question',
         message: question,
         answer: reply,
@@ -147,6 +147,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
         userEmail: userContact || user?.email || '',
         referralSource: referralSource === 'Другое' ? customReferral : referralSource,
       });
+      if (!notificationSent) throw new Error('Не удалось доставить уведомление наставнику в Telegram.');
 
     } catch (err: any) {
       console.error('Error handling question:', err);
@@ -165,13 +166,14 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
     setErrorStatus(null);
 
     try {
-      await sendAdminMessage({
+      const notificationSent = await sendAdminMessage({
         type: 'bug',
         message: bugText.trim(),
         userId: user?.uid || 'guest',
         userName: userName || progress.name || 'Гость курса',
         userEmail: userContact || user?.email || '',
       });
+      if (!notificationSent) throw new Error('Не удалось доставить баг-репорт наставнику в Telegram.');
 
       setSuccessStatus('Спасибо! Отчёт о неисправности передан администратору для исправления.');
       setBugText('');
@@ -194,7 +196,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
     const source = referralSource === 'Другое' ? customReferral.trim() : referralSource;
 
     try {
-      await sendAdminMessage({
+      const notificationSent = await sendAdminMessage({
         type: 'feedback',
         message: feedbackText.trim(),
         userId: user?.uid || 'guest',
@@ -202,6 +204,7 @@ export const OwlAssistantModal: React.FC<OwlAssistantModalProps> = ({
         userEmail: userContact || user?.email || '',
         referralSource: source,
       });
+      if (!notificationSent) throw new Error('Не удалось доставить отзыв наставнику в Telegram.');
 
       setSuccessStatus('Благодарим за тёплый отзыв и обратную связь! Сообщение отправлено наставнику.');
       setFeedbackText('');

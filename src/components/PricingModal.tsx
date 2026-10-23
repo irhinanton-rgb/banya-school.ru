@@ -88,22 +88,17 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   );
 
   const basePrice = 3390;
-  const xpDiscount = Math.min(500, progress.xpDiscountRub || 0);
-  const promoDiscount = appliedPromo ? 340 : 0;
-  const totalDiscount = Math.min(500, Math.max(xpDiscount, promoDiscount));
-  const finalPrice = basePrice - totalDiscount;
+  // Discounts stay disabled until the server validates promo codes and XP balance.
+  const xpDiscount = 0;
+  const promoDiscount = 0;
+  const totalDiscount = 0;
+  const finalPrice = basePrice;
   const availableXp = Math.max(0, (progress.xp || 0) - (progress.spentXp || 0));
 
   const handleApplyPromo = () => {
     playWoodTap(progress.soundEnabled);
-    const code = promoCodeInput.trim().toUpperCase();
-    if (code === 'BATYA10' || code === 'PAR10' || code === 'BANYA10' || code === 'GIFT10') {
-      setAppliedPromo(code);
-      setPromoMessage('Скидка 10% активирована: стоимость курса 3 050 ₽');
-    } else {
-      setAppliedPromo(null);
-      setPromoMessage('Промокод не найден (или обменяйте свои XP на скидку -250 ₽ / -500 ₽!)');
-    }
+    setAppliedPromo(null);
+    setPromoMessage('Промокоды и скидки за XP временно отключены до серверной проверки. Сейчас стоимость курса — 3 390 ₽.');
   };
 
   const handleInitiatePayment = async (customAmount?: number) => {
@@ -115,7 +110,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     const trimmedName =
       buyerName.trim() || user?.displayName || progress.name || 'Ученик курса';
 
-    // Require contact for non-logged-in guests on full course payment so lead is never lost
+    // Paid access is tied to a verified Firebase account; guest orders cannot safely unlock a profile.
+    if (!user) {
+      setPaymentError('Перед оплатой войдите или зарегистрируйтесь: доступ будет привязан к вашему аккаунту.');
+      return;
+    }
+
     if (!customAmount && !trimmedContact) {
       setPaymentError(
         'Пожалуйста, укажите ваш телефон, @Telegram или Email для отправки чека и закрепления именного сертификата.'
@@ -153,32 +153,27 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         }`,
       });
 
-      const endpoints = [
-        '/api/create-payment.php',
-        '/www/banya-school.ru/api/create-payment.php',
-        'https://banya-school.ru/api/create-payment.php',
-        '/api/create-payment',
-      ];
+      const endpoints = ['/api/create-payment'];
 
       let responseData: any = null;
       let lastError = 'Не удалось соединиться с платёжным шлюзом ЮKassa.';
 
       for (const endpoint of endpoints) {
         try {
+          const idToken = await user.getIdToken();
           const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${idToken}`,
             },
             body: JSON.stringify({
-              orderId,
               amount: amountToPay,
-              paymentMethod: selectedMethod,
+              userId: user?.uid || 'guest',
               userEmail: trimmedContact.includes('@') && !trimmedContact.startsWith('@')
                 ? trimmedContact
-                : user?.email || 'student@banya-school.ru',
+                : user?.email || '',
               userName: trimmedName,
-              returnUrl: `${window.location.origin}/?payment_success=1&order_id=${orderId}`,
             }),
           });
 
@@ -200,6 +195,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       }
 
       if (responseData && responseData.confirmationUrl) {
+        try {
+          if (responseData.orderId) {
+            localStorage.setItem('pq_pending_payment', JSON.stringify({
+              orderId: responseData.orderId,
+              createdAt: Date.now(),
+            }));
+          }
+        } catch {
+          // Payment flow still proceeds if browser storage is unavailable.
+        }
         window.location.href = responseData.confirmationUrl;
       } else {
         setPaymentError(lastError);
@@ -389,7 +394,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 </div>
 
                 {/* XP to Discount Banner */}
-                {onOpenXpRewards && (
+                {false && onOpenXpRewards && (
                   <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2 text-xs">
                     <div className="text-amber-200 leading-snug">
                       {xpDiscount >= 500 ? (
@@ -410,7 +415,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                       type="button"
                       onClick={() => {
                         onClose();
-                        onOpenXpRewards();
+                        onOpenXpRewards?.();
                       }}
                       className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] whitespace-nowrap cursor-pointer transition-colors shrink-0"
                     >

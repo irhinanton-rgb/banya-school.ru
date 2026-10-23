@@ -72,7 +72,11 @@ export default function App() {
           return {
             ...INITIAL_PROGRESS,
             ...parsed,
-            isAdmin: false, // Never trust isAdmin from client localStorage
+            isAdmin: false, // Never trust roles or paid entitlements from client localStorage
+            isPaid: false,
+            tariff: 'free',
+            paidAt: undefined,
+            orderId: undefined,
             completedLevels: Array.isArray(parsed.completedLevels) ? parsed.completedLevels : [],
             unlockedBadges: Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : [],
             quizScores: parsed.quizScores && typeof parsed.quizScores === 'object' ? parsed.quizScores : INITIAL_PROGRESS.quizScores,
@@ -189,6 +193,8 @@ export default function App() {
   // YooKassa Payment Return Listener (?payment=success)
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState<boolean>(false);
   const [successfulOrderId, setSuccessfulOrderId] = useState<string>('');
+  const [pendingPaymentOrderId, setPendingPaymentOrderId] = useState<string>('');
+  const [paymentVerificationStatus, setPaymentVerificationStatus] = useState<'checking' | 'pending' | 'succeeded' | 'failed' | 'unavailable'>('checking');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -196,7 +202,6 @@ export default function App() {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.get('payment') === 'success') {
         const orderId = searchParams.get('orderId') || '';
-        const amount = searchParams.get('amount') || '3390.00';
 
         // Verify that this browser session actually initiated a matching payment order
         const rawPending = localStorage.getItem('pq_pending_payment');
@@ -215,27 +220,12 @@ export default function App() {
 
         if (isVerifiedSessionOrder) {
           localStorage.removeItem('pq_pending_payment');
+          // A browser return URL and localStorage are not proof of payment.
+          // Never grant course access or announce a successful purchase from client-controlled data.
           setSuccessfulOrderId(orderId);
+          setPendingPaymentOrderId(orderId);
+          setPaymentVerificationStatus('checking');
           setShowPaymentSuccessModal(true);
-          handleActivatePaidTier(orderId);
-
-          // Send instant notification to Telegram bot
-          sendCoursePurchaseNotification({
-            orderId,
-            amount: Number(amount) === 10 ? '10 ₽ (тестовая)' : '3 390 ₽',
-            userName: progress.name || user?.displayName || 'Ученик',
-            userEmail: user?.email || '',
-          }).catch((err) => console.warn('Payment telegram notification warning:', err));
-
-          try {
-            confetti({
-              particleCount: 90,
-              spread: 60,
-              origin: { y: 0.6 }
-            });
-          } catch {
-            // ignore
-          }
         }
 
         // Clean query params from URL without refreshing
@@ -246,6 +236,72 @@ export default function App() {
       console.error('Error handling payment return:', e);
     }
   }, []);
+
+  // Poll the server-owned order status after returning from the payment provider.
+  useEffect(() => {
+    if (!user || !pendingPaymentOrderId) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+
+    const checkStatus = async () => {
+      try {
+        const idToken = await user.getIdToken();
+        const response = await fetch(`/api/payment-status?orderId=${encodeURIComponent(pendingPaymentOrderId)}`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 404 || response.status === 400) {
+            if (!cancelled) setPaymentVerificationStatus('unavailable');
+            return;
+          }
+          throw new Error('Payment status temporarily unavailable');
+        }
+
+        const order = await response.json();
+        if (cancelled) return;
+        if (order.status === 'succeeded') {
+          setPaymentVerificationStatus('succeeded');
+          const remote = await fetchProgressFromCloud(user);
+          if (!cancelled && remote) {
+            setProgress((prev) => mergeUserProgress(prev, remote));
+          }
+          try {
+            confetti({ particleCount: 90, spread: 60, origin: { y: 0.6 } });
+          } catch {
+            // ignore animation failures
+          }
+          localStorage.removeItem('pq_pending_payment');
+          return;
+        }
+        if (order.status === 'canceled' || order.status === 'creation_failed') {
+          setPaymentVerificationStatus('failed');
+          return;
+        }
+        setPaymentVerificationStatus('pending');
+        attempts += 1;
+        if (attempts < 20 && !cancelled) {
+          timer = setTimeout(checkStatus, 3000);
+        } else if (!cancelled) {
+          setPaymentVerificationStatus('unavailable');
+        }
+      } catch {
+        if (cancelled) return;
+        attempts += 1;
+        if (attempts < 20) {
+          timer = setTimeout(checkStatus, 3000);
+        } else {
+          setPaymentVerificationStatus('unavailable');
+        }
+      }
+    };
+
+    checkStatus();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [user, pendingPaymentOrderId]);
 
   // Automatic admin promotion strictly for verified Firebase Auth admin emails
   const isVerifiedAdminEmail =
@@ -934,13 +990,13 @@ export default function App() {
             </div>
             <div className="space-y-2">
               <span className="text-xs font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
-                ЮKassa • Оплата успешно подтверждена
+                ЮKassa • Ожидается подтверждение платежа
               </span>
               <h3 className="text-2xl font-serif font-bold text-stone-100">
-                Добро пожаловать в «Мастер Пара PRO»!
+                Платёж отправлен на проверку
               </h3>
               <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                Ваш доступ к полному курсу, всем 7 станциям квеста, банным симуляторам и итоговой аттестации успешно открыт!
+                Мы не открываем курс только по возврату с платёжной страницы. Доступ появится после подтверждения платежа на сервере. Если проверка затянулась, обратитесь в поддержку с номером операции.
               </p>
             </div>
 
@@ -957,7 +1013,7 @@ export default function App() {
               }}
               className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-sm transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
             >
-              Перейти к изучению курса
+              Вернуться на сайт
             </button>
           </div>
         </div>

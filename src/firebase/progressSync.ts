@@ -45,11 +45,8 @@ const MIN_SYNC_INTERVAL_MS = 800; // Rate-limiting guard against request floodin
 export async function syncProgressToCloud(user: User, progress: UserProgress): Promise<void> {
   if (!user || !user.uid) return;
 
-  // Never sync or persist test accounts
-  if (isTestAccountEmail(user.email)) {
-    await deleteUserFromDatabase(user.uid);
-    return;
-  }
+  // Test accounts are excluded from cloud sync, but sign-in must never delete stored data.
+  if (isTestAccountEmail(user.email)) return;
 
   const now = Date.now();
   if (now - lastSyncTimestamp < MIN_SYNC_INTERVAL_MS) {
@@ -112,10 +109,7 @@ export async function syncProgressToCloud(user: User, progress: UserProgress): P
           ? 100
           : 0,
       certifiedDate: String(progress.certifiedDate || '').slice(0, 64),
-      tariff: isOwnerAdmin || progress.tariff === 'master_pro' ? 'master_pro' : 'free',
-      isPaid: Boolean(isOwnerAdmin || progress.isPaid),
-      paidAt: String(progress.paidAt || '').slice(0, 64),
-      orderId: String(progress.orderId || '').slice(0, 64),
+      // Entitlement fields are written only by the trusted payment backend.
       bio: String(progress.bio || '').slice(0, 500),
       banyaStatus: String(progress.banyaStatus || '').slice(0, 100),
       city: String(progress.city || '').slice(0, 100),
@@ -141,54 +135,27 @@ export async function deleteUserFromDatabase(uid: string): Promise<boolean> {
   }
 }
 
-// Fetch all users in Firestore (for admin panel) and purge any non-owner test accounts
+/**
+ * Legacy destructive maintenance helper.
+ *
+ * Intentionally disabled: never bulk-delete user profiles based on email.
+ * If test data needs cleanup, use an explicit allowlist of verified test UIDs,
+ * preview the target list, and require a separate confirmation outside sign-in.
+ */
 export async function purgeTestAccountsFromDatabase(): Promise<{
   removedCount: number;
   keptAdminEmail: string;
 }> {
-  let removedCount = 0;
-  try {
-    // 1. Clean local storage from any legacy test caches
-    const keysToClean = [
-      'banya_school_forum_posts_v1',
-      'banya_school_forum_comments_v1',
-      'banya_community_chat_v1',
-      'banya_homework_submissions_v1',
-    ];
-    keysToClean.forEach((k) => {
-      try {
-        localStorage.removeItem(k);
-      } catch {}
-    });
-
-    // 2. Clean Firestore users collection if accessible
-    const usersSnap = await getDocs(collection(db, 'users'));
-    for (const userDoc of usersSnap.docs) {
-      const data = userDoc.data();
-      const email = String(data.email || '').trim().toLowerCase();
-      if (email !== ADMIN_EMAIL) {
-        await deleteUserFromDatabase(userDoc.id);
-        removedCount++;
-      }
-    }
-  } catch {
-    // Firestore rules may restrict listing all users if not yet deployed to remote project
-  }
-
-  return {
-    removedCount,
-    keptAdminEmail: ADMIN_EMAIL,
-  };
+  console.warn('Bulk account purge is disabled; no user data was changed.');
+  return { removedCount: 0, keptAdminEmail: ADMIN_EMAIL };
 }
 
 // Load progress from Firestore
 export async function fetchProgressFromCloud(user: User): Promise<Partial<UserProgress> | null> {
   if (!user || !user.uid) return null;
 
-  if (isTestAccountEmail(user.email)) {
-    await deleteUserFromDatabase(user.uid);
-    return null;
-  }
+  // Do not load test-account progress, but never delete records automatically during sign-in.
+  if (isTestAccountEmail(user.email)) return null;
 
   const progressPath = `users/${user.uid}/progress/current`;
   const isOwnerAdmin = isAdminEmail(user.email);
@@ -259,11 +226,9 @@ export function mergeUserProgress(
 
   const mergedXp = Math.max(local.xp || 0, remote.xp || 0);
   const highestLevel = Math.max(local.activeLevelId || 1, remote.activeLevelId || 1) as LevelId;
-  const isPaid = Boolean(local.isPaid || remote.isPaid || remote.isAdmin);
-  const tariff =
-    isPaid || local.tariff === 'master_pro' || remote.tariff === 'master_pro'
-      ? 'master_pro'
-      : 'free';
+  // Paid entitlements are server-authoritative. Never preserve localStorage/client claims.
+  const isPaid = Boolean(remote.isPaid || remote.isAdmin);
+  const tariff = isPaid && remote.tariff === 'master_pro' ? 'master_pro' : 'free';
 
   return {
     ...local,
@@ -279,7 +244,7 @@ export function mergeUserProgress(
     certifiedDate: remote.certifiedDate || local.certifiedDate,
     tariff,
     isPaid,
-    isAdmin: Boolean(remote.isAdmin || local.isAdmin),
+    isAdmin: Boolean(remote.isAdmin),
     paidAt: remote.paidAt || local.paidAt,
     orderId: remote.orderId || local.orderId,
     bio: remote.bio || local.bio,

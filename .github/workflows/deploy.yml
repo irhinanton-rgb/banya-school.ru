@@ -5,10 +5,39 @@ on:
     branches:
       - main
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 jobs:
+  validate-pr:
+    name: 🧪 Validate pull request
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: 📦 Install dependencies
+        run: npm ci
+      - name: 🧪 TypeScript check
+        run: npm run lint
+      - name: 🐘 Set up PHP for syntax validation
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: 🐘 Validate PHP notification endpoint
+        run: php -l public/api/admin-notification.php
+      - name: 🧪 Payment API regression tests
+        run: npm test
+      - name: 🔨 Build production site
+        run: npm run build
+
   web-deploy:
     name: 📦 Build & Deploy
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +51,13 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: 🧪 TypeScript check
+        run: npm run lint
+
+      - name: 🧪 Payment API regression tests
+        run: npm test
 
       - name: 🔨 Build Vite production site
         run: npm run build

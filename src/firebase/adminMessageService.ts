@@ -2,7 +2,7 @@ import {
   doc, 
   setDoc, 
 } from 'firebase/firestore';
-import { db } from './config';
+import { auth, db } from './config';
 
 export type AdminMessageType =
   | 'question'
@@ -35,9 +35,7 @@ export interface AdminMessageRecord extends AdminMessagePayload {
   status: 'new' | 'reviewed' | 'resolved';
 }
 
-// Helper bot @ParmasterQuest_bot for student questions, bugs, feedback, registrations & payments
-const PARMASTER_BOT_TOKEN = '8683515876:AAHzMeka0nuQG0Hc1lTJCNuPZRogpg-Lw_0';
-const ADMIN_CHAT_ID = '471147423';
+// Telegram credentials are server-only; never expose bot tokens in browser bundles.
 
 // In-memory deduplication cache to prevent duplicate broadcasts within 15 seconds
 const recentDispatches = new Map<string, number>();
@@ -180,43 +178,13 @@ export function formatTelegramMessageHtml(payload: AdminMessagePayload): string 
 }
 
 /**
- * 1. Direct browser -> Telegram Bot API (@ParmasterQuest_bot)
- */
-export async function sendDirectTelegram(payload: AdminMessagePayload): Promise<boolean> {
-  const text = formatTelegramMessageHtml(payload);
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5500);
-    const res = await fetch(`https://api.telegram.org/bot${PARMASTER_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: ADMIN_CHAT_ID,
-        text,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
-    if (!res.ok) return false;
-    const data = await res.json();
-    return Boolean(data?.ok);
-  } catch (err) {
-    console.warn('Direct Telegram API call failed, trying server proxy:', err);
-    return false;
-  }
-}
-
-/**
- * 2. Server proxy fallback (/api/admin-notification.php on PHP hosting or /api/admin-notification on Node)
+ * Deliver notifications through the server-side API only.
  */
 export async function sendServerTelegramNotification(payload: AdminMessagePayload): Promise<boolean> {
-  const candidateEndpoints = [
-    '/api/admin-notification.php',
-    '/www/banya-school.ru/api/admin-notification.php',
-    '/api/admin-notification',
-  ];
+  // Node serverless endpoint first; secure PHP endpoint is the fallback for FTP/PHP hosting.
+  const candidateEndpoints = ['/api/admin-notification', '/api/admin-notification.php'];
+  const currentUser = auth.currentUser;
+  const idToken = currentUser ? await currentUser.getIdToken() : null;
 
   const bodyStr = JSON.stringify({
     ...payload,
@@ -229,7 +197,10 @@ export async function sendServerTelegramNotification(payload: AdminMessagePayloa
       const timer = setTimeout(() => controller.abort(), 6000);
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+        },
         body: bodyStr,
         signal: controller.signal,
       });
@@ -291,14 +262,8 @@ export async function sendAdminMessage(payload: AdminMessagePayload): Promise<bo
     console.warn('Could not initiate Firestore log:', err);
   }
 
-  // 2. Deliver to Telegram helper bot (@ParmasterQuest_bot):
-  // Try server PHP/Node proxy first; if unavailable or blocked on hosting, send directly from browser
-  let delivered = await sendServerTelegramNotification(normalizedPayload);
-  if (!delivered) {
-    delivered = await sendDirectTelegram(normalizedPayload);
-  }
-
-  return delivered;
+  // Telegram delivery must stay server-side so credentials never enter the browser bundle.
+  return sendServerTelegramNotification(normalizedPayload);
 }
 
 /**
