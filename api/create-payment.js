@@ -1,6 +1,6 @@
 import https from 'https';
 import crypto from 'crypto';
-import { createOrder, updateOrder, verifyFirebaseIdToken } from './_lib/firebase-admin-rest.js';
+import { createOrder, updateOrder, verifyFirebaseIdToken } from '../server/firebase-admin-rest.js';
 
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
