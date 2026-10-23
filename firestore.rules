@@ -48,10 +48,10 @@ service cloud.firestore {
     }
 
     function paidEntitlementsUnchanged() {
-      return incoming().get('isPaid', false) == existing().get('isPaid', false)
-        && incoming().get('tariff', 'free') == existing().get('tariff', 'free')
-        && incoming().get('orderId', '') == existing().get('orderId', '')
-        && incoming().get('paidAt', '') == existing().get('paidAt', '');
+      return incoming().get('isPaid', existing().get('isPaid', false)) == existing().get('isPaid', false)
+        && incoming().get('tariff', existing().get('tariff', 'free')) == existing().get('tariff', 'free')
+        && incoming().get('orderId', existing().get('orderId', '')) == existing().get('orderId', '')
+        && incoming().get('paidAt', existing().get('paidAt', '')) == existing().get('paidAt', '');
     }
 
     function isValidUserProgress(data) {
