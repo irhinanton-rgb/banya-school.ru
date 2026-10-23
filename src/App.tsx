@@ -193,6 +193,8 @@ export default function App() {
   // YooKassa Payment Return Listener (?payment=success)
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState<boolean>(false);
   const [successfulOrderId, setSuccessfulOrderId] = useState<string>('');
+  const [pendingPaymentOrderId, setPendingPaymentOrderId] = useState<string>('');
+  const [paymentVerificationStatus, setPaymentVerificationStatus] = useState<'checking' | 'pending' | 'succeeded' | 'failed' | 'unavailable'>('checking');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -200,7 +202,6 @@ export default function App() {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.get('payment') === 'success') {
         const orderId = searchParams.get('orderId') || '';
-        const amount = searchParams.get('amount') || '3390.00';
 
         // Verify that this browser session actually initiated a matching payment order
         const rawPending = localStorage.getItem('pq_pending_payment');
@@ -222,17 +223,9 @@ export default function App() {
           // A browser return URL and localStorage are not proof of payment.
           // Never grant course access or announce a successful purchase from client-controlled data.
           setSuccessfulOrderId(orderId);
+          setPendingPaymentOrderId(orderId);
+          setPaymentVerificationStatus('checking');
           setShowPaymentSuccessModal(true);
-
-          try {
-            confetti({
-              particleCount: 90,
-              spread: 60,
-              origin: { y: 0.6 }
-            });
-          } catch {
-            // ignore
-          }
         }
 
         // Clean query params from URL without refreshing
@@ -243,6 +236,72 @@ export default function App() {
       console.error('Error handling payment return:', e);
     }
   }, []);
+
+  // Poll the server-owned order status after returning from the payment provider.
+  useEffect(() => {
+    if (!user || !pendingPaymentOrderId) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+
+    const checkStatus = async () => {
+      try {
+        const idToken = await user.getIdToken();
+        const response = await fetch(`/api/payment-status?orderId=${encodeURIComponent(pendingPaymentOrderId)}`, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 404 || response.status === 400) {
+            if (!cancelled) setPaymentVerificationStatus('unavailable');
+            return;
+          }
+          throw new Error('Payment status temporarily unavailable');
+        }
+
+        const order = await response.json();
+        if (cancelled) return;
+        if (order.status === 'succeeded') {
+          setPaymentVerificationStatus('succeeded');
+          const remote = await fetchProgressFromCloud(user);
+          if (!cancelled && remote) {
+            setProgress((prev) => mergeUserProgress(prev, remote));
+          }
+          try {
+            confetti({ particleCount: 90, spread: 60, origin: { y: 0.6 } });
+          } catch {
+            // ignore animation failures
+          }
+          localStorage.removeItem('pq_pending_payment');
+          return;
+        }
+        if (order.status === 'canceled' || order.status === 'creation_failed') {
+          setPaymentVerificationStatus('failed');
+          return;
+        }
+        setPaymentVerificationStatus('pending');
+        attempts += 1;
+        if (attempts < 20 && !cancelled) {
+          timer = setTimeout(checkStatus, 3000);
+        } else if (!cancelled) {
+          setPaymentVerificationStatus('unavailable');
+        }
+      } catch {
+        if (cancelled) return;
+        attempts += 1;
+        if (attempts < 20) {
+          timer = setTimeout(checkStatus, 3000);
+        } else {
+          setPaymentVerificationStatus('unavailable');
+        }
+      }
+    };
+
+    checkStatus();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [user, pendingPaymentOrderId]);
 
   // Automatic admin promotion strictly for verified Firebase Auth admin emails
   const isVerifiedAdminEmail =
