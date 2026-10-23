@@ -22,7 +22,13 @@ export default async function handler(req, res) {
 
   const authorization = String(req.headers.authorization || '');
   const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
-  const firebaseUser = await verifyFirebaseIdToken(idToken, process.env.FIREBASE_WEB_API_KEY);
+  let firebaseUser;
+  try {
+    firebaseUser = await verifyFirebaseIdToken(idToken, process.env.FIREBASE_WEB_API_KEY);
+  } catch (error) {
+    console.error('[Admin notification]: Authentication service unavailable:', error);
+    return res.status(503).json({ error: 'Authentication temporarily unavailable' });
+  }
   if (!firebaseUser) return res.status(401).json({ error: 'Authentication required' });
 
   try {
