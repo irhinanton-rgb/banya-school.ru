@@ -183,8 +183,7 @@ export function formatTelegramMessageHtml(payload: AdminMessagePayload): string 
 export async function sendServerTelegramNotification(payload: AdminMessagePayload): Promise<boolean> {
   const candidateEndpoints = ['/api/admin-notification'];
   const currentUser = auth.currentUser;
-  if (!currentUser) return false;
-  const idToken = await currentUser.getIdToken();
+  const idToken = currentUser ? await currentUser.getIdToken() : null;
 
   const bodyStr = JSON.stringify({
     ...payload,
@@ -199,7 +198,7 @@ export async function sendServerTelegramNotification(payload: AdminMessagePayloa
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
         },
         body: bodyStr,
         signal: controller.signal,
