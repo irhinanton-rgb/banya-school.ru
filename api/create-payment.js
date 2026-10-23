@@ -51,15 +51,15 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const { amount, userEmail } = body;
 
-    // Reject invalid prices and fail closed before any payment/order side effects.
-    if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY || !process.env.FIREBASE_SERVICE_ACCOUNT_JSON || !process.env.FIREBASE_WEB_API_KEY) {
-      console.error('Payment/Firebase server credentials are not configured.');
-      return res.status(503).json({ error: 'Платёж временно недоступен. Свяжитесь с поддержкой.' });
-    }
+    // Reject client-selected prices before any payment/order side effects.
     if (Number(amount) !== 3390) {
       return res.status(400).json({ error: 'Стоимость заказа изменилась. Обновите страницу и повторите попытку.' });
     }
     const validAmount = '3390.00';
+    if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY || !process.env.FIREBASE_SERVICE_ACCOUNT_JSON || !process.env.FIREBASE_WEB_API_KEY) {
+      console.error('Payment/Firebase server credentials are not configured.');
+      return res.status(503).json({ error: 'Платёж временно недоступен. Свяжитесь с поддержкой.' });
+    }
 
     const authorization = String(req.headers.authorization || '');
     const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
