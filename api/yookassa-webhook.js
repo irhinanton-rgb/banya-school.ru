@@ -49,6 +49,32 @@ function fetchVerifiedPayment(paymentId) {
   });
 }
 
+async function notifySuccessfulPayment(order, payment, metadata) {
+  if (order.telegramNotifiedAt) return true;
+  const amountVal = payment?.amount?.value || order.amount;
+  const currency = payment?.amount?.currency || order.currency;
+  const message = [
+    `🎉 <b>[ЮKassa] ОПЛАТА КУРСА ПОДТВЕРЖДЕНА!</b>`,
+    ` `,
+    `💰 <b>Сумма:</b> ${escapeHtml(amountVal)} ${escapeHtml(currency)}`,
+    `🎓 <b>Тариф:</b> «Мастер Пара PRO»`,
+    metadata?.userName ? `👤 <b>Ученик:</b> ${escapeHtml(metadata.userName)}` : null,
+    (metadata?.userEmail || order.userEmail) ? `📧 <b>Email:</b> ${escapeHtml(metadata?.userEmail || order.userEmail)}` : null,
+    `🧾 <b>Номер заказа:</b> <code>${escapeHtml(order.orderId)}</code>`,
+    `🧾 <b>ID платежа ЮKassa:</b> <code>${escapeHtml(payment.id)}</code>`,
+    payment?.description ? `📝 <b>Назначение:</b> ${escapeHtml(payment.description)}` : null,
+    `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
+    ` `,
+    `✅ <i>Платёж сверён с заказом; доступ к курсу выдан.</i>`,
+  ].filter(Boolean).join('\\n');
+  const results = await broadcastToAdmins(message);
+  const delivered = results.length > 0 && results.every((result) => result?.ok === true);
+  if (!delivered) return false;
+  await updateOrder(order.orderId, { telegramNotifiedAt: new Date().toISOString() });
+  order.telegramNotifiedAt = new Date().toISOString();
+  return true;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -98,6 +124,13 @@ export default async function handler(req, res) {
       }
 
       if (order.status === 'succeeded') {
+        try {
+          const notified = await notifySuccessfulPayment(order, verifiedPayment, metadata);
+          if (!notified) return res.status(503).json({ error: 'Payment is processed; Telegram notification will be retried' });
+        } catch (error) {
+          console.error('[YooKassa Webhook]: Telegram notification failed:', error);
+          return res.status(503).json({ error: 'Payment is processed; notification retry required' });
+        }
         return res.status(200).json({ status: 'already_processed' });
       }
 
@@ -114,21 +147,13 @@ export default async function handler(req, res) {
         return res.status(503).json({ error: 'Payment verified; entitlement processing will retry' });
       }
 
-      broadcastToAdmins(
-        [
-          `🎉 <b>[ЮKassa] ОПЛАТА КУРСА ПОДТВЕРЖДЕНА!</b>`,
-          ``,
-          `💰 <b>Сумма:</b> ${escapeHtml(amountVal)} ${escapeHtml(currency)}`,
-          `🎓 <b>Тариф:</b> «Мастер Пара PRO»`,
-          metadata?.userName ? `👤 <b>Ученик:</b> ${escapeHtml(metadata.userName)}` : null,
-          metadata?.userEmail ? `📧 <b>Email:</b> ${escapeHtml(metadata.userEmail)}` : null,
-          `🧾 <b>ID платежа ЮKassa:</b> <code>${escapeHtml(verifiedPayment.id)}</code>`,
-          verifiedPayment?.description ? `📝 <b>Назначение:</b> ${escapeHtml(verifiedPayment.description)}` : null,
-          `🕒 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`,
-          ``,
-          `✅ <i>Платёж сверён с заказом; доступ к курсу выдан.</i>`,
-        ].filter(Boolean).join('\n')
-      ).catch((e) => console.warn('TG webhook notify warning:', e));
+      try {
+        const notified = await notifySuccessfulPayment({ ...order, status: 'succeeded' }, verifiedPayment, metadata);
+        if (!notified) return res.status(503).json({ error: 'Payment is processed; Telegram notification will be retried' });
+      } catch (error) {
+        console.error('[YooKassa Webhook]: Telegram notification failed:', error);
+        return res.status(503).json({ error: 'Payment is processed; notification retry required' });
+      }
 
       return res.status(200).json({ status: 'ok' });
     }
